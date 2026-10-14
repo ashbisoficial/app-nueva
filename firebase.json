@@ -15,6 +15,7 @@
     }
   ],
   "hosting": {
+    "site": "serangelia",
     "public": "dist/app-nueva/browser",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
