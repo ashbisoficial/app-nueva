@@ -81,12 +81,14 @@ look fijo para todos:
   Configuración. El color por defecto (el que ve alguien que nunca tocó nada)
   es **rosa palo**, con un set de colores de contraste pensado para que
   funcione como fondo/acento (no como color de texto — el texto usa un
-  café-rosado oscuro, nunca negro puro). Hay paletas alternativas
-  predefinidas (ej. "Cielo", "Menta", "Atardecer") para quien prefiera otra
-  base. Técnicamente esto se resuelve con tokens de color (variables CSS) por
-  tema, nunca colores hardcodeados en los componentes — ver el borrador de
-  paleta y tipografía en el artifact "Identidad visual Sergalia" para los
-  valores concretos propuestos (pendiente de aprobación).
+  café-rosado oscuro, nunca negro puro). El resto de paletas predefinidas
+  siguen una "colección floral" (todas nombradas como flores, para que
+  elegir una se sienta cercano en vez de elegir "Tema 3"): **Rosa palo**
+  (predeterminada), **Lavanda**, **Hortensia**, **Azahar**, **Manzanilla** y
+  **Camelia**. Técnicamente esto se resuelve con tokens de color (variables
+  CSS) por tema, nunca colores hardcodeados en los componentes — ver el
+  borrador con los valores concretos en el artifact "Identidad visual
+  Sergalia" (pendiente de aprobación final).
 - **Tipografía.** Fuente cálida y "familiar", no corporativa fría. Entre las
   opciones evaluadas, **Atkinson Hyperlegible** (diseñada por el Braille
   Institute específicamente para legibilidad en baja visión) es la
