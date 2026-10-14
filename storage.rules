@@ -1,0 +1,23 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function personaDoc(personaId) {
+      return firestore.get(/databases/(default)/documents/personas/$(personaId)).data;
+    }
+
+    function tieneAcceso(personaId) {
+      let persona = personaDoc(personaId);
+      return request.auth != null && (
+        persona.uidTitular == request.auth.uid ||
+        ('uidsConAcceso' in persona && request.auth.uid in persona.uidsConAcceso)
+      );
+    }
+
+    match /personas/{personaId}/{tipoArchivo}/{archivo=**} {
+      allow read, write: if tieneAcceso(personaId) &&
+        tipoArchivo in ['documentos', 'historial', 'examenes'];
+    }
+  }
+}

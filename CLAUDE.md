@@ -40,6 +40,32 @@ un backend REST propio para CRUD básico; Cloud Functions solo se usan donde
 hace falta lógica que NO puede confiarse al cliente (validaciones cruzadas,
 acceso con PIN, recordatorios programados).
 
+## 2.1 Usuario objetivo y alcance de funcionalidades multimedia
+
+El usuario típico no es alguien "digital-first": es una persona mayor, o
+alguien que administra el cuidado de una persona mayor o de un familiar
+crónico, cuyo problema real es **perder papeles y perder el hilo de qué
+médico dijo qué**. El diseño prioriza:
+
+- Bajísima fricción para guardar un documento (sacarle una foto a un papel y
+  listo) antes que funcionalidades vistosas.
+- Organización que evite que todo termine en una sola bolsa mezclada (ver
+  "Especialidades", sección 3.9).
+
+**Explícitamente de baja prioridad / NO construir todavía:**
+
+- Una "galería de fotos" como feature propia (feed, álbumes, edición de
+  imágenes, etc.). La cámara se usa solo como método de captura para digitalizar
+  un documento (ver 4.1), no como una sección de la app en sí misma.
+- Cualquier cosa puramente social o decorativa que no ayude directamente a no
+  perder información o a no perder una toma/cita.
+
+**Nota a futuro (no MVP):** para cuidadores de personas con Alzheimer u otro
+deterioro cognitivo, sí podría valer la pena más adelante un "modo cuidador"
+simplificado o recordatorios con fotos de reconocimiento (ej. foto del
+medicamento junto al nombre). Queda anotado como posible fase 2, no se
+construye ahora.
+
 ## 3. Modelo de datos (Firestore)
 
 ### 3.1 `usuarios/{uid}` — la cuenta
@@ -125,6 +151,10 @@ interface Entrada {
   autorUid: string;
   autorNombre: string;
   createdAt: any;              // serverTimestamp — append-only, prueba que no se alteró después
+
+  // Opcional: a qué especialidad/médico pertenece (sección 3.9) — permite que
+  // no se mezcle el seguimiento de un cardiólogo con el de un endocrinólogo
+  especialidadId?: string;
 }
 ```
 
@@ -178,7 +208,8 @@ type TipoCita = 'control' | 'especialista' | 'examen' | 'cirugia' | 'urgencia' |
   id, titulo, tipo?: TipoCita,
   fechaInicio,       // ISO completo (fecha+hora)
   fechaFin?, lugar?, notas?,
-  creadoPor, personaId, personaNombre  // denormalizado para mostrar en una agenda agregada de toda la familia
+  creadoPor, personaId, personaNombre,  // denormalizado para mostrar en una agenda agregada de toda la familia
+  especialidadId?: string   // opcional, ver 3.9
 }
 ```
 
@@ -187,7 +218,7 @@ type TipoCita = 'control' | 'especialista' | 'examen' | 'cirugia' | 'urgencia' |
 Distinto del resultado que vive en el historial.
 
 ```ts
-{ id, tipo, fechaProgramada?, realizado?, fechaRealizado?, lugar?, notas?, ordenUrl?, resultadoUrl?, creadoPor }
+{ id, tipo, fechaProgramada?, realizado?, fechaRealizado?, lugar?, notas?, ordenUrl?, resultadoUrl?, creadoPor, especialidadId? }
 ```
 
 ### 3.8 `personas/{id}/documentos/{id}` — documentos sueltos
@@ -196,20 +227,45 @@ Documentos que no encajan como "entrada de historial" (carnet de vacunación
 físico escaneado, seguro médico, certificados, etc.).
 
 ```ts
-{ id, nombre, categoria: 'seguro'|'certificado'|'carnet'|'otro', archivoUrl, subidoEn, notas? }
+{ id, nombre, categoria: 'seguro'|'certificado'|'carnet'|'otro', archivoUrl, subidoEn, notas?, especialidadId? }
 ```
+
+### 3.9 `personas/{id}/especialidades/{id}` — catálogo de especialidades/médicos de esa persona
+
+No es un catálogo global fijo (como `EXAMENES_COMUNES`): cada Persona arma el
+suyo a medida que lo necesita, porque lo que importa es **el médico/trato
+puntual de esa persona**, no una lista genérica de especialidades médicas.
+
+```ts
+{
+  id,
+  nombre: string,       // ej. "Cardiología — Dr. Pérez", "Endocrinología", "Oncología"
+  color?: string,        // para distinguir visualmente en listados/calendario
+  notas?: string,
+  activa?: boolean,       // permite "archivar" un seguimiento cerrado sin borrar su historial
+  creadoPor, creadoEn,
+}
+```
+
+Es la pieza que resuelve el pedido explícito de no mezclar todo: documentos,
+entradas de historial, citas y exámenes pueden etiquetarse opcionalmente con
+`especialidadId`, de forma que el seguimiento de una enfermedad crónica o de
+un médico específico se pueda ver aislado del resto (una "carpeta" por
+especialidad), sin que eso sea obligatorio para usar el resto de la app.
 
 ## 4. Funcionalidades por módulo
 
 ### 4.1 Gestión de documentos
 
 - Pantalla "Subir documento": elegir a qué Persona corresponde, categoría,
-  archivo (foto con cámara o desde galería, o PDF), sube a Storage
-  (`personas/{id}/documentos/...`), crea el registro en Firestore.
+  especialidad opcional (3.9), archivo (foto con cámara o desde galería, o
+  PDF), sube a Storage (`personas/{id}/documentos/...`), crea el registro en
+  Firestore. La cámara acá es solo un método de captura de un papel/documento,
+  no una galería de fotos (ver 2.1).
 - El historial médico (3.3) también permite adjuntar un PDF/foto por entrada
   (resultado de examen, orden firmada escaneada).
-- Listado filtrable por persona y por categoría; vista de detalle con el
-  archivo embebido + metadata.
+- Listado filtrable por persona, por categoría **y por especialidad**; vista
+  de detalle con el archivo embebido + metadata.
 
 ### 4.2 Exámenes
 
@@ -293,6 +349,18 @@ volverse lento ni caro a medida que crece la base de usuarios.
 - Casos de uso: emergencia médica donde la persona no puede hablar, llevarlo
   a la escuela/trabajo, etc.
 
+### 4.7 Especialidades (organización por médico/tratamiento)
+
+- Gestionadas desde el detalle de cada Persona: crear/renombrar/archivar
+  especialidades (3.9).
+- Vista "por especialidad": elegida una especialidad, se ve en una sola
+  pantalla todo lo etiquetado con ese `especialidadId` — documentos, entradas
+  de historial, citas y exámenes — ordenado cronológicamente, como una
+  carpeta de ese tratamiento en particular.
+- Etiquetar con especialidad es siempre opcional al crear una entrada,
+  documento, cita o examen; no bloquea el flujo normal de la app para quien no
+  lo necesita.
+
 ## 5. Autenticación y estructura de cuenta
 
 - Firebase Auth: email/contraseña + Google Sign-In (OAuth).
@@ -339,7 +407,7 @@ cuenta principal.
   próximos días, de todas las personas)
 - Listar personas (perfiles bajo la cuenta)
 - Detalle de persona: datos básicos, accesos a Historial clínico /
-  Calendario / Vacunas / Medicamentos / Documentos / Ficha QR
+  Calendario / Vacunas / Medicamentos / Documentos / Especialidades / Ficha QR
 - Historial clínico: timeline de entradas, botón "Nueva entrada" con
   selector de tipo (consulta/receta/vacunación/examen/cirugía/indicaciones de
   alta/solicitud de examen) que cambia los campos del formulario
@@ -348,6 +416,8 @@ cuenta principal.
 - Detalle de cita
 - Mis medicamentos (tratamientos activos + historial de tomas)
 - Subir documento
+- Especialidades: listado + vista "por especialidad" (carpeta de un
+  médico/tratamiento con sus documentos, entradas, citas y exámenes)
 - Ficha de emergencia / QR (configurar qué se muestra + generar PDF + ver
   cómo la ve un extraño)
 - Configuración de cuenta

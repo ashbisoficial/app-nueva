@@ -1,0 +1,61 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/agenda"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ citaId ? 'Editar cita' : 'Nueva cita' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form (ngSubmit)="guardar()">
+    <ion-list>
+      <ion-item>
+        <ion-input label="Título" labelPlacement="floating" [(ngModel)]="titulo" name="titulo" required></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-select label="Tipo" labelPlacement="floating" [(ngModel)]="tipo" name="tipo">
+          @for (t of tipos; track t.value) {
+            <ion-select-option [value]="t.value">{{ t.label }}</ion-select-option>
+          }
+        </ion-select>
+      </ion-item>
+      <ion-item>
+        <ion-input label="Fecha y hora" labelPlacement="floating" type="datetime-local" [(ngModel)]="fechaInicio" name="fechaInicio" required></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input label="Hasta (opcional)" labelPlacement="floating" type="datetime-local" [(ngModel)]="fechaFin" name="fechaFin"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input label="Lugar" labelPlacement="floating" [(ngModel)]="lugar" name="lugar"></ion-input>
+      </ion-item>
+      @if (especialidades().length) {
+        <ion-item>
+          <ion-select label="Especialidad (opcional)" labelPlacement="floating" [(ngModel)]="especialidadId" name="especialidad">
+            <ion-select-option value="">Sin especialidad</ion-select-option>
+            @for (e of especialidades(); track e.id) {
+              <ion-select-option [value]="e.id">{{ e.nombre }}</ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
+      }
+      <ion-item>
+        <ion-textarea label="Notas" labelPlacement="floating" [(ngModel)]="notas" name="notas" autoGrow></ion-textarea>
+      </ion-item>
+    </ion-list>
+
+    <ion-button expand="block" type="submit" class="ion-margin-top" [disabled]="guardando() || !titulo">
+      Guardar
+    </ion-button>
+    <ion-button expand="block" fill="outline" type="button" (click)="exportarIcs()">
+      <ion-icon slot="start" name="download-outline"></ion-icon>
+      Agregar a mi calendario (.ics)
+    </ion-button>
+    @if (citaId) {
+      <ion-button expand="block" fill="clear" color="danger" type="button" (click)="eliminar()">
+        <ion-icon slot="start" name="trash-outline"></ion-icon>
+        Eliminar cita
+      </ion-button>
+    }
+  </form>
+</ion-content>

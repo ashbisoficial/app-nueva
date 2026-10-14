@@ -1,0 +1,92 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="'/personas/' + personaId + '/historial'"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Nueva entrada</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form (ngSubmit)="guardar()">
+    <ion-list>
+      <ion-item>
+        <ion-select label="Tipo de entrada" labelPlacement="floating" [(ngModel)]="tipo" name="tipo">
+          @for (t of tipos; track t.value) {
+            <ion-select-option [value]="t.value">{{ t.label }}</ion-select-option>
+          }
+        </ion-select>
+      </ion-item>
+      <ion-item>
+        <ion-input label="Fecha" labelPlacement="floating" type="date" [(ngModel)]="fecha" name="fecha"></ion-input>
+      </ion-item>
+      @if (especialidades().length) {
+        <ion-item>
+          <ion-select label="Especialidad (opcional)" labelPlacement="floating" [(ngModel)]="especialidadId" name="especialidad">
+            <ion-select-option value="">Sin especialidad</ion-select-option>
+            @for (e of especialidades(); track e.id) {
+              <ion-select-option [value]="e.id">{{ e.nombre }}</ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
+      }
+
+      <ion-item>
+        <ion-input label="Motivo" labelPlacement="floating" [(ngModel)]="motivo" name="motivo"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input label="Diagnóstico" labelPlacement="floating" [(ngModel)]="diagnostico" name="diagnostico"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input label="Tratamiento indicado" labelPlacement="floating" [(ngModel)]="tratamientoIndicado" name="tratamientoIndicado"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-textarea label="Notas" labelPlacement="floating" [(ngModel)]="texto" name="texto" autoGrow></ion-textarea>
+      </ion-item>
+
+      @if (muestraMedicamentos) {
+        <ion-list-header>Medicamentos</ion-list-header>
+        @for (m of medicamentos; track $index) {
+          <ion-item>
+            <ion-input placeholder="Nombre" [(ngModel)]="m.nombre" [name]="'med-nombre-' + $index"></ion-input>
+            <ion-input placeholder="Dosis" [(ngModel)]="m.dosis" [name]="'med-dosis-' + $index"></ion-input>
+            <ion-input placeholder="Frecuencia" [(ngModel)]="m.frecuencia" [name]="'med-frec-' + $index"></ion-input>
+            <ion-button slot="end" fill="clear" color="danger" (click)="quitarMedicamento($index)">
+              <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+            </ion-button>
+          </ion-item>
+        }
+        <ion-item lines="none">
+          <ion-button fill="outline" (click)="agregarMedicamento()">
+            <ion-icon slot="start" name="add-outline"></ion-icon>
+            Agregar medicamento
+          </ion-button>
+        </ion-item>
+      }
+
+      @if (muestraExamenes) {
+        <ion-list-header>Exámenes solicitados</ion-list-header>
+        @for (ex of examenesComunes; track ex) {
+          <ion-item>
+            <ion-checkbox [checked]="examenesSeleccionados.includes(ex)" (ionChange)="toggleExamen(ex, $event.detail.checked)">
+              {{ ex }}
+            </ion-checkbox>
+          </ion-item>
+        }
+      }
+
+      <ion-list-header>Adjuntar archivo (opcional)</ion-list-header>
+      <ion-item lines="none">
+        <input type="file" accept="image/*,application/pdf" (change)="onArchivoSeleccionado($event)" />
+      </ion-item>
+    </ion-list>
+
+    @if (error()) {
+      <p class="ion-padding-start" style="color: var(--ion-color-danger)">{{ error() }}</p>
+    }
+
+    <ion-button expand="block" type="submit" class="ion-margin-top" [disabled]="guardando()">
+      Guardar entrada
+    </ion-button>
+  </form>
+</ion-content>

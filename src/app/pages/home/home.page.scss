@@ -1,0 +1,10 @@
+.accesos-rapidos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.vacio {
+  color: var(--ion-color-medium);
+}

@@ -1,0 +1,78 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Agenda</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="agenda-layout">
+    <div class="columna-grilla">
+      <div class="encabezado-mes">
+        <ion-button fill="clear" (click)="mesAnterior()">
+          <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+        </ion-button>
+        <h2>{{ tituloMes() }}</h2>
+        <ion-button fill="clear" (click)="mesSiguiente()">
+          <ion-icon slot="icon-only" name="chevron-forward-outline"></ion-icon>
+        </ion-button>
+      </div>
+
+      <div class="grilla-dias-semana">
+        @for (d of ['L', 'M', 'M', 'J', 'V', 'S', 'D']; track $index) {
+          <div class="dia-semana">{{ d }}</div>
+        }
+      </div>
+
+      <div class="grilla-mes">
+        @for (celda of celdas(); track $index) {
+          <button
+            type="button"
+            class="celda"
+            [class.vacia]="!celda.iso"
+            [class.hoy]="celda.esHoy"
+            [class.seleccionada]="celda.iso === diaSeleccionado()"
+            (click)="seleccionarDia(celda.iso)"
+          >
+            @if (celda.numero) {
+              <span class="numero">{{ celda.numero }}</span>
+              <span class="puntos">
+                @for (ev of eventosDe(celda.iso).slice(0, 3); track $index) {
+                  <span class="punto" [style.background]="ev.color"></span>
+                }
+              </span>
+            }
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="panel-dia">
+      <h3>{{ diaSeleccionado() | date: 'fullDate' }}</h3>
+      @if (eventosDelDiaSeleccionado().length === 0) {
+        <p style="color: var(--ion-color-medium)">No hay nada agendado este día.</p>
+      } @else {
+        <ion-list>
+          @for (ev of eventosDelDiaSeleccionado(); track $index) {
+            <ion-item [routerLink]="ev.citaId ? ['/agenda', ev.personaId, ev.citaId] : ['/personas', ev.personaId]">
+              <span class="punto" slot="start" [style.background]="ev.color"></span>
+              <ion-label class="ion-text-wrap">
+                <h3>{{ ev.titulo }}</h3>
+                @if (ev.personaNombre) {
+                  <p>{{ ev.personaNombre }}</p>
+                }
+              </ion-label>
+            </ion-item>
+          }
+        </ion-list>
+      }
+
+      <ion-button expand="block" fill="outline" (click)="nuevaCita()">
+        <ion-icon slot="start" name="add-outline"></ion-icon>
+        Nueva cita
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

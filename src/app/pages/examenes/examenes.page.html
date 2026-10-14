@@ -1,0 +1,108 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="'/personas/' + personaId"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Exámenes</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="abrirForm()">
+        <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @if (examenes().length === 0) {
+    <p class="ion-padding" style="color: var(--ion-color-medium)">No hay exámenes registrados.</p>
+  } @else {
+    <ion-list>
+      @for (e of examenes(); track e.id) {
+        <ion-item>
+          <ion-icon slot="start" name="flask-outline"></ion-icon>
+          <ion-label class="ion-text-wrap">
+            <h2>
+              {{ e.tipo }}
+              @if (e.realizado) {
+                <ion-badge color="success">Realizado</ion-badge>
+              } @else {
+                <ion-badge color="warning">Programado</ion-badge>
+              }
+            </h2>
+            @if (e.fechaProgramada) {
+              <p>Programado: {{ e.fechaProgramada | date: 'mediumDate' }}</p>
+            }
+            @if (e.fechaRealizado) {
+              <p>Realizado: {{ e.fechaRealizado | date: 'mediumDate' }}</p>
+            }
+            @if (e.lugar) {
+              <p>{{ e.lugar }}</p>
+            }
+          </ion-label>
+          @if (!e.realizado) {
+            <ion-button slot="end" fill="outline" size="small" (click)="abrirMarcarRealizado(e.id)">
+              Marcar realizado
+            </ion-button>
+          }
+        </ion-item>
+      }
+    </ion-list>
+  }
+</ion-content>
+
+<ion-modal [isOpen]="mostrarForm()" (didDismiss)="mostrarForm.set(false)">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Solicitar examen</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="mostrarForm.set(false)">Cerrar</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <ion-item>
+        <ion-select label="Tipo de examen" labelPlacement="floating" [(ngModel)]="tipo" name="tipo" interface="action-sheet">
+          @for (ex of examenesComunes; track ex) {
+            <ion-select-option [value]="ex">{{ ex }}</ion-select-option>
+          }
+        </ion-select>
+      </ion-item>
+      <ion-item>
+        <ion-input label="O escribí otro tipo" labelPlacement="floating" [(ngModel)]="tipo" name="tipoLibre"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input label="Fecha programada" labelPlacement="floating" type="date" [(ngModel)]="fechaProgramada" name="fechaProgramada"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input label="Lugar" labelPlacement="floating" [(ngModel)]="lugar" name="lugar"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input label="Notas" labelPlacement="floating" [(ngModel)]="notas" name="notas"></ion-input>
+      </ion-item>
+      <ion-button expand="block" class="ion-margin-top" [disabled]="!tipo" (click)="guardar()">Guardar</ion-button>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<ion-modal [isOpen]="marcandoId() !== null" (didDismiss)="marcandoId.set(null)">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Marcar examen realizado</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="marcandoId.set(null)">Cerrar</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <ion-item>
+        <ion-input label="Fecha" labelPlacement="floating" type="date" [(ngModel)]="fechaRealizado" name="fechaRealizado"></ion-input>
+      </ion-item>
+      <ion-item lines="none">
+        <input type="file" accept="image/*,application/pdf" (change)="onArchivoSeleccionado($event)" />
+      </ion-item>
+      <ion-button expand="block" class="ion-margin-top" (click)="confirmarRealizado()">Confirmar</ion-button>
+    </ion-content>
+  </ng-template>
+</ion-modal>

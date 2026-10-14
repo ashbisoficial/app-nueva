@@ -1,0 +1,67 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="'/personas/' + personaId + '/especialidades'"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ especialidad()?.nombre ?? 'Especialidad' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-list-header>Historial clínico</ion-list-header>
+    @if (entradas().length === 0) {
+      <ion-item><ion-label color="medium">Sin entradas</ion-label></ion-item>
+    }
+    @for (e of entradas(); track e.id) {
+      <ion-item>
+        <ion-icon slot="start" name="document-text-outline"></ion-icon>
+        <ion-label class="ion-text-wrap">
+          <h3>{{ e.fecha | date: 'mediumDate' }}</h3>
+          <p>{{ e.motivo || e.diagnostico || e.texto }}</p>
+        </ion-label>
+      </ion-item>
+    }
+
+    <ion-list-header>Citas</ion-list-header>
+    @if (citas().length === 0) {
+      <ion-item><ion-label color="medium">Sin citas</ion-label></ion-item>
+    }
+    @for (c of citas(); track c.id) {
+      <ion-item>
+        <ion-icon slot="start" name="calendar-outline"></ion-icon>
+        <ion-label class="ion-text-wrap">
+          <h3>{{ c.titulo }}</h3>
+          <p>{{ c.fechaInicio | date: 'medium' }}</p>
+        </ion-label>
+      </ion-item>
+    }
+
+    <ion-list-header>Exámenes</ion-list-header>
+    @if (examenes().length === 0) {
+      <ion-item><ion-label color="medium">Sin exámenes</ion-label></ion-item>
+    }
+    @for (ex of examenes(); track ex.id) {
+      <ion-item>
+        <ion-icon slot="start" name="flask-outline"></ion-icon>
+        <ion-label class="ion-text-wrap">
+          <h3>{{ ex.tipo }}</h3>
+          <ion-badge [color]="ex.realizado ? 'success' : 'warning'">
+            {{ ex.realizado ? 'Realizado' : 'Programado' }}
+          </ion-badge>
+        </ion-label>
+      </ion-item>
+    }
+
+    <ion-list-header>Documentos</ion-list-header>
+    @if (documentos().length === 0) {
+      <ion-item><ion-label color="medium">Sin documentos</ion-label></ion-item>
+    }
+    @for (d of documentos(); track d.id) {
+      <ion-item [href]="d.archivoUrl" target="_blank">
+        <ion-icon slot="start" name="folder-outline"></ion-icon>
+        <ion-label>{{ d.nombre }}</ion-label>
+      </ion-item>
+    }
+  </ion-list>
+</ion-content>

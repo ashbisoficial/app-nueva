@@ -1,0 +1,25 @@
+<ion-content class="ion-padding">
+  @if (!cargando()) {
+    @if (persona(); as p) {
+      <div class="tarjeta">
+        <ion-icon name="shield-checkmark-outline" class="icono-principal"></ion-icon>
+        <h1>Ficha de emergencia</h1>
+        <ion-list>
+          @for (c of campos(); track c.etiqueta) {
+            <ion-item lines="full">
+              <ion-label>
+                <p>{{ c.etiqueta }}</p>
+                <h2>{{ c.valor }}</h2>
+              </ion-label>
+            </ion-item>
+          }
+        </ion-list>
+      </div>
+    } @else {
+      <div class="tarjeta">
+        <h1>Ficha no encontrada</h1>
+        <p>Este código no corresponde a ninguna ficha de emergencia.</p>
+      </div>
+    }
+  }
+</ion-content>

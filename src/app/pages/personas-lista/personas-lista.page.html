@@ -1,0 +1,36 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Mis personas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @if ((personas$ | async); as personas) {
+    @if (personas.length === 0) {
+      <p class="ion-padding" style="color: var(--ion-color-medium)">
+        Todavía no agregaste a nadie.
+      </p>
+    } @else {
+      <ion-list>
+        @for (p of personas; track p.id) {
+          <ion-item button [routerLink]="['/personas', p.id]">
+            <ion-icon slot="start" name="person-circle-outline"></ion-icon>
+            <ion-label>
+              <h2>{{ p.nombre }}</h2>
+              <p>{{ p.fechaNacimiento }}</p>
+            </ion-label>
+          </ion-item>
+        }
+      </ion-list>
+    }
+  }
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button routerLink="/personas/nueva">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

@@ -1,0 +1,45 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="'/personas/' + personaId"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Historial clínico</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @if (entradas(); as lista) {
+    @if (lista.length === 0) {
+      <p class="ion-padding" style="color: var(--ion-color-medium)">
+        Todavía no hay entradas en el historial.
+      </p>
+    } @else {
+      <ion-list>
+        @for (e of lista; track e.id) {
+          <ion-item>
+            <ion-label class="ion-text-wrap">
+              <h2>
+                <ion-badge color="primary">{{ etiquetaTipo(e.tipo) }}</ion-badge>
+                {{ e.fecha | date: 'mediumDate' }}
+              </h2>
+              <p>{{ resumen(e) }}</p>
+              @if (e.medicamentos?.length) {
+                <p>
+                  @for (m of e.medicamentos; track m.nombre) {
+                    <ion-badge color="medium">{{ m.nombre }} {{ m.dosis }}</ion-badge>
+                  }
+                </p>
+              }
+            </ion-label>
+          </ion-item>
+        }
+      </ion-list>
+    }
+  }
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button [routerLink]="['/personas', personaId, 'historial', 'nueva']">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

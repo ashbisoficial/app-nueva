@@ -1,0 +1,46 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="'/personas/' + personaId"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Ficha de emergencia</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  @if (!cargando()) {
+    <p style="color: var(--ion-color-medium)">
+      Elegí qué datos se van a ver si alguien escanea el código QR sin iniciar sesión.
+      Nunca se muestra el historial clínico completo.
+    </p>
+
+    <ion-list>
+      <ion-list-header>Datos visibles en la ficha pública</ion-list-header>
+      @for (c of campos; track c.value) {
+        <ion-item>
+          <ion-checkbox
+            [checked]="estaSeleccionado(c.value)"
+            (ionChange)="toggleCampo(c.value, $event.detail.checked); guardarSeleccion()"
+          >
+            {{ c.label }}
+          </ion-checkbox>
+        </ion-item>
+      }
+    </ion-list>
+
+    @if (qrDataUrl(); as qr) {
+      <div class="qr-preview">
+        <img [src]="qr" alt="Código QR de la ficha de emergencia" width="200" height="200" />
+      </div>
+    }
+
+    <ion-button expand="block" (click)="generarPdf()">
+      <ion-icon slot="start" name="print-outline"></ion-icon>
+      Descargar PDF del carnet
+    </ion-button>
+    <ion-button expand="block" fill="outline" (click)="verComoExtrano()">
+      <ion-icon slot="start" name="qr-code-outline"></ion-icon>
+      Ver cómo la ve un extraño
+    </ion-button>
+  }
+</ion-content>

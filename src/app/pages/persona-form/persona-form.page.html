@@ -1,0 +1,59 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/personas"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ personaId ? 'Editar persona' : 'Nueva persona' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form (ngSubmit)="guardar()">
+    <ion-list>
+      <ion-list-header>Datos básicos</ion-list-header>
+      <ion-item>
+        <ion-input label="Nombre completo" labelPlacement="floating" [(ngModel)]="nombre" name="nombre" required></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input label="Fecha de nacimiento" labelPlacement="floating" type="date" [(ngModel)]="fechaNacimiento" name="fechaNacimiento"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-select label="Sexo" labelPlacement="floating" [(ngModel)]="sexo" name="sexo">
+          <ion-select-option value="femenino">Femenino</ion-select-option>
+          <ion-select-option value="masculino">Masculino</ion-select-option>
+          <ion-select-option value="otro">Otro</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-list-header>Salud crítica</ion-list-header>
+      <ion-item>
+        <ion-select label="Grupo sanguíneo" labelPlacement="floating" [(ngModel)]="grupoSanguineo" name="grupoSanguineo">
+          @for (g of ['O-', 'O+', 'A-', 'A+', 'B-', 'B+', 'AB-', 'AB+']; track g) {
+            <ion-select-option [value]="g">{{ g }}</ion-select-option>
+          }
+        </ion-select>
+      </ion-item>
+      <ion-item>
+        <ion-textarea label="Alergias (separadas por coma)" labelPlacement="floating" [(ngModel)]="alergiasTexto" name="alergias" autoGrow></ion-textarea>
+      </ion-item>
+      <ion-item>
+        <ion-textarea label="Enfermedades crónicas (separadas por coma)" labelPlacement="floating" [(ngModel)]="enfermedadesTexto" name="enfermedades" autoGrow></ion-textarea>
+      </ion-item>
+      <ion-item>
+        <ion-textarea label="Medicamentos permanentes (separados por coma)" labelPlacement="floating" [(ngModel)]="medicamentosTexto" name="medicamentos" autoGrow></ion-textarea>
+      </ion-item>
+
+      <ion-list-header>Contacto de emergencia</ion-list-header>
+      <ion-item>
+        <ion-input label="Nombre del contacto" labelPlacement="floating" [(ngModel)]="contactoEmergencia" name="contactoEmergencia"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input label="Teléfono" labelPlacement="floating" type="tel" [(ngModel)]="telefonoEmergencia" name="telefonoEmergencia"></ion-input>
+      </ion-item>
+    </ion-list>
+
+    <ion-button expand="block" type="submit" class="ion-margin-top" [disabled]="guardando() || !nombre">
+      Guardar
+    </ion-button>
+  </form>
+</ion-content>

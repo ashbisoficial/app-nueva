@@ -1,0 +1,72 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function estaAutenticado() {
+      return request.auth != null;
+    }
+
+    function personaDoc(personaId) {
+      return get(/databases/$(database)/documents/personas/$(personaId)).data;
+    }
+
+    function esTitular(personaId) {
+      return estaAutenticado() && personaDoc(personaId).uidTitular == request.auth.uid;
+    }
+
+    function tieneAccesoCompartido(personaId) {
+      return estaAutenticado() &&
+        'uidsConAcceso' in personaDoc(personaId) &&
+        request.auth.uid in personaDoc(personaId).uidsConAcceso;
+    }
+
+    function puedeEscribirCompartido(personaId) {
+      return tieneAccesoCompartido(personaId) &&
+        personaDoc(personaId).get('modoAccesoCompartido', 'lectura') == 'escritura';
+    }
+
+    // "¿Puede ver este perfil?" — titular o alguien con acceso compartido (sección 6).
+    function tieneAcceso(personaId) {
+      return esTitular(personaId) || tieneAccesoCompartido(personaId);
+    }
+
+    // "¿Puede cargar/editar datos de este perfil?"
+    function puedeEscribir(personaId) {
+      return esTitular(personaId) || puedeEscribirCompartido(personaId);
+    }
+
+    match /usuarios/{uid} {
+      allow read, write: if estaAutenticado() && request.auth.uid == uid;
+    }
+
+    match /personas/{personaId} {
+      allow read: if tieneAcceso(personaId);
+      allow create: if estaAutenticado() && request.resource.data.uidTitular == request.auth.uid;
+      // Quien solo tiene acceso compartido nunca puede tocar la titularidad, el PIN
+      // ni la lista de accesos: eso se administra únicamente vía Cloud Functions.
+      allow update: if esTitular(personaId) ||
+        (puedeEscribirCompartido(personaId) &&
+         request.resource.data.uidTitular == resource.data.uidTitular &&
+         request.resource.data.get('uidsConAcceso', []) == resource.data.get('uidsConAcceso', []) &&
+         request.resource.data.get('pinAccesoCompartido', null) == resource.data.get('pinAccesoCompartido', null));
+      allow delete: if esTitular(personaId);
+
+      // Historial clínico: append-only, sin excepciones (sección 3.3 y 7 del spec).
+      match /historialMedico/{entradaId} {
+        allow read: if tieneAcceso(personaId);
+        allow create: if puedeEscribir(personaId) &&
+          request.resource.data.autorUid == request.auth.uid;
+        allow update, delete: if false;
+      }
+
+      // Resto de subcolecciones: CRUD normal para quien tiene acceso al perfil.
+      match /{coleccion}/{itemId} {
+        allow read: if tieneAcceso(personaId) &&
+          coleccion in ['vacunas', 'medicamentosActivos', 'citas', 'examenes', 'documentos', 'especialidades'];
+        allow create, update, delete: if puedeEscribir(personaId) &&
+          coleccion in ['vacunas', 'medicamentosActivos', 'citas', 'examenes', 'documentos', 'especialidades'];
+      }
+    }
+  }
+}

@@ -1,0 +1,83 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Hola{{ auth.usuario()?.displayName ? ', ' + auth.usuario()?.displayName : '' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button routerLink="/configuracion">
+        <ion-icon slot="icon-only" name="settings-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="accesos-rapidos">
+    <ion-button routerLink="/personas/nueva" fill="outline">
+      <ion-icon slot="start" name="person-add-outline"></ion-icon>
+      Agregar persona
+    </ion-button>
+    <ion-button routerLink="/agenda" fill="outline">
+      <ion-icon slot="start" name="calendar-outline"></ion-icon>
+      Ver agenda
+    </ion-button>
+    <ion-button routerLink="/personas" fill="outline">
+      <ion-icon slot="start" name="people-outline"></ion-icon>
+      Mis personas
+    </ion-button>
+    <ion-button routerLink="/canjear-pin" fill="outline">
+      <ion-icon slot="start" name="key-outline"></ion-icon>
+      Tengo un PIN
+    </ion-button>
+  </div>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Próximos días</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      @if ((eventos$ | async); as eventos) {
+        @if (eventos.length === 0) {
+          <p class="vacio">No hay vacunas, citas ni tratamientos por vencer en los próximos 14 días.</p>
+        } @else {
+          <ion-list>
+            @for (ev of eventos; track ev.fecha + ev.titulo) {
+              <ion-item button [routerLink]="['/personas', ev.personaId]">
+                <ion-icon slot="start" [name]="iconoEvento(ev.tipo)"></ion-icon>
+                <ion-label>
+                  <h3>{{ ev.titulo }}</h3>
+                  <p>{{ ev.fecha | date: 'medium' }} @if (ev.personaNombre) { · {{ ev.personaNombre }} }</p>
+                </ion-label>
+              </ion-item>
+            }
+          </ion-list>
+        }
+      }
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Mis personas</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      @if ((personas$ | async); as personas) {
+        @if (personas.length === 0) {
+          <p class="vacio">Todavía no agregaste a nadie. Empezá agregándote a vos mismo/a o a un familiar.</p>
+        } @else {
+          <ion-list>
+            @for (p of personas; track p.id) {
+              <ion-item button [routerLink]="['/personas', p.id]">
+                <ion-icon slot="start" name="person-circle-outline"></ion-icon>
+                <ion-label>{{ p.nombre }}</ion-label>
+              </ion-item>
+            }
+          </ion-list>
+        }
+      }
+    </ion-card-content>
+  </ion-card>
+
+  <ion-button expand="block" fill="clear" color="medium" (click)="logout()">
+    <ion-icon slot="start" name="log-out-outline"></ion-icon>
+    Cerrar sesión
+  </ion-button>
+</ion-content>

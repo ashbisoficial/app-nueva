@@ -1,0 +1,49 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/personas"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ persona()?.nombre ?? 'Persona' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button [routerLink]="['/personas', personaId, 'editar']">
+        <ion-icon slot="icon-only" name="settings-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @if (persona(); as p) {
+    <div class="ion-padding resumen">
+      <p><strong>Nacimiento:</strong> {{ p.fechaNacimiento || '—' }}</p>
+      @if (p.grupoSanguineo) {
+        <ion-chip color="danger">Grupo {{ p.grupoSanguineo }}</ion-chip>
+      }
+      @for (a of p.alergias; track a) {
+        <ion-chip color="warning">{{ a }}</ion-chip>
+      }
+      @for (e of p.enfermedadesCronicas; track e) {
+        <ion-chip color="tertiary">{{ e }}</ion-chip>
+      }
+    </div>
+  }
+
+  <ion-list>
+    @for (m of modulos; track m.ruta) {
+      <ion-item button [routerLink]="['/personas', personaId, m.ruta]">
+        <ion-icon slot="start" [name]="m.icono"></ion-icon>
+        <ion-label>{{ m.label }}</ion-label>
+      </ion-item>
+    }
+  </ion-list>
+
+  <ion-button expand="block" fill="outline" (click)="compartirPorPin()">
+    <ion-icon slot="start" name="key-outline"></ion-icon>
+    Compartir este perfil con un PIN
+  </ion-button>
+
+  <ion-button expand="block" fill="clear" color="danger" (click)="confirmarEliminar()">
+    <ion-icon slot="start" name="trash-outline"></ion-icon>
+    Eliminar persona
+  </ion-button>
+</ion-content>

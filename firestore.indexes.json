@@ -1,0 +1,84 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "vacunas",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [{ "fieldPath": "proximaFecha", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "vacunas",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "creadoPor", "order": "ASCENDING" },
+        { "fieldPath": "proximaFecha", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "medicamentosActivos",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [{ "fieldPath": "fechaFin", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "medicamentosActivos",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "creadoPor", "order": "ASCENDING" },
+        { "fieldPath": "fechaFin", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "citas",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [{ "fieldPath": "fechaInicio", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "citas",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "creadoPor", "order": "ASCENDING" },
+        { "fieldPath": "fechaInicio", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "historialMedico",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "especialidadId", "order": "ASCENDING" },
+        { "fieldPath": "fecha", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "documentos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "especialidadId", "order": "ASCENDING" },
+        { "fieldPath": "subidoEn", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "citas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "especialidadId", "order": "ASCENDING" },
+        { "fieldPath": "fechaInicio", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "examenes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "especialidadId", "order": "ASCENDING" },
+        { "fieldPath": "fechaProgramada", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "especialidades",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "activa", "order": "ASCENDING" },
+        { "fieldPath": "nombre", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

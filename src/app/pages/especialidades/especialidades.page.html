@@ -1,0 +1,60 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="'/personas/' + personaId"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Especialidades</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="abrirForm()">
+        <ion-icon slot="icon-only" name="add-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <p class="ion-padding-horizontal" style="color: var(--ion-color-medium)">
+    Organizá documentos, consultas, citas y exámenes por médico o tratamiento,
+    para que no se mezclen entre sí.
+  </p>
+
+  @if (especialidades().length === 0) {
+    <p class="ion-padding" style="color: var(--ion-color-medium)">Todavía no creaste ninguna.</p>
+  } @else {
+    <ion-list>
+      @for (e of especialidades(); track e.id) {
+        <ion-item button [routerLink]="['/personas', personaId, 'especialidades', e.id]">
+          <ion-icon slot="start" name="pricetag-outline"></ion-icon>
+          <ion-label>
+            <h2>{{ e.nombre }}</h2>
+            @if (e.notas) {
+              <p>{{ e.notas }}</p>
+            }
+          </ion-label>
+        </ion-item>
+      }
+    </ion-list>
+  }
+</ion-content>
+
+<ion-modal [isOpen]="mostrarForm()" (didDismiss)="mostrarForm.set(false)">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Nueva especialidad</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="mostrarForm.set(false)">Cerrar</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <ion-item>
+        <ion-input label="Nombre (ej. Cardiología — Dr. Pérez)" labelPlacement="floating" [(ngModel)]="nombre" name="nombre" required></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-input label="Notas" labelPlacement="floating" [(ngModel)]="notas" name="notas"></ion-input>
+      </ion-item>
+      <ion-button expand="block" class="ion-margin-top" [disabled]="!nombre" (click)="guardar()">Guardar</ion-button>
+    </ion-content>
+  </ng-template>
+</ion-modal>

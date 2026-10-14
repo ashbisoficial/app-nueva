@@ -1,0 +1,25 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Configuración</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <ion-list-header>Cuenta</ion-list-header>
+    <ion-item>
+      <ion-label>
+        <h2>{{ auth.usuario()?.displayName || 'Sin nombre' }}</h2>
+        <p>{{ auth.usuario()?.email }}</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ion-button expand="block" fill="outline" color="danger" class="ion-margin" (click)="logout()">
+    <ion-icon slot="start" name="log-out-outline"></ion-icon>
+    Cerrar sesión
+  </ion-button>
+</ion-content>
