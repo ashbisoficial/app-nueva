@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { IonContent, IonIcon, IonItem, IonLabel, IonList } from '@ionic/angular';
+import { IonContent, IonIcon, IonItem, IonLabel, IonList, IonSpinner } from '@ionic/angular';
 import type { CampoFichaPublica, Persona } from '../../models';
 import { PersonasService } from '../../services/personas.service';
 
@@ -24,7 +24,7 @@ interface CampoMostrado {
 @Component({
   selector: 'app-ficha-publica',
   standalone: true,
-  imports: [CommonModule, IonContent, IonList, IonItem, IonLabel, IonIcon],
+  imports: [CommonModule, IonContent, IonList, IonItem, IonLabel, IonIcon, IonSpinner],
   templateUrl: './ficha-publica.page.html',
   styleUrl: './ficha-publica.page.scss',
 })
@@ -35,25 +35,31 @@ export class FichaPublicaPage {
   cargando = signal(true);
   persona = signal<Persona | null>(null);
   campos = signal<CampoMostrado[]>([]);
+  error = signal(false);
 
   constructor() {
     void this.cargar();
   }
 
   private async cargar(): Promise<void> {
-    const token = this.route.snapshot.paramMap.get('token') ?? '';
-    const persona = await this.personasSvc.buscarPorTokenFicha(token);
-    this.persona.set(persona ?? null);
+    try {
+      const token = this.route.snapshot.paramMap.get('token') ?? '';
+      const persona = await this.personasSvc.buscarPorTokenFicha(token);
+      this.persona.set(persona ?? null);
 
-    if (persona?.qrFichaCamposPublicos) {
-      this.campos.set(
-        persona.qrFichaCamposPublicos.map((campo) => ({
-          etiqueta: ETIQUETAS[campo],
-          valor: this.valorCampo(persona, campo),
-        }))
-      );
+      if (persona?.qrFichaCamposPublicos) {
+        this.campos.set(
+          persona.qrFichaCamposPublicos.map((campo) => ({
+            etiqueta: ETIQUETAS[campo],
+            valor: this.valorCampo(persona, campo),
+          }))
+        );
+      }
+    } catch {
+      this.error.set(true);
+    } finally {
+      this.cargando.set(false);
     }
-    this.cargando.set(false);
   }
 
   private valorCampo(persona: Persona, campo: CampoFichaPublica): string {

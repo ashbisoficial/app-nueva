@@ -13,6 +13,7 @@ import {
   IonItem,
   IonList,
   IonListHeader,
+  IonSpinner,
   IonTitle,
   IonToolbar,
 } from '@ionic/angular';
@@ -50,6 +51,7 @@ const TODOS_LOS_CAMPOS: { value: CampoFichaPublica; label: string }[] = [
     IonListHeader,
     IonItem,
     IonCheckbox,
+    IonSpinner,
   ],
   templateUrl: './ficha-emergencia.page.html',
   styleUrl: './ficha-emergencia.page.scss',
@@ -66,26 +68,30 @@ export class FichaEmergenciaPage {
   qrDataUrl = signal<string | null>(null);
   urlPublica = signal<string>('');
   cargando = signal(true);
+  error = signal(false);
 
   constructor() {
     void this.cargar();
   }
 
   private async cargar(): Promise<void> {
-    const persona = await this.personasSvc.obtener(this.personaId);
-    if (!persona) {
+    try {
+      const persona = await this.personasSvc.obtener(this.personaId);
+      if (!persona) return;
+
+      if (persona.qrFichaCamposPublicos?.length) {
+        this.seleccionados.set(persona.qrFichaCamposPublicos);
+      }
+      const token = await this.personasSvc.asegurarTokenFicha(this.personaId);
+      const url = urlFichaPublica(token);
+      this.urlPublica.set(url);
+      this.qrDataUrl.set(await generarQrDataUrl(url));
+      this.persona.set({ ...persona, qrFichaToken: token });
+    } catch {
+      this.error.set(true);
+    } finally {
       this.cargando.set(false);
-      return;
     }
-    if (persona.qrFichaCamposPublicos?.length) {
-      this.seleccionados.set(persona.qrFichaCamposPublicos);
-    }
-    const token = await this.personasSvc.asegurarTokenFicha(this.personaId);
-    const url = urlFichaPublica(token);
-    this.urlPublica.set(url);
-    this.qrDataUrl.set(await generarQrDataUrl(url));
-    this.persona.set({ ...persona, qrFichaToken: token });
-    this.cargando.set(false);
   }
 
   estaSeleccionado(campo: CampoFichaPublica): boolean {
