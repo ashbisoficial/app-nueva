@@ -40,6 +40,18 @@ service cloud.firestore {
       allow read, write: if estaAutenticado() && request.auth.uid == uid;
     }
 
+    // Índice de unicidad de RUT (sección 6.1): el id del doc ES el RUT
+    // normalizado, así que un segundo "create" sobre el mismo RUT en
+    // realidad es un "update" para Firestore — y update está bloqueado acá,
+    // lo que impide tener dos cuentas con el mismo RUT sin depender de una
+    // Cloud Function.
+    match /rutsRegistrados/{rut} {
+      allow read: if false;
+      allow create: if estaAutenticado() && request.resource.data.uid == request.auth.uid;
+      allow update: if false;
+      allow delete: if estaAutenticado() && resource.data.uid == request.auth.uid;
+    }
+
     match /personas/{personaId} {
       allow read: if tieneAcceso(personaId);
       allow create: if estaAutenticado() && request.resource.data.uidTitular == request.auth.uid;

@@ -1,0 +1,23 @@
+.registro-content {
+  --background: var(--ion-color-light, #f4f5f8);
+}
+
+.registro-card {
+  max-width: 420px;
+  margin: 10vh auto 0;
+  padding: 24px;
+  background: var(--ion-background-color, #fff);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+h1 {
+  font-size: 1.4rem;
+  margin-bottom: 4px;
+}
+
+.subtitulo {
+  color: var(--ion-color-medium);
+  margin-top: 0;
+  margin-bottom: 20px;
+}

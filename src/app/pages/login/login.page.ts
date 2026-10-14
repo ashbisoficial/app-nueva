@@ -63,7 +63,7 @@ export class LoginPage {
       } else {
         await this.auth.login(this.email, this.password);
       }
-      await this.router.navigateByUrl('/');
+      await this.navegarSegunRut();
     } catch (e) {
       this.error.set(this.mensajeError(e));
     } finally {
@@ -76,12 +76,19 @@ export class LoginPage {
     this.cargando.set(true);
     try {
       await this.auth.loginConGoogle();
-      await this.router.navigateByUrl('/');
+      await this.navegarSegunRut();
     } catch (e) {
       this.error.set(this.mensajeError(e));
     } finally {
       this.cargando.set(false);
     }
+  }
+
+  /** Si la cuenta todavía no tiene RUT (sección 6.1), hay que completarlo antes de entrar. */
+  private async navegarSegunRut(): Promise<void> {
+    const uid = this.auth.uidActual;
+    const usuario = uid ? await this.auth.obtenerUsuario(uid) : undefined;
+    await this.router.navigateByUrl(usuario?.rut ? '/' : '/completar-registro');
   }
 
   private mensajeError(e: unknown): string {

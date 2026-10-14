@@ -1,0 +1,41 @@
+<ion-content class="ion-padding registro-content">
+  <div class="registro-card">
+    <h1>Un último paso</h1>
+    <p class="subtitulo">
+      Para que cada persona tenga una sola cuenta en Serangelia, necesitamos tu RUT.
+    </p>
+
+    <form (ngSubmit)="confirmar()">
+      <ion-list>
+        <ion-item>
+          <ion-input
+            label="RUT"
+            labelPlacement="floating"
+            placeholder="12.345.678-9"
+            [ngModel]="rut"
+            (ngModelChange)="onRutInput($event)"
+            name="rut"
+            required
+          ></ion-input>
+        </ion-item>
+      </ion-list>
+
+      @if (error()) {
+        <ion-text color="danger">
+          <p class="ion-padding-start">{{ error() }}</p>
+        </ion-text>
+      }
+
+      <ion-button expand="block" type="submit" class="ion-margin-top" [disabled]="cargando() || !rut">
+        @if (cargando()) {
+          <ion-spinner name="dots"></ion-spinner>
+        } @else {
+          Continuar
+        }
+      </ion-button>
+      <ion-button expand="block" fill="clear" color="medium" type="button" (click)="cerrarSesion()">
+        Cerrar sesión
+      </ion-button>
+    </form>
+  </div>
+</ion-content>

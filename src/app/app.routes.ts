@@ -17,6 +17,12 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/ficha-perdida/ficha-perdida.page').then((m) => m.FichaPerdidaPage),
   },
   {
+    path: 'completar-registro',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/completar-registro/completar-registro.page').then((m) => m.CompletarRegistroPage),
+  },
+  {
     path: '',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/home/home.page').then((m) => m.HomePage),

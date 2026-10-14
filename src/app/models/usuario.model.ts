@@ -5,4 +5,6 @@ export interface Usuario {
   foto?: string;
   telefono?: string;
   fechaRegistro: unknown;
+  /** Normalizado (sin puntos ni guión, dígito verificador en mayúscula) — ver sección 6.1 del spec. */
+  rut?: string;
 }
