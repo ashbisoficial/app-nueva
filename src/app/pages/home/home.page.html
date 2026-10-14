@@ -10,6 +10,17 @@
 </ion-header>
 
 <ion-content class="ion-padding">
+  <div class="accesos-rapidos accesos-rapidos--principal">
+    <ion-button (click)="subirDocumento()" fill="solid" size="large">
+      <ion-icon slot="start" name="camera-outline"></ion-icon>
+      Subir documento
+    </ion-button>
+    <ion-button (click)="verMedicamentos()" fill="solid" color="secondary" size="large">
+      <ion-icon slot="start" name="medkit-outline"></ion-icon>
+      Mis medicamentos
+    </ion-button>
+  </div>
+
   <div class="accesos-rapidos">
     <ion-button routerLink="/personas/nueva" fill="outline">
       <ion-icon slot="start" name="person-add-outline"></ion-icon>

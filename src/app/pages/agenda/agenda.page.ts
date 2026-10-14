@@ -6,7 +6,6 @@ import type { User } from 'firebase/auth';
 import { where } from 'firebase/firestore';
 import { filter, switchMap } from 'rxjs';
 import {
-  AlertController,
   IonBackButton,
   IonButton,
   IonButtons,
@@ -20,10 +19,10 @@ import {
   IonToolbar,
 } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
+import { SelectorPersonaService } from '../../core/selector-persona.service';
 import { TIPOS_CITA } from '../../models';
 import { CitasService } from '../../services/citas.service';
 import { MedicamentosActivosService } from '../../services/medicamentos-activos.service';
-import { PersonasService } from '../../services/personas.service';
 import { VacunasService } from '../../services/vacunas.service';
 
 interface EventoDia {
@@ -67,8 +66,7 @@ export class AgendaPage {
   private citasSvc = inject(CitasService);
   private vacunasSvc = inject(VacunasService);
   private medicamentosSvc = inject(MedicamentosActivosService);
-  private personasSvc = inject(PersonasService);
-  private alertCtrl = inject(AlertController);
+  private selectorPersona = inject(SelectorPersonaService);
   private router = inject(Router);
 
   private usuario$ = toObservable(this.auth.usuario).pipe(filter((u): u is User => !!u));
@@ -185,44 +183,7 @@ export class AgendaPage {
   async nuevaCita(): Promise<void> {
     const uid = this.auth.usuario()?.uid;
     if (!uid) return;
-    const personas = await new Promise<{ id: string; nombre: string }[]>((resolve) => {
-      const sub = this.personasSvc.misPersonas$(uid).subscribe((p) => {
-        resolve(p);
-        sub.unsubscribe();
-      });
-    });
-
-    if (personas.length === 0) {
-      const alert = await this.alertCtrl.create({
-        header: 'Agregá una persona primero',
-        message: 'Para crear una cita necesitás tener al menos un perfil creado.',
-        buttons: ['Ok'],
-      });
-      await alert.present();
-      return;
-    }
-
-    if (personas.length === 1) {
-      await this.router.navigate(['/agenda', personas[0].id, 'nueva']);
-      return;
-    }
-
-    const alert = await this.alertCtrl.create({
-      header: '¿Para quién es la cita?',
-      inputs: personas.map((p, i) => ({
-        type: 'radio' as const,
-        label: p.nombre,
-        value: p.id,
-        checked: i === 0,
-      })),
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Continuar',
-          handler: (personaId: string) => this.router.navigate(['/agenda', personaId, 'nueva']),
-        },
-      ],
-    });
-    await alert.present();
+    const personaId = await this.selectorPersona.elegir(uid, '¿Para quién es la cita?');
+    if (personaId) await this.router.navigate(['/agenda', personaId, 'nueva']);
   }
 }

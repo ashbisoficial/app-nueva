@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import type { User } from 'firebase/auth';
 import {
   IonButton,
@@ -21,6 +21,7 @@ import {
 } from '@ionic/angular';
 import { filter, switchMap } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
+import { SelectorPersonaService } from '../../core/selector-persona.service';
 import { HomeService } from '../../services/home.service';
 import { PersonasService } from '../../services/personas.service';
 
@@ -52,6 +53,8 @@ export class HomePage {
   auth = inject(AuthService);
   private personasSvc = inject(PersonasService);
   private homeSvc = inject(HomeService);
+  private selectorPersona = inject(SelectorPersonaService);
+  private router = inject(Router);
 
   private usuario$ = toObservable(this.auth.usuario);
 
@@ -67,6 +70,21 @@ export class HomePage {
 
   async logout(): Promise<void> {
     await this.auth.logout();
+  }
+
+  /** Acceso directo: subir un documento en el menor número de toques posible (sección 8 del spec). */
+  async subirDocumento(): Promise<void> {
+    const uid = this.auth.usuario()?.uid;
+    if (!uid) return;
+    const personaId = await this.selectorPersona.elegir(uid, '¿De quién es el documento?');
+    if (personaId) await this.router.navigate(['/personas', personaId, 'documentos'], { queryParams: { subir: 1 } });
+  }
+
+  async verMedicamentos(): Promise<void> {
+    const uid = this.auth.usuario()?.uid;
+    if (!uid) return;
+    const personaId = await this.selectorPersona.elegir(uid, '¿De quién son los medicamentos?');
+    if (personaId) await this.router.navigate(['/personas', personaId, 'medicamentos']);
   }
 
   iconoEvento(tipo: string): string {

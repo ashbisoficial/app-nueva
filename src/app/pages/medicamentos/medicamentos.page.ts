@@ -83,6 +83,14 @@ export class MedicamentosPage {
     return fechaFin >= new Date().toISOString().slice(0, 10);
   }
 
+  tomadoHoy(ultimaTomaFecha?: string): boolean {
+    return ultimaTomaFecha === new Date().toISOString().slice(0, 10);
+  }
+
+  async marcarTomado(id: string): Promise<void> {
+    await this.medicamentosSvc.marcarTomado(this.personaId, id);
+  }
+
   abrirForm(): void {
     this.nombre = '';
     this.dosis = '';

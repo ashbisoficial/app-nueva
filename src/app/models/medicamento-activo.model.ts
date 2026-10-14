@@ -10,10 +10,6 @@ export interface MedicamentoActivo {
   notas?: string;
   creadoPor: string;
   especialidadId?: string;
-}
-
-export interface TomaRegistrada {
-  id?: string;
-  fechaHora: string;
-  registradoPor: string;
+  /** Fecha ISO (yyyy-MM-dd) de la última vez que se marcó "tomado" — adherencia simple, día a día. */
+  ultimaTomaFecha?: string;
 }

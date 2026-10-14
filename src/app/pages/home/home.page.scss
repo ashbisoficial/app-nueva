@@ -5,6 +5,14 @@
   margin-bottom: 16px;
 }
 
+.accesos-rapidos--principal {
+  ion-button {
+    flex: 1 1 150px;
+    --padding-top: 20px;
+    --padding-bottom: 20px;
+  }
+}
+
 .vacio {
   color: var(--ion-color-medium);
 }

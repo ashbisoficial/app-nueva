@@ -90,6 +90,14 @@ export class DocumentosPage {
   archivo: File | null = null;
   subiendo = signal(false);
 
+  constructor() {
+    // Acceso directo desde el Home (sección 8): llega con ?subir=1 para abrir
+    // la cámara de una, sin tener que tocar el botón "+" de esta pantalla.
+    if (this.route.snapshot.queryParamMap.get('subir')) {
+      this.abrirForm();
+    }
+  }
+
   abrirForm(): void {
     this.nombre = '';
     this.categoria = 'otro';

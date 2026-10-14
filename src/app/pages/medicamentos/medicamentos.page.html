@@ -24,9 +24,7 @@
             <ion-label class="ion-text-wrap">
               <h2>
                 {{ m.nombre }} — {{ m.dosis }}
-                @if (tratamientoActivo(m.fechaFin)) {
-                  <ion-badge color="success">Activo</ion-badge>
-                } @else {
+                @if (!tratamientoActivo(m.fechaFin)) {
                   <ion-badge color="medium">Finalizado</ion-badge>
                 }
               </h2>
@@ -35,6 +33,18 @@
                 <p>Horarios: {{ m.horariosRecordatorio?.join(', ') }}</p>
               }
             </ion-label>
+            @if (tratamientoActivo(m.fechaFin)) {
+              @if (tomadoHoy(m.ultimaTomaFecha)) {
+                <ion-button slot="end" fill="solid" color="success" disabled>
+                  <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+                  Tomado hoy
+                </ion-button>
+              } @else {
+                <ion-button slot="end" fill="outline" (click)="marcarTomado(m.id)">
+                  Marcar tomado
+                </ion-button>
+              }
+            }
           </ion-item>
           @if (tratamientoActivo(m.fechaFin)) {
             <ion-item-options side="end">
