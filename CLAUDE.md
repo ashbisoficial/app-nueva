@@ -1,6 +1,12 @@
-# app-nueva — Especificación técnica
+# Serangelia — Especificación técnica
 
 "Versión humana" de Ashbis: sistema de gestión de salud personal/familiar.
+
+**Nombre de la app: Serangelia** (definitivo). Combina los nombres de
+Sergio, Ana, Gabriel y Lidia — con "ser ángel" escondido adentro
+(se-ran-**GEL**-ia) — y termina como nombre de lugar (Valencia, Galicia) en
+vez de nombre de persona. `app-nueva` sigue siendo el nombre técnico del
+repo/paquete; no hace falta tocarlo.
 
 ## 1. Qué es y qué NO es
 
@@ -88,7 +94,7 @@ look fijo para todos:
   **Camelia**. Técnicamente esto se resuelve con tokens de color (variables
   CSS) por tema, nunca colores hardcodeados en los componentes — ver el
   borrador con los valores concretos en el artifact "Identidad visual
-  Sergalia" (pendiente de aprobación final).
+  Serangelia" (pendiente de aprobación final).
 - **Tipografía.** Fuente cálida y "familiar", no corporativa fría. Entre las
   opciones evaluadas, **Atkinson Hyperlegible** (diseñada por el Braille
   Institute específicamente para legibilidad en baja visión) es la
