@@ -66,6 +66,36 @@ simplificado o recordatorios con fotos de reconocimiento (ej. foto del
 medicamento junto al nombre). Queda anotado como posible fase 2, no se
 construye ahora.
 
+**Rango de edad real:** el público va desde estudiantes de enseñanza media con
+su propio celular hasta personas mayores — la app tiene que sentirse igual de
+cómoda en ambos extremos. Eso empuja todo el diseño hacia "súper intuitivo" por
+defecto, no hacia una versión simplificada para un grupo y otra completa para
+el resto.
+
+## 2.2 Personalización y accesibilidad
+
+Cada persona puede ajustar la app a lo que le resulte cómodo, no hay un único
+look fijo para todos:
+
+- **Color.** La app es tematizable: cada usuario elige su paleta desde
+  Configuración. El color por defecto (el que ve alguien que nunca tocó nada)
+  es **rosa palo**, con un set de colores de contraste pensado para que
+  funcione como fondo/acento (no como color de texto — el texto usa un
+  café-rosado oscuro, nunca negro puro). Hay paletas alternativas
+  predefinidas (ej. "Cielo", "Menta", "Atardecer") para quien prefiera otra
+  base. Técnicamente esto se resuelve con tokens de color (variables CSS) por
+  tema, nunca colores hardcodeados en los componentes — ver el borrador de
+  paleta y tipografía en el artifact "Identidad visual Sergalia" para los
+  valores concretos propuestos (pendiente de aprobación).
+- **Tipografía.** Fuente cálida y "familiar", no corporativa fría. Entre las
+  opciones evaluadas, **Atkinson Hyperlegible** (diseñada por el Braille
+  Institute específicamente para legibilidad en baja visión) es la
+  recomendada dado el rango etario — cubre bien tanto a adultos mayores como
+  al resto sin sacrificar personalidad.
+- **Tamaño de letra / tamaño de interfaz.** Ajustable desde Configuración
+  (ej. tres pasos: chico/normal/grande) y aplicado a toda la app vía un
+  token de escala, no pantalla por pantalla.
+
 ## 3. Modelo de datos (Firestore)
 
 ### 3.1 `usuarios/{uid}` — la cuenta
@@ -103,11 +133,18 @@ interface Persona {
   contactoEmergencia?: string;
   telefonoEmergencia?: string;
 
-  // QR / ficha de emergencia — equivalente a qrCarnetToken/qrPerdidaToken
+  // QR del carnet de emergencia — datos médicos para mostrarle a un médico
   qrFichaToken?: string;            // token random, válido para siempre, enlaza a vista pública de solo lectura
-  qrFichaCamposPublicos?: string[]; // opt-in: qué secciones se muestran al escanear (alergias, contacto, medicación — NUNCA el historial completo)
+  qrFichaCamposPublicos?: string[]; // opt-in: qué secciones se muestran al escanear (alergias, contacto, medicación — NUNCA el historial completo NI archivos/documentos)
 
-  pinAccesoCompartido?: string;    // opcional, ver sección 6 (compartir con persona de confianza)
+  // QR de pérdida — para personas con demencia/Alzheimer que se pueden
+  // desorientar o perderse (sección 4.6). Token y campos visibles
+  // independientes del carnet: el enfoque acá es "si me encontraron, a quién
+  // llamar", no el historial médico.
+  qrPerdidaToken?: string;
+  qrPerdidaCamposPublicos?: string[]; // típicamente: nombre, foto, contacto de emergencia, condición relevante (ej. "tiene Alzheimer")
+
+  pinAccesoCompartido?: string;    // opcional, ver sección 6 (familiares / compartir con persona de confianza)
   pinGeneradoEn?: any;
 }
 ```
@@ -336,20 +373,48 @@ Usa `collectionGroup` para barrer TODAS las subcolecciones
 consulta, en vez de iterar usuario por usuario — clave para que escale sin
 volverse lento ni caro a medida que crece la base de usuarios.
 
-### 4.6 Carnet / ficha de emergencia (QR)
+### 4.6 Carnet / fichas QR (emergencia y pérdida)
 
+**Regla general para ambos QR:** la vista pública nunca da acceso a
+documentos ni archivos, ni siquiera como enlace — solo a los campos de texto
+que el titular marcó como públicos explícitamente. Ver los propios
+documentos/exámenes/historial requiere estar logueado en la cuenta con
+acceso a esa Persona; no hay forma de llegar a esos archivos escaneando un
+QR, bajo ningún escenario.
+
+**Carnet de emergencia** (dato médico, para un médico):
 - Cada Persona tiene un `qrFichaToken` único y permanente.
 - Vista pública (sin login) en `/ficha-publica/{token}`: muestra solo lo que
   el titular marcó como público en `qrFichaCamposPublicos` (opt-in explícito,
-  nunca mostrar el historial clínico completo) — típicamente: nombre, grupo
+  nunca el historial clínico completo) — típicamente: nombre, grupo
   sanguíneo, alergias, medicación crónica, contacto de emergencia.
 - Generación de PDF de carnet descargable/imprimible (jsPDF, 100%
   client-side) con esos mismos datos + el QR embebido, para llevarlo
   físicamente o guardarlo en el teléfono.
-- Casos de uso: emergencia médica donde la persona no puede hablar, llevarlo
+- Caso de uso: emergencia médica donde la persona no puede hablar, llevarlo
   a la escuela/trabajo, etc.
 
+**QR de pérdida** (dato de contacto, para un desconocido que encuentra a la
+persona):
+- Pensado para personas con demencia, Alzheimer u otra condición que pueda
+  hacer que se desorienten o se pierdan.
+- Cada Persona tiene, independiente del carnet, un `qrPerdidaToken` propio
+  con su propia vista pública de solo lectura.
+- Prioriza lo que necesita alguien que la encuentra en la calle: nombre,
+  foto, una condición relevante en una frase ("tiene Alzheimer, por favor
+  llamar a su familiar"), y el contacto de emergencia bien visible — no
+  apunta a ser un resumen médico como el carnet.
+- Mismo mecanismo de impresión en PDF/QR físico que el carnet, para llevarlo
+  encima (ej. en la billetera o cosido a la ropa).
+
 ### 4.7 Especialidades (organización por médico/tratamiento)
+
+Ejemplo real que motiva esto: el papá tiene problemas respiratorios, así que
+su perfil tiene un apartado "Broncopulmonar", otro "Gastro" y uno "General".
+Si va a una urgencia respiratoria, el familiar que lo acompaña entra
+directo a "Broncopulmonar" y ve solo lo de esa especialidad — no tiene que
+buscar entre todos los exámenes de los últimos años para encontrar el
+informe que necesita en ese momento.
 
 - Gestionadas desde el detalle de cada Persona: crear/renombrar/archivar
   especialidades (3.9).
@@ -369,16 +434,59 @@ volverse lento ni caro a medida que crece la base de usuarios.
 - Cada usuario ve solo sus propias Personas (`where uidTitular == miUid`)
   salvo que use el mecanismo de compartir (sección 6).
 
-## 6. Compartir un perfil con otra persona (opcional)
+## 6. Familiares (co-dueños entre cuentas separadas)
 
-Útil para parejas/cuidadores. Reutilizando la idea de "co-dueño" del sistema
-original pero renombrada: un `pinAccesoCompartido` de 6 dígitos por Persona,
-generado por el titular. Quien tenga el PIN puede pedir acceso de solo
-lectura (o lectura+escritura, a elección del titular) a esa ficha concreta,
-sin necesitar que el titular comparta la cuenta completa — útil, por ejemplo,
-para que ambos padres administren el perfil de un hijo, o un cuidador de un
-adulto mayor pueda ver/cargar información sin tener la contraseña de la
-cuenta principal.
+Reutilizando la idea de "co-dueño" del sistema original: cada persona de la
+familia tiene **su propia cuenta** (su propio login), y las cuentas se
+vinculan entre sí para que una pueda ver y gestionar los perfiles de la otra.
+
+Ejemplo real: Lidia y Sergio tienen cada uno su propia cuenta en la app, cada
+uno con su propia Persona "yo mismo/a". Su hijo Gabriel también tiene su
+propia cuenta. Gabriel se vincula como familiar a la cuenta de Lidia y a la
+de Sergio — a partir de ahí, cuando Gabriel entra a la app ve su propio
+perfil **y además** los perfiles de sus dos padres en su mismo listado de
+"Mis personas", con acceso para cargar/consultar documentos, exámenes y citas
+de ellos, sin que eso le dé a Gabriel la contraseña ni el control total de la
+cuenta de sus padres.
+
+**Esto ya está resuelto por el mecanismo de PIN** (sección 3.2): un
+`pinAccesoCompartido` de 6 dígitos por Persona, generado por el titular.
+Quien canjea el PIN (mediante invitación: el titular comparte el código, la
+otra persona lo ingresa estando logueada en su propia cuenta) queda agregado
+a `uidsConAcceso` de esa Persona, con acceso de solo lectura o
+lectura+escritura según lo que eligió el titular — y esa Persona pasa a
+aparecer también en el listado de "Mis personas" de quien canjeó el PIN. No
+hace falta compartir la cuenta completa ni la contraseña.
+
+Sirve tanto para el caso de arriba (hijo ↔ padres, cada uno con cuenta
+propia) como para parejas o cuidadores que administran el perfil de un
+adulto mayor.
+
+## 6.1 Una cuenta por persona real (A DEFINIR — pendiente de decisión)
+
+Pedido: que no se pueda tener más de una cuenta por persona, validado contra
+el carnet de identidad (RUT/cédula) y, eventualmente, algún dato biométrico.
+Antes de implementar esto hay una decisión de alcance que cambia mucho el
+trabajo y probablemente tenga costo asociado, así que queda explícitamente
+pendiente hasta confirmarla:
+
+- **Opción liviana (sin costo extra, implementable ya):** pedir el RUT/cédula
+  al registrarse, guardarlo y bloquear que se registre dos veces el mismo
+  número — una validación de formato + unicidad en Firestore, nada más. El
+  "dato biométrico" sería Face ID/huella del teléfono (vía Capacitor) para
+  desbloquear la app ya logueada, no para verificar la identidad real de la
+  persona.
+- **Opción fuerte (verificación de identidad real):** validar el RUT contra
+  un registro real y/o hacer reconocimiento facial contra la foto del carnet,
+  normalmente tercerizado a un proveedor de verificación de identidad (KYC) —
+  esto tiene costo por verificación y es un flujo de integración completo
+  aparte, no es algo que se arme con Firebase solo.
+
+**Mientras no se responda esto, no se construye nada de esta sección.** Una
+vez decidido el alcance, hay que reflejarlo también en los Términos y
+Condiciones y la Política de Privacidad (qué dato de identidad se guarda, con
+qué base legal, por cuánto tiempo, quién lo puede ver) — ese documento se
+redacta después de cerrar esta decisión, no antes.
 
 ## 7. Reglas de seguridad (Firestore Rules) — principios
 
