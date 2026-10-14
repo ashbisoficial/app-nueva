@@ -17,7 +17,7 @@ service firebase.storage {
 
     match /personas/{personaId}/{tipoArchivo}/{archivo=**} {
       allow read, write: if tieneAcceso(personaId) &&
-        tipoArchivo in ['documentos', 'historial', 'examenes'];
+        tipoArchivo in ['documentos', 'historial', 'examenes', 'perfil'];
     }
   }
 }

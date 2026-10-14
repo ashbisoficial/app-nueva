@@ -61,7 +61,8 @@ export class PersonaDetallePage {
     { label: 'Exámenes', ruta: 'examenes', icono: 'flask-outline' },
     { label: 'Documentos', ruta: 'documentos', icono: 'folder-outline' },
     { label: 'Especialidades', ruta: 'especialidades', icono: 'pricetag-outline' },
-    { label: 'Ficha de emergencia / QR', ruta: 'ficha', icono: 'qr-code-outline' },
+    { label: 'Carnet de emergencia', ruta: 'ficha', icono: 'qr-code-outline' },
+    { label: 'QR de pérdida', ruta: 'ficha-perdida', icono: 'alert-circle-outline' },
   ];
 
   async compartirPorPin(): Promise<void> {

@@ -64,15 +64,35 @@ export class PersonasService {
 
   /** Genera (o regenera) el token permanente usado por la ficha pública /ficha-publica/:token */
   async asegurarTokenFicha(personaId: string): Promise<string> {
-    const persona = await this.obtener(personaId);
-    if (persona?.qrFichaToken) return persona.qrFichaToken;
-    const token = generarToken(24);
-    await this.actualizar(personaId, { qrFichaToken: token });
-    return token;
+    return this.asegurarToken(personaId, 'qrFichaToken');
   }
 
   async buscarPorTokenFicha(token: string): Promise<Persona | undefined> {
-    const q = query(collection(db, 'personas'), where('qrFichaToken', '==', token));
+    return this.buscarPorToken('qrFichaToken', token);
+  }
+
+  /** Genera (o regenera) el token permanente usado por el QR de pérdida /ficha-perdida/:token (sección 4.6) */
+  async asegurarTokenPerdida(personaId: string): Promise<string> {
+    return this.asegurarToken(personaId, 'qrPerdidaToken');
+  }
+
+  async buscarPorTokenPerdida(token: string): Promise<Persona | undefined> {
+    return this.buscarPorToken('qrPerdidaToken', token);
+  }
+
+  private async asegurarToken(personaId: string, campo: 'qrFichaToken' | 'qrPerdidaToken'): Promise<string> {
+    const persona = await this.obtener(personaId);
+    if (persona?.[campo]) return persona[campo]!;
+    const token = generarToken(24);
+    await this.actualizar(personaId, { [campo]: token });
+    return token;
+  }
+
+  private async buscarPorToken(
+    campo: 'qrFichaToken' | 'qrPerdidaToken',
+    token: string
+  ): Promise<Persona | undefined> {
+    const q = query(collection(db, 'personas'), where(campo, '==', token));
     const snap = await getDocs(q);
     if (snap.empty) return undefined;
     const d = snap.docs[0];

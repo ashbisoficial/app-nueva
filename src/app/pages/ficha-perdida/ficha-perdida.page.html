@@ -1,0 +1,48 @@
+<ion-content class="ion-padding">
+  @if (cargando()) {
+    <div class="tarjeta">
+      <ion-spinner name="dots"></ion-spinner>
+    </div>
+  } @else if (error()) {
+    <div class="tarjeta">
+      <h1>No se pudo cargar la ficha</h1>
+      <p>Revisá tu conexión e intentá de nuevo.</p>
+    </div>
+  } @else {
+    @if (persona(); as p) {
+      <div class="tarjeta">
+        <p class="aviso">Si encontraste a esta persona, por favor contactá a su familia</p>
+
+        @if (muestraCampo('fotoUrl') && p.fotoUrl) {
+          <img class="foto" [src]="p.fotoUrl" alt="" />
+        }
+
+        @if (muestraCampo('nombre')) {
+          <h1>{{ p.nombre }}</h1>
+        }
+
+        @if (muestraCampo('condicionPerdida') && p.condicionPerdida) {
+          <p class="condicion">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            {{ p.condicionPerdida }}
+          </p>
+        }
+
+        @if (muestraCampo('contactoEmergencia') && p.contactoEmergencia) {
+          <p class="contacto-nombre">{{ p.contactoEmergencia }}</p>
+        }
+        @if (muestraCampo('telefonoEmergencia') && p.telefonoEmergencia) {
+          <button class="boton-llamar" type="button" (click)="llamar(p.telefonoEmergencia!)">
+            <ion-icon name="call-outline"></ion-icon>
+            {{ p.telefonoEmergencia }}
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="tarjeta">
+        <h1>Ficha no encontrada</h1>
+        <p>Este código no corresponde a ninguna ficha.</p>
+      </div>
+    }
+  }
+</ion-content>

@@ -7,3 +7,7 @@ export async function generarQrDataUrl(texto: string): Promise<string> {
 export function urlFichaPublica(token: string): string {
   return `${window.location.origin}/ficha-publica/${token}`;
 }
+
+export function urlFichaPerdida(token: string): string {
+  return `${window.location.origin}/ficha-perdida/${token}`;
+}

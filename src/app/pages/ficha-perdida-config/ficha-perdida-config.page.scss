@@ -1,0 +1,13 @@
+.qr-preview {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+}
+
+.foto-preview {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 8px 16px 12px;
+}

@@ -14,8 +14,15 @@ export interface Persona {
   contactoEmergencia?: string;
   telefonoEmergencia?: string;
 
+  // Carnet de emergencia (dato médico, para un médico)
   qrFichaToken?: string;
   qrFichaCamposPublicos?: CampoFichaPublica[];
+
+  // QR de pérdida (dato de contacto, para quien encuentra a la persona)
+  qrPerdidaToken?: string;
+  qrPerdidaCamposPublicos?: CampoFichaPerdida[];
+  /** Frase corta para quien encuentre a la persona, ej. "Tiene Alzheimer, por favor llamar a su familiar". */
+  condicionPerdida?: string;
 
   pinAccesoCompartido?: string;
   pinGeneradoEn?: unknown;
@@ -33,3 +40,5 @@ export type CampoFichaPublica =
   | 'medicamentosPermanentes'
   | 'contactoEmergencia'
   | 'telefonoEmergencia';
+
+export type CampoFichaPerdida = 'nombre' | 'fotoUrl' | 'condicionPerdida' | 'contactoEmergencia' | 'telefonoEmergencia';

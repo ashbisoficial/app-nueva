@@ -13,6 +13,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/ficha-publica/ficha-publica.page').then((m) => m.FichaPublicaPage),
   },
   {
+    path: 'ficha-perdida/:token',
+    loadComponent: () => import('./pages/ficha-perdida/ficha-perdida.page').then((m) => m.FichaPerdidaPage),
+  },
+  {
     path: '',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/home/home.page').then((m) => m.HomePage),
@@ -111,6 +115,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () =>
       import('./pages/ficha-emergencia/ficha-emergencia.page').then((m) => m.FichaEmergenciaPage),
+  },
+  {
+    path: 'personas/:id/ficha-perdida',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/ficha-perdida-config/ficha-perdida-config.page').then((m) => m.FichaPerdidaConfigPage),
   },
   { path: '**', redirectTo: '' },
 ];
