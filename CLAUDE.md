@@ -462,31 +462,30 @@ Sirve tanto para el caso de arriba (hijo ↔ padres, cada uno con cuenta
 propia) como para parejas o cuidadores que administran el perfil de un
 adulto mayor.
 
-## 6.1 Una cuenta por persona real (A DEFINIR — pendiente de decisión)
+## 6.1 Una cuenta por persona real
 
-Pedido: que no se pueda tener más de una cuenta por persona, validado contra
-el carnet de identidad (RUT/cédula) y, eventualmente, algún dato biométrico.
-Antes de implementar esto hay una decisión de alcance que cambia mucho el
-trabajo y probablemente tenga costo asociado, así que queda explícitamente
-pendiente hasta confirmarla:
+**Decisión tomada: opción liviana.** No se hace verificación de identidad
+real (KYC) por ahora — queda descartada esa opción (costo por verificación +
+integración con un proveedor externo aparte de Firebase).
 
-- **Opción liviana (sin costo extra, implementable ya):** pedir el RUT/cédula
-  al registrarse, guardarlo y bloquear que se registre dos veces el mismo
-  número — una validación de formato + unicidad en Firestore, nada más. El
-  "dato biométrico" sería Face ID/huella del teléfono (vía Capacitor) para
-  desbloquear la app ya logueada, no para verificar la identidad real de la
-  persona.
-- **Opción fuerte (verificación de identidad real):** validar el RUT contra
-  un registro real y/o hacer reconocimiento facial contra la foto del carnet,
-  normalmente tercerizado a un proveedor de verificación de identidad (KYC) —
-  esto tiene costo por verificación y es un flujo de integración completo
-  aparte, no es algo que se arme con Firebase solo.
+Lo que sí se construye:
 
-**Mientras no se responda esto, no se construye nada de esta sección.** Una
-vez decidido el alcance, hay que reflejarlo también en los Términos y
-Condiciones y la Política de Privacidad (qué dato de identidad se guarda, con
-qué base legal, por cuánto tiempo, quién lo puede ver) — ese documento se
-redacta después de cerrar esta decisión, no antes.
+- Al registrarse, se pide el RUT/cédula de la persona (además de
+  nombre/email). Se valida el formato y se guarda en `usuarios/{uid}` como
+  `rut`. Reglas de Firestore + una Cloud Function en el flujo de registro
+  bloquean que se cree una segunda cuenta con el mismo RUT — es una
+  validación de unicidad, no una verificación contra un registro real: si
+  alguien pone un RUT ajeno o inventado a propósito, el sistema no lo detecta.
+- "Dato biométrico" = biometría **local del dispositivo** (Face
+  ID/huella vía `@capacitor-community/biometric-auth` o similar), usada solo
+  para desbloquear la app ya logueada en ese teléfono — no verifica que la
+  persona sea realmente la dueña del RUT. Se ofrece como opción en
+  Configuración, no como requisito para registrarse.
+
+Una vez que esto esté construido, hay que reflejarlo en los Términos y
+Condiciones y la Política de Privacidad (que se guarda el RUT, con qué base
+legal, por cuánto tiempo, quién lo puede ver) — se redactan después de tener
+el flujo de registro con RUT implementado, no antes.
 
 ## 7. Reglas de seguridad (Firestore Rules) — principios
 
