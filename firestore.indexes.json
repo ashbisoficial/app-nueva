@@ -3,11 +3,6 @@
     {
       "collectionGroup": "vacunas",
       "queryScope": "COLLECTION_GROUP",
-      "fields": [{ "fieldPath": "proximaFecha", "order": "ASCENDING" }]
-    },
-    {
-      "collectionGroup": "vacunas",
-      "queryScope": "COLLECTION_GROUP",
       "fields": [
         { "fieldPath": "creadoPor", "order": "ASCENDING" },
         { "fieldPath": "proximaFecha", "order": "ASCENDING" }
@@ -16,20 +11,10 @@
     {
       "collectionGroup": "medicamentosActivos",
       "queryScope": "COLLECTION_GROUP",
-      "fields": [{ "fieldPath": "fechaFin", "order": "ASCENDING" }]
-    },
-    {
-      "collectionGroup": "medicamentosActivos",
-      "queryScope": "COLLECTION_GROUP",
       "fields": [
         { "fieldPath": "creadoPor", "order": "ASCENDING" },
         { "fieldPath": "fechaFin", "order": "ASCENDING" }
       ]
-    },
-    {
-      "collectionGroup": "citas",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [{ "fieldPath": "fechaInicio", "order": "ASCENDING" }]
     },
     {
       "collectionGroup": "citas",
@@ -80,5 +65,21 @@
       ]
     }
   ],
-  "fieldOverrides": []
+  "fieldOverrides": [
+    {
+      "collectionGroup": "vacunas",
+      "fieldPath": "proximaFecha",
+      "indexes": [{ "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }]
+    },
+    {
+      "collectionGroup": "medicamentosActivos",
+      "fieldPath": "fechaFin",
+      "indexes": [{ "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }]
+    },
+    {
+      "collectionGroup": "citas",
+      "fieldPath": "fechaInicio",
+      "indexes": [{ "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }]
+    }
+  ]
 }
