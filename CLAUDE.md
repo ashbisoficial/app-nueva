@@ -105,7 +105,13 @@ look fijo para todos:
   `[data-tema="<id>"]` en `<html>`, nunca colores hardcodeados en los
   componentes; metadata en `core/temas.ts`; aplicación/persistencia
   (localStorage + `usuarios/{uid}`) en `core/theme.service.ts`; selector de
-  paleta en Configuración.
+  paleta en Configuración. **Revisada** (pedido explícito: varias se veían
+  muy parecidas — 7 de las 13 compartían el mismo secundario y la mayoría de
+  los primarios caía en la misma franja rosa/magenta): cada paleta separa su
+  primario/secundario por matiz Y por saturación/luminosidad, no solo
+  matiz, para que flores naturalmente parecidas en la realidad (rosas,
+  copihue, dalia, bailarinas, hibisco, rosa palo son todas rosadas/rojizas)
+  sigan siendo fieles a su color real sin verse todas iguales en la app.
 - **Tipografía.** Fuente cálida y "familiar", no corporativa fría. Entre las
   opciones evaluadas, **Atkinson Hyperlegible** (diseñada por el Braille
   Institute específicamente para legibilidad en baja visión) es la
