@@ -7,69 +7,77 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  @if (cargando()) {
-    <div class="ion-text-center ion-padding">
-      <ion-spinner name="dots"></ion-spinner>
-    </div>
-  } @else if (error()) {
-    <p style="color: var(--ion-color-danger)">No se pudo cargar. Revisa tu conexión e intenta de nuevo.</p>
-  } @else {
-    <p style="color: var(--ion-color-medium)">
-      Pensado para personas que se pueden desorientar o perderse (demencia,
-      Alzheimer, etc.). Si alguien la encuentra y escanea el QR, ve solo lo
-      que marques aquí abajo — nunca el historial clínico.
-    </p>
+<ion-content class="lista-content">
+  <div class="lista-cuerpo">
+    @if (cargando()) {
+      <div class="ion-text-center ion-padding">
+        <ion-spinner name="dots"></ion-spinner>
+      </div>
+    } @else if (error()) {
+      <p class="texto-error">No se pudo cargar. Revisa tu conexión e intenta de nuevo.</p>
+    } @else {
+      <p class="texto-ayuda">
+        Pensado para personas que se pueden desorientar o perderse (demencia,
+        Alzheimer, etc.). Si alguien la encuentra y escanea el QR, ve solo lo
+        que marques aquí abajo — nunca el historial clínico.
+      </p>
 
-    <ion-list>
-      <ion-item>
-        <ion-input
-          label="Condición relevante (una frase)"
-          labelPlacement="floating"
-          placeholder="Ej. Tiene Alzheimer, por favor llamar a su familiar"
-          [(ngModel)]="condicionPerdida"
-          name="condicion"
-          (ionBlur)="guardar()"
-        ></ion-input>
-      </ion-item>
-      <ion-item lines="none">
-        <input type="file" accept="image/*" capture="environment" (change)="onFotoSeleccionada($event)" />
-        @if (subiendoFoto()) {
-          <ion-spinner name="dots"></ion-spinner>
+      <section class="form-tarjeta">
+        <ion-list lines="inset">
+          <ion-item>
+            <ion-input
+              label="Condición relevante (una frase)"
+              labelPlacement="floating"
+              placeholder="Ej. Tiene Alzheimer, por favor llamar a su familiar"
+              [(ngModel)]="condicionPerdida"
+              name="condicion"
+              (ionBlur)="guardar()"
+            ></ion-input>
+          </ion-item>
+          <ion-item lines="none">
+            <input type="file" accept="image/*" capture="environment" (change)="onFotoSeleccionada($event)" />
+            @if (subiendoFoto()) {
+              <ion-spinner name="dots"></ion-spinner>
+            }
+          </ion-item>
+        </ion-list>
+        @if (persona()?.fotoUrl) {
+          <img class="foto-preview" [src]="persona()?.fotoUrl" alt="" />
         }
-      </ion-item>
-      @if (persona()?.fotoUrl) {
-        <img class="foto-preview" [src]="persona()?.fotoUrl" alt="" />
-      }
-    </ion-list>
+      </section>
 
-    <ion-list>
-      <ion-list-header>Datos visibles en el QR de pérdida</ion-list-header>
-      @for (c of campos; track c.value) {
-        <ion-item>
-          <ion-checkbox
-            [checked]="estaSeleccionado(c.value)"
-            (ionChange)="toggleCampo(c.value, $event.detail.checked); guardar()"
-          >
-            {{ c.label }}
-          </ion-checkbox>
-        </ion-item>
-      }
-    </ion-list>
+      <section class="form-tarjeta">
+        <p class="form-tarjeta__titulo">Datos visibles en el QR de pérdida</p>
+        <ion-list lines="inset">
+          @for (c of campos; track c.value) {
+            <ion-item>
+              <ion-checkbox
+                [checked]="estaSeleccionado(c.value)"
+                (ionChange)="toggleCampo(c.value, $event.detail.checked); guardar()"
+              >
+                {{ c.label }}
+              </ion-checkbox>
+            </ion-item>
+          }
+        </ion-list>
+      </section>
 
-    @if (qrDataUrl(); as qr) {
-      <div class="qr-preview">
-        <img [src]="qr" alt="Código QR de pérdida" width="200" height="200" />
+      @if (qrDataUrl(); as qr) {
+        <div class="qr-preview">
+          <img [src]="qr" alt="Código QR de pérdida" width="200" height="200" />
+        </div>
+      }
+
+      <div class="ficha-botones">
+        <ion-button expand="block" class="form-boton-principal" (click)="generarPdf()">
+          <ion-icon slot="start" name="print-outline"></ion-icon>
+          Descargar PDF
+        </ion-button>
+        <ion-button expand="block" fill="outline" (click)="verComoExtrano()">
+          <ion-icon slot="start" name="qr-code-outline"></ion-icon>
+          Ver cómo lo ve quien la encuentre
+        </ion-button>
       </div>
     }
-
-    <ion-button expand="block" (click)="generarPdf()">
-      <ion-icon slot="start" name="print-outline"></ion-icon>
-      Descargar PDF
-    </ion-button>
-    <ion-button expand="block" fill="outline" (click)="verComoExtrano()">
-      <ion-icon slot="start" name="qr-code-outline"></ion-icon>
-      Ver cómo lo ve quien la encuentre
-    </ion-button>
-  }
+  </div>
 </ion-content>

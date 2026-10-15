@@ -11,3 +11,9 @@
   object-fit: cover;
   margin: 8px 16px 12px;
 }
+
+.ficha-botones {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

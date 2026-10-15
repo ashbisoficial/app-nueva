@@ -1,6 +1,10 @@
 .tarjeta {
   max-width: 480px;
   margin: 8vh auto 0;
+  padding: 28px 20px;
+  background: var(--ion-item-background);
+  border-radius: var(--radio-tarjeta);
+  box-shadow: var(--sombra-suave);
   text-align: center;
 }
 
@@ -11,8 +15,15 @@
 
 h1 {
   font-size: 1.3rem;
+  font-weight: 700;
 }
 
 ion-list {
   text-align: left;
+  background: transparent;
+  margin-top: 8px;
+}
+
+ion-item {
+  --background: transparent;
 }

@@ -1,6 +1,10 @@
 .tarjeta {
   max-width: 420px;
   margin: 6vh auto 0;
+  padding: 28px 20px;
+  background: var(--ion-item-background);
+  border-radius: var(--radio-tarjeta);
+  box-shadow: var(--sombra-suave);
   text-align: center;
 }
 
@@ -49,7 +53,8 @@ h1 {
   color: #fff;
   border: none;
   padding: 16px 28px;
-  border-radius: 14px;
+  border-radius: var(--radio-campo);
+  box-shadow: var(--sombra-flotante);
   font-size: 1.3rem;
   font-weight: 700;
   cursor: pointer;

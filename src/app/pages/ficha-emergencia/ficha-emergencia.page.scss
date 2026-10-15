@@ -3,3 +3,9 @@
   justify-content: center;
   margin: 16px 0;
 }
+
+.ficha-botones {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
