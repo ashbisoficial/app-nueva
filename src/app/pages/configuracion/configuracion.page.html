@@ -26,7 +26,7 @@
             (click)="elegirTema(tema.id)"
           >
             <span class="muestra">
-              <app-flor-icono [forma]="tema.forma" [primario]="tema.primario" [secundario]="tema.secundario"></app-flor-icono>
+              <app-flor-icono [forma]="tema.forma" [primario]="tema.primario" [secundario]="tema.secundario" [imagenUrl]="tema.imagenUrl"></app-flor-icono>
               @if (themeSvc.temaActual() === tema.id) {
                 <span class="muestra__check">
                   <ion-icon name="checkmark-outline"></ion-icon>

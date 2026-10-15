@@ -28,6 +28,8 @@ export class FlorIconoComponent {
   @Input({ required: true }) forma!: FormaFlor;
   @Input({ required: true }) primario!: string;
   @Input({ required: true }) secundario!: string;
+  /** Ilustración propia (ver Tema.imagenUrl). Si viene, se usa en vez del SVG generado. */
+  @Input() imagenUrl?: string;
 
   // Rosa: dos coronas de pétalos en espiral, la interior rotada a medio paso.
   readonly rosaExterior = Array.from({ length: 6 }, (_, i) => i * 60);
