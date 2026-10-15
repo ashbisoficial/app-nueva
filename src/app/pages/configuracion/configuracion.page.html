@@ -25,12 +25,12 @@
             [class.seleccionada]="themeSvc.temaActual() === tema.id"
             (click)="elegirTema(tema.id)"
           >
-            <span
-              class="muestra"
-              [style.background]="'linear-gradient(135deg, ' + tema.primario + ' 50%, ' + tema.secundario + ' 50%)'"
-            >
+            <span class="muestra">
+              <app-flor-icono [forma]="tema.forma" [primario]="tema.primario" [secundario]="tema.secundario"></app-flor-icono>
               @if (themeSvc.temaActual() === tema.id) {
-                <ion-icon name="checkmark-outline"></ion-icon>
+                <span class="muestra__check">
+                  <ion-icon name="checkmark-outline"></ion-icon>
+                </span>
               }
             </span>
             <span class="nombre">{{ tema.nombre }}</span>

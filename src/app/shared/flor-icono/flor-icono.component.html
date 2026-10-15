@@ -1,0 +1,57 @@
+<svg viewBox="0 0 100 100" class="flor-svg" aria-hidden="true">
+  @switch (forma) {
+    @case ('redonda') {
+      @for (ang of petalosRedonda; track ang) {
+        <ellipse cx="50" cy="27" rx="13" ry="21" [attr.fill]="primario" [attr.transform]="'rotate(' + ang + ' 50 50)'" />
+      }
+      <circle cx="50" cy="50" r="10" [attr.fill]="secundario" />
+    }
+    @case ('puntiaguda') {
+      @for (ang of petalosPuntiaguda; track ang) {
+        <path d="M50,50 L45,12 L50,4 L55,12 Z" [attr.fill]="primario" [attr.transform]="'rotate(' + ang + ' 50 50)'" />
+      }
+      <circle cx="50" cy="50" r="15" [attr.fill]="secundario" />
+    }
+    @case ('trompeta') {
+      @for (ang of petalosTrompeta; track ang) {
+        <path
+          d="M50,50 C44,35 42,15 50,3 C58,15 56,35 50,50 Z"
+          [attr.fill]="primario"
+          [attr.transform]="'rotate(' + ang + ' 50 50)'"
+        />
+      }
+      <circle cx="50" cy="50" r="6" [attr.fill]="secundario" />
+    }
+    @case ('racimo') {
+      @for (b of racimoBlossoms; track b.x + '-' + b.y) {
+        <circle [attr.cx]="b.x" [attr.cy]="b.y" [attr.r]="b.r" [attr.fill]="primario" />
+        <circle [attr.cx]="b.x" [attr.cy]="b.y" r="2.4" [attr.fill]="secundario" />
+      }
+    }
+    @case ('corazon') {
+      <ellipse cx="38" cy="34" rx="17" ry="15" [attr.fill]="secundario" transform="rotate(-18 38 34)" />
+      <ellipse cx="62" cy="34" rx="17" ry="15" [attr.fill]="secundario" transform="rotate(18 62 34)" />
+      <ellipse cx="50" cy="62" rx="15" ry="18" [attr.fill]="primario" />
+      <ellipse cx="29" cy="56" rx="13" ry="15" [attr.fill]="primario" transform="rotate(-28 29 56)" />
+      <ellipse cx="71" cy="56" rx="13" ry="15" [attr.fill]="primario" transform="rotate(28 71 56)" />
+      <circle cx="50" cy="52" r="6" fill="#3D2C2E" />
+    }
+    @case ('campana') {
+      <path
+        d="M50,20 C68,28 70,55 58,78 C54,86 46,86 42,78 C30,55 32,28 50,20 Z"
+        [attr.fill]="primario"
+      />
+      <path d="M50,18 C56,10 64,10 68,16 C62,22 55,22 50,18 Z" [attr.fill]="secundario" />
+      <path d="M50,18 C44,10 36,10 32,16 C38,22 45,22 50,18 Z" [attr.fill]="secundario" />
+    }
+    @case ('exotica') {
+      <path
+        d="M12,62 C30,58 48,58 66,62 C70,63 70,69 66,70 C48,74 30,74 12,70 C8,69 8,63 12,62 Z"
+        [attr.fill]="primario"
+      />
+      <path d="M50,60 C52,42 60,26 74,16 C76,30 72,46 60,58 Z" [attr.fill]="primario" />
+      <path d="M46,58 C44,40 48,24 58,12 C62,26 60,42 52,56 Z" [attr.fill]="primario" />
+      <path d="M44,62 C34,52 32,40 40,30 C46,40 46,52 44,62 Z" [attr.fill]="secundario" />
+    }
+  }
+</svg>

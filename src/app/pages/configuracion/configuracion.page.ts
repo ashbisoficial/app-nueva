@@ -5,11 +5,12 @@ import { IonContent, IonIcon } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
 import { ThemeService, type TamanoFuente } from '../../core/theme.service';
 import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
+import { FlorIconoComponent } from '../../shared/flor-icono/flor-icono.component';
 
 @Component({
   selector: 'app-configuracion',
   standalone: true,
-  imports: [CommonModule, IonIcon, IonContent, BottomNavComponent],
+  imports: [CommonModule, IonIcon, IonContent, BottomNavComponent, FlorIconoComponent],
   templateUrl: './configuracion.page.html',
   styleUrl: './configuracion.page.scss',
 })
