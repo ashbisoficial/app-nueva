@@ -69,7 +69,7 @@ export class PersonaDetallePage {
     const pin = await this.personasSvc.generarPinCompartido(this.personaId);
     const alert = await this.alertCtrl.create({
       header: 'PIN de acceso compartido',
-      message: `Compartí este código con la persona de confianza: <strong>${pin}</strong>. Lo puede canjear desde "Tengo un PIN" en el inicio. Es de un solo uso por generación: si generás uno nuevo, el anterior deja de servir.`,
+      message: `Comparte este código con la persona de confianza: <strong>${pin}</strong>. Lo puede canjear desde "Tengo un PIN" en el inicio. Es de un solo uso por generación: si generas uno nuevo, el anterior deja de servir.`,
       buttons: ['Listo'],
     });
     await alert.present();

@@ -34,11 +34,11 @@ export class CompletarRegistroPage {
     } catch (e) {
       const codigo = (e as Error).message;
       if (codigo === 'rut-invalido') {
-        this.error.set('Ese RUT no es válido. Revisá los números y el dígito verificador.');
+        this.error.set('Ese RUT no es válido. Revisa los números y el dígito verificador.');
       } else if (codigo === 'rut-duplicado') {
         this.error.set('Ya existe una cuenta registrada con este RUT.');
       } else {
-        this.error.set('No se pudo guardar. Probá de nuevo.');
+        this.error.set('No se pudo guardar. Intenta de nuevo.');
       }
     } finally {
       this.cargando.set(false);

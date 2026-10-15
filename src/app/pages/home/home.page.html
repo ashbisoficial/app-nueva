@@ -72,7 +72,7 @@
     <ion-card-content>
       @if ((personas$ | async); as personas) {
         @if (personas.length === 0) {
-          <p class="vacio">Todavía no agregaste a nadie. Empezá agregándote a vos mismo/a o a un familiar.</p>
+          <p class="vacio">Todavía no agregaste a nadie. Empieza agregándote a ti mismo/a o a un familiar.</p>
         } @else {
           <ion-list>
             @for (p of personas; track p.id) {

@@ -102,6 +102,6 @@ export class LoginPage {
     if (code.includes('weak-password')) {
       return 'La contraseña debe tener al menos 6 caracteres.';
     }
-    return 'Ocurrió un error. Probá de nuevo.';
+    return 'Ocurrió un error. Intenta de nuevo.';
   }
 }
