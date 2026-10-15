@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { IonContent, IonIcon } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
 import { ThemeService, type TamanoFuente } from '../../core/theme.service';
@@ -9,7 +9,7 @@ import { FlorIconoComponent } from '../../shared/flor-icono/flor-icono.component
 @Component({
   selector: 'app-configuracion',
   standalone: true,
-  imports: [CommonModule, IonIcon, IonContent, FlorIconoComponent],
+  imports: [CommonModule, RouterLink, IonIcon, IonContent, FlorIconoComponent],
   templateUrl: './configuracion.page.html',
   styleUrl: './configuracion.page.scss',
 })

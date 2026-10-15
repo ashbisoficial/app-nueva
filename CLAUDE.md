@@ -641,6 +641,38 @@ el MVP.
   pública de QR, y dar al usuario control total de borrado de su cuenta y
   datos.
 
+## 7.1 Documentos legales
+
+Política de Privacidad y Términos de Uso, redactados conforme a la Ley N°
+19.628 sobre Protección de la Vida Privada (vigente) y pensados ya en
+términos de la Ley N° 21.719 (moderniza la 19.628, crea la Agencia de
+Protección de Datos Personales) que entra en vigencia en diciembre de 2026.
+
+- **Responsable del tratamiento de datos**: Ana Rayen Castillo Painenao, RUT
+  21.393.050-8, como persona natural (todavía no hay una empresa
+  constituida). Contacto: `serangelia.oficial@gmail.com`.
+- Implementados como páginas dentro de la app (no solo un documento aparte):
+  `/privacidad` y `/terminos`, rutas públicas (sin `authGuard`, legibles sin
+  iniciar sesión). Contenido en `pages/legal/contenido-legal.ts` (array de
+  secciones título+párrafos+lista, para no tener un bloque de HTML gigante
+  por página) y dos componentes de página (`politica-privacidad`,
+  `terminos-uso`) que solo iteran ese contenido.
+- Enlazados desde el pie del formulario de Login/registro y desde una
+  tarjeta "Legal" en Configuración.
+- La Política cubre: qué datos se recopilan (incluyendo que los datos de
+  salud son "datos sensibles" bajo la ley chilena, que requieren
+  consentimiento expreso), para qué se usan, con quién se comparten
+  (Firebase/Google Cloud como encargado del tratamiento — implica
+  transferencia internacional de datos), cuánto se guardan, los derechos
+  ARCO+ del usuario y cómo ejercerlos, y dirección/comuna explícitamente
+  excluidas del carnet público de emergencia (sección 4.6) por riesgo de
+  seguridad.
+- **Pendiente, no bloquea el MVP**: hoy la eliminación de cuenta completa se
+  resuelve por correo (no hay todavía un botón de autoservicio "Eliminar mi
+  cuenta" en la app) — la Política ya lo deja así de claro; construir ese
+  flujo de autoservicio queda pendiente como parte de la expansión de
+  Configuración.
+
 ## 8. Pantallas principales
 
 - Login/registro
@@ -663,6 +695,7 @@ el MVP.
 - Ficha de emergencia / QR (configurar qué se muestra + generar PDF + ver
   cómo la ve un extraño)
 - Configuración de cuenta
+- Política de Privacidad / Términos de Uso (sección 7.1, públicas sin login)
 
 ## 9. Fuera de alcance explícito (para no inflar el MVP)
 

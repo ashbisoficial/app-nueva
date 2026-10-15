@@ -166,6 +166,26 @@
   font-size: 0.85rem;
 }
 
+.config-enlace-legal {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 2px;
+  color: var(--ion-text-color);
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 600;
+
+  ion-icon {
+    color: var(--ion-color-primary);
+    font-size: 18px;
+  }
+
+  & + & {
+    border-top: 1px solid var(--ion-border-color);
+  }
+}
+
 .config-cerrar-sesion {
   display: flex;
   align-items: center;

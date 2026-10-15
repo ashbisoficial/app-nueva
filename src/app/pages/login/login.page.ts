@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import {
   IonButton,
   IonContent,
@@ -23,6 +23,7 @@ import { AuthService } from '../../core/auth.service';
   imports: [
     CommonModule,
     FormsModule,
+    RouterLink,
     IonContent,
     IonList,
     IonItem,

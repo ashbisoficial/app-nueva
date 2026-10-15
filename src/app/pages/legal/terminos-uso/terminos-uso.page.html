@@ -1,0 +1,30 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/login"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Términos de Uso</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="legal-cuerpo">
+    <p class="legal-vigencia">Vigente desde el {{ ultimaActualizacion }}.</p>
+
+    @for (s of secciones; track s.titulo) {
+      <section class="legal-seccion">
+        <h2>{{ s.titulo }}</h2>
+        @for (p of s.parrafos; track p) {
+          <p>{{ p }}</p>
+        }
+        @if (s.items) {
+          <ul>
+            @for (i of s.items; track i) {
+              <li>{{ i }}</li>
+            }
+          </ul>
+        }
+      </section>
+    }
+  </div>
+</ion-content>

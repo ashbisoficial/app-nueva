@@ -191,4 +191,10 @@
   font-size: 0.75rem;
   color: var(--ion-color-medium);
   line-height: 1.5;
+
+  a {
+    color: var(--ion-color-primary);
+    font-weight: 700;
+    text-decoration: none;
+  }
 }

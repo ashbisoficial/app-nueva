@@ -9,6 +9,15 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/login/login.page').then((m) => m.LoginPage),
   },
   {
+    path: 'privacidad',
+    loadComponent: () =>
+      import('./pages/legal/politica-privacidad/politica-privacidad.page').then((m) => m.PoliticaPrivacidadPage),
+  },
+  {
+    path: 'terminos',
+    loadComponent: () => import('./pages/legal/terminos-uso/terminos-uso.page').then((m) => m.TerminosUsoPage),
+  },
+  {
     path: 'ficha-publica/:token',
     loadComponent: () => import('./pages/ficha-publica/ficha-publica.page').then((m) => m.FichaPublicaPage),
   },
