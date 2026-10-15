@@ -89,6 +89,24 @@ body {
   line-height: 1.4;
 }
 
+/** Buscador reutilizable arriba de una lista (ej. Especialidades). */
+.buscador-especialidad {
+  --background: var(--ion-item-background);
+  --border-radius: var(--radio-campo);
+  --padding-start: 14px;
+  --inner-padding-end: 14px;
+  --min-height: 46px;
+  margin-bottom: 14px;
+  border-radius: var(--radio-campo);
+  box-shadow: var(--sombra-suave);
+
+  ion-icon {
+    color: var(--ion-color-medium);
+    font-size: 18px;
+    margin-inline-end: 10px;
+  }
+}
+
 /*
  * Formularios de página completa (Nueva/editar persona, Nueva cita, Nueva
  * entrada de historial, Completar registro, Canjear PIN): cada sección va

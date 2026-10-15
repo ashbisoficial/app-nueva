@@ -10,6 +10,7 @@ import { SelectorPersonaService } from '../../core/selector-persona.service';
 import { HomeService } from '../../services/home.service';
 import { PersonasService } from '../../services/personas.service';
 import { colorPersona, inicialPersona } from '../../shared/avatar';
+import { nombreCompleto } from '../../shared/persona-nombre';
 
 @Component({
   selector: 'app-home',
@@ -72,4 +73,5 @@ export class HomePage {
 
   readonly inicialPersona = inicialPersona;
   readonly colorPersona = colorPersona;
+  readonly nombreCompleto = nombreCompleto;
 }

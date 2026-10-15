@@ -14,10 +14,15 @@
         <div class="personas-lista">
           @for (p of personas; track p.id; let i = $index) {
             <a class="persona-fila" [routerLink]="['/personas', p.id]">
-              <span class="persona-fila__avatar" [style.background]="colorPersona(i)">{{ inicialPersona(p.nombre) }}</span>
+              <span class="persona-fila__avatar" [style.background]="colorPersona(i)">{{ inicialPersona(nombreCompleto(p)) }}</span>
               <span class="persona-fila__texto">
-                <span class="persona-fila__nombre">{{ p.nombre }}</span>
-                <span class="persona-fila__fecha">{{ p.fechaNacimiento }}</span>
+                <span class="persona-fila__nombre">{{ nombreCompleto(p) }}</span>
+                <span class="persona-fila__fecha">
+                  {{ p.fechaNacimiento }}
+                  @if (calcularEdad(p.fechaNacimiento); as edad) {
+                    · {{ edad }} {{ edad === 1 ? 'año' : 'años' }}
+                  }
+                </span>
               </span>
               <ion-icon name="chevron-forward-outline" class="persona-fila__flecha"></ion-icon>
             </a>

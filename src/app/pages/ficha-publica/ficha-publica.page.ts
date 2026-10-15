@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { IonContent, IonIcon, IonItem, IonLabel, IonList, IonSpinner } from '@ionic/angular';
 import type { CampoFichaPublica, Persona } from '../../models';
 import { PersonasService } from '../../services/personas.service';
+import { nombreCompleto } from '../../shared/persona-nombre';
 
 const ETIQUETAS: Record<CampoFichaPublica, string> = {
   nombre: 'Nombre',
@@ -12,6 +13,14 @@ const ETIQUETAS: Record<CampoFichaPublica, string> = {
   alergias: 'Alergias',
   enfermedadesCronicas: 'Enfermedades crónicas',
   medicamentosPermanentes: 'Medicación permanente',
+  pesoKg: 'Peso',
+  estaturaCm: 'Estatura',
+  dispositivosMedicos: 'Dispositivos médicos',
+  donanteOrganos: 'Donante de órganos',
+  prevision: 'Previsión de salud',
+  medicoTratante: 'Médico tratante',
+  telefonoMedicoTratante: 'Teléfono del médico tratante',
+  notasEmergencia: 'Otras notas',
   contactoEmergencia: 'Contacto de emergencia',
   telefonoEmergencia: 'Teléfono de emergencia',
 };
@@ -63,8 +72,12 @@ export class FichaPublicaPage {
   }
 
   private valorCampo(persona: Persona, campo: CampoFichaPublica): string {
+    if (campo === 'nombre') return nombreCompleto(persona) || '—';
     const v = persona[campo];
     if (Array.isArray(v)) return v.length ? v.join(', ') : '—';
+    if (typeof v === 'boolean') return v ? 'Sí' : 'No';
+    if (campo === 'pesoKg' && typeof v === 'number') return `${v} kg`;
+    if (campo === 'estaturaCm' && typeof v === 'number') return `${v} cm`;
     return v ? String(v) : '—';
   }
 }

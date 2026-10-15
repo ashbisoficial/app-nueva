@@ -19,11 +19,25 @@
       para que no se mezclen entre sí.
     </p>
 
+    @if (especialidades().length > 4) {
+      <ion-item class="buscador-especialidad" lines="none">
+        <ion-icon slot="start" name="search-outline"></ion-icon>
+        <ion-input
+          placeholder="Buscar especialidad..."
+          [ngModel]="busqueda()"
+          (ngModelChange)="busqueda.set($event)"
+          name="busqueda"
+        ></ion-input>
+      </ion-item>
+    }
+
     @if (especialidades().length === 0) {
       <p class="lista-vacio">Todavía no creaste ninguna.</p>
+    } @else if (especialidadesFiltradas().length === 0) {
+      <p class="lista-vacio">No encontramos ninguna especialidad con ese nombre.</p>
     } @else {
       <ion-list class="lista-tarjeta" lines="none">
-        @for (e of especialidades(); track e.id) {
+        @for (e of especialidadesFiltradas(); track e.id) {
           <ion-item class="lista-item" button [routerLink]="['/personas', personaId, 'especialidades', e.id]">
             <ion-icon slot="start" name="pricetag-outline" class="lista-item__icono"></ion-icon>
             <ion-label>

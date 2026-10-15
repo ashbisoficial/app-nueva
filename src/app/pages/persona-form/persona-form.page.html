@@ -61,7 +61,10 @@
       <p class="form-tarjeta__titulo">Datos básicos</p>
       <ion-list lines="inset">
         <ion-item>
-          <ion-input label="Nombre completo" labelPlacement="floating" [(ngModel)]="nombre" name="nombre" required></ion-input>
+          <ion-input label="Nombres" labelPlacement="floating" [(ngModel)]="nombres" name="nombres" required></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-input label="Apellidos" labelPlacement="floating" [(ngModel)]="apellidos" name="apellidos"></ion-input>
         </ion-item>
         <ion-item>
           <ion-input label="Fecha de nacimiento" labelPlacement="floating" type="date" [(ngModel)]="fechaNacimiento" name="fechaNacimiento"></ion-input>
@@ -77,7 +80,23 @@
     </section>
 
     <section class="form-tarjeta">
+      <p class="form-tarjeta__titulo">Dirección</p>
+      <p class="texto-ayuda persona-ayuda">Opcional — útil si alguna vez hay que indicarle a una ambulancia dónde ir.</p>
+      <ion-list lines="inset">
+        <ion-item>
+          <ion-input label="Dirección" labelPlacement="floating" [(ngModel)]="direccion" name="direccion"></ion-input>
+        </ion-item>
+        <ion-item lines="none">
+          <ion-input label="Comuna" labelPlacement="floating" [(ngModel)]="comuna" name="comuna"></ion-input>
+        </ion-item>
+      </ion-list>
+    </section>
+
+    <section class="form-tarjeta">
       <p class="form-tarjeta__titulo">Salud crítica</p>
+      <p class="texto-ayuda persona-ayuda">
+        Todo lo que un médico o paramédico necesitaría saber de urgencia, sin tener que adivinarlo.
+      </p>
       <ion-list lines="inset">
         <ion-item>
           <ion-select label="Grupo sanguíneo" labelPlacement="floating" [(ngModel)]="grupoSanguineo" name="grupoSanguineo">
@@ -92,8 +111,38 @@
         <ion-item>
           <ion-textarea label="Enfermedades crónicas (separadas por coma)" labelPlacement="floating" [(ngModel)]="enfermedadesTexto" name="enfermedades" autoGrow></ion-textarea>
         </ion-item>
-        <ion-item lines="none">
+        <ion-item>
           <ion-textarea label="Medicamentos permanentes (separados por coma)" labelPlacement="floating" [(ngModel)]="medicamentosTexto" name="medicamentos" autoGrow></ion-textarea>
+        </ion-item>
+        <ion-item>
+          <ion-input label="Peso (kg)" labelPlacement="floating" type="number" inputmode="decimal" [(ngModel)]="pesoKg" name="pesoKg"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-input label="Estatura (cm)" labelPlacement="floating" type="number" inputmode="numeric" [(ngModel)]="estaturaCm" name="estaturaCm"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-textarea label="Dispositivos médicos (marcapasos, prótesis, implantes...)" labelPlacement="floating" [(ngModel)]="dispositivosMedicosTexto" name="dispositivosMedicos" autoGrow></ion-textarea>
+        </ion-item>
+        <ion-item>
+          <ion-toggle labelPlacement="start" [(ngModel)]="donanteOrganos" name="donanteOrganos">Donante de órganos</ion-toggle>
+        </ion-item>
+        <ion-item lines="none">
+          <ion-textarea label="Otras notas relevantes en una urgencia" labelPlacement="floating" [(ngModel)]="notasEmergencia" name="notasEmergencia" autoGrow></ion-textarea>
+        </ion-item>
+      </ion-list>
+    </section>
+
+    <section class="form-tarjeta">
+      <p class="form-tarjeta__titulo">Previsión y médico tratante</p>
+      <ion-list lines="inset">
+        <ion-item>
+          <ion-input label="Previsión de salud (ej. Fonasa, Isapre Banmédica)" labelPlacement="floating" [(ngModel)]="prevision" name="prevision"></ion-input>
+        </ion-item>
+        <ion-item>
+          <ion-input label="Médico tratante" labelPlacement="floating" [(ngModel)]="medicoTratante" name="medicoTratante"></ion-input>
+        </ion-item>
+        <ion-item lines="none">
+          <ion-input label="Teléfono del médico tratante" labelPlacement="floating" type="tel" [(ngModel)]="telefonoMedicoTratante" name="telefonoMedicoTratante"></ion-input>
         </ion-item>
       </ion-list>
     </section>
@@ -114,7 +163,7 @@
       <p class="texto-error">{{ error() }}</p>
     }
 
-    <ion-button expand="block" type="submit" class="form-boton-principal" [disabled]="guardando() || !nombre || (!personaId && !relacion)">
+    <ion-button expand="block" type="submit" class="form-boton-principal" [disabled]="guardando() || !nombres || (!personaId && !relacion)">
       Guardar
     </ion-button>
   </form>

@@ -18,7 +18,7 @@
         }
 
         @if (muestraCampo('nombre')) {
-          <h1>{{ p.nombre }}</h1>
+          <h1>{{ nombreCompleto(p) }}</h1>
         }
 
         @if (muestraCampo('condicionPerdida') && p.condicionPerdida) {

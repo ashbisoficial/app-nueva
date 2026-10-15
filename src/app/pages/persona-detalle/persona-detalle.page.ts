@@ -14,7 +14,9 @@ import {
   IonToolbar,
 } from '@ionic/angular';
 import { switchMap } from 'rxjs';
+import { calcularEdad } from '../../core/edad';
 import { PersonasService } from '../../services/personas.service';
+import { nombreCompleto } from '../../shared/persona-nombre';
 
 @Component({
   selector: 'app-persona-detalle',
@@ -56,6 +58,9 @@ export class PersonaDetallePage {
     { label: 'Carnet de emergencia', ruta: 'ficha', icono: 'qr-code-outline' },
     { label: 'QR de pérdida', ruta: 'ficha-perdida', icono: 'alert-circle-outline' },
   ];
+
+  readonly nombreCompleto = nombreCompleto;
+  readonly calcularEdad = calcularEdad;
 
   async compartirPorPin(): Promise<void> {
     const pin = await this.personasSvc.generarPinCompartido(this.personaId);

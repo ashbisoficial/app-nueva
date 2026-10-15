@@ -27,6 +27,7 @@ import { CitasService } from '../../services/citas.service';
 import { EspecialidadesService } from '../../services/especialidades.service';
 import { PersonasService } from '../../services/personas.service';
 import { RecordatoriosLocalesService } from '../../services/recordatorios-locales.service';
+import { nombreCompleto } from '../../shared/persona-nombre';
 
 @Component({
   selector: 'app-cita-form',
@@ -111,7 +112,7 @@ export class CitaFormPage implements OnInit {
         especialidadId: this.especialidadId || undefined,
         creadoPor: uid,
         personaId: this.personaId,
-        personaNombre: persona?.nombre ?? '',
+        personaNombre: persona ? nombreCompleto(persona) : '',
       };
 
       if (this.citaId) {

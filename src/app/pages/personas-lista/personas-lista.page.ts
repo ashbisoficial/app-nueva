@@ -6,8 +6,10 @@ import type { User } from 'firebase/auth';
 import { IonContent, IonIcon } from '@ionic/angular';
 import { filter, switchMap } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
+import { calcularEdad } from '../../core/edad';
 import { PersonasService } from '../../services/personas.service';
 import { colorPersona, inicialPersona } from '../../shared/avatar';
+import { nombreCompleto } from '../../shared/persona-nombre';
 
 @Component({
   selector: 'app-personas-lista',
@@ -27,4 +29,6 @@ export class PersonasListaPage {
 
   readonly inicialPersona = inicialPersona;
   readonly colorPersona = colorPersona;
+  readonly nombreCompleto = nombreCompleto;
+  readonly calcularEdad = calcularEdad;
 }

@@ -120,5 +120,13 @@ export const canjearPin = onCall<{ pin: string }>(async (request) => {
     uidsConAcceso: FieldValue.arrayUnion(request.auth.uid),
   });
 
-  return { personaId: personaRef.id, personaNombre: persona['nombre'] as string };
+  // Compatibilidad con Personas creadas antes de separar nombres/apellidos
+  // (ver shared/persona-nombre.ts en el cliente — misma lógica, duplicada acá
+  // porque Functions es un paquete de compilación aparte).
+  const nombres = persona['nombres'] as string | undefined;
+  const apellidos = persona['apellidos'] as string | undefined;
+  const nombreCompleto = [nombres, apellidos].filter((p) => !!p?.trim()).join(' ').trim();
+  const personaNombre = nombreCompleto || ((persona['nombre'] as string | undefined) ?? '');
+
+  return { personaId: personaRef.id, personaNombre };
 });

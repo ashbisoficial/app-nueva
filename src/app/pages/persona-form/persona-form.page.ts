@@ -15,6 +15,7 @@ import {
   IonSelectOption,
   IonTextarea,
   IonTitle,
+  IonToggle,
   IonToolbar,
 } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
@@ -42,6 +43,7 @@ import { PersonasService } from '../../services/personas.service';
     IonSelect,
     IonSelectOption,
     IonTextarea,
+    IonToggle,
   ],
   templateUrl: './persona-form.page.html',
   styleUrl: './persona-form.page.scss',
@@ -57,15 +59,29 @@ export class PersonaFormPage implements OnInit {
   relacionExistente: RelacionPersona | null = null;
   rutExistente = '';
 
-  nombre = '';
+  nombres = '';
+  apellidos = '';
   fechaNacimiento = '';
   sexo = '';
+  direccion = '';
+  comuna = '';
+
   grupoSanguineo = '';
-  contactoEmergencia = '';
-  telefonoEmergencia = '';
   alergiasTexto = '';
   enfermedadesTexto = '';
   medicamentosTexto = '';
+  pesoKg: number | null = null;
+  estaturaCm: number | null = null;
+  dispositivosMedicosTexto = '';
+  donanteOrganos = false;
+  notasEmergencia = '';
+
+  prevision = '';
+  medicoTratante = '';
+  telefonoMedicoTratante = '';
+
+  contactoEmergencia = '';
+  telefonoEmergencia = '';
 
   rutDependiente = '';
   documentoRespaldo: File | null = null;
@@ -84,15 +100,29 @@ export class PersonaFormPage implements OnInit {
       if (!persona) return;
       this.relacionExistente = persona.relacion;
       this.rutExistente = formatearRut(persona.rut);
-      this.nombre = persona.nombre;
+      // Compatibilidad: una Persona creada antes de separar nombres/apellidos
+      // solo tiene el `nombre` legado — se precarga completo en "Nombres"
+      // para que quien edite lo pueda separar, en vez de perderlo.
+      this.nombres = persona.nombres || persona.nombre || '';
+      this.apellidos = persona.apellidos ?? '';
       this.fechaNacimiento = persona.fechaNacimiento;
       this.sexo = persona.sexo;
+      this.direccion = persona.direccion ?? '';
+      this.comuna = persona.comuna ?? '';
       this.grupoSanguineo = persona.grupoSanguineo ?? '';
       this.contactoEmergencia = persona.contactoEmergencia ?? '';
       this.telefonoEmergencia = persona.telefonoEmergencia ?? '';
       this.alergiasTexto = (persona.alergias ?? []).join(', ');
       this.enfermedadesTexto = (persona.enfermedadesCronicas ?? []).join(', ');
       this.medicamentosTexto = (persona.medicamentosPermanentes ?? []).join(', ');
+      this.pesoKg = persona.pesoKg ?? null;
+      this.estaturaCm = persona.estaturaCm ?? null;
+      this.dispositivosMedicosTexto = (persona.dispositivosMedicos ?? []).join(', ');
+      this.donanteOrganos = persona.donanteOrganos ?? false;
+      this.notasEmergencia = persona.notasEmergencia ?? '';
+      this.prevision = persona.prevision ?? '';
+      this.medicoTratante = persona.medicoTratante ?? '';
+      this.telefonoMedicoTratante = persona.telefonoMedicoTratante ?? '';
       return;
     }
 
@@ -133,15 +163,26 @@ export class PersonaFormPage implements OnInit {
     this.guardando.set(true);
     try {
       const datos = {
-        nombre: this.nombre.trim(),
+        nombres: this.nombres.trim(),
+        apellidos: this.apellidos.trim(),
         fechaNacimiento: this.fechaNacimiento,
         sexo: this.sexo,
+        direccion: this.direccion || undefined,
+        comuna: this.comuna || undefined,
         grupoSanguineo: this.grupoSanguineo || undefined,
         contactoEmergencia: this.contactoEmergencia || undefined,
         telefonoEmergencia: this.telefonoEmergencia || undefined,
         alergias: this.aLista(this.alergiasTexto),
         enfermedadesCronicas: this.aLista(this.enfermedadesTexto),
         medicamentosPermanentes: this.aLista(this.medicamentosTexto),
+        pesoKg: this.pesoKg ?? undefined,
+        estaturaCm: this.estaturaCm ?? undefined,
+        dispositivosMedicos: this.aLista(this.dispositivosMedicosTexto),
+        donanteOrganos: this.donanteOrganos,
+        notasEmergencia: this.notasEmergencia || undefined,
+        prevision: this.prevision || undefined,
+        medicoTratante: this.medicoTratante || undefined,
+        telefonoMedicoTratante: this.telefonoMedicoTratante || undefined,
       };
 
       if (this.personaId) {

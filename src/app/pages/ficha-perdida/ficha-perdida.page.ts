@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { IonContent, IonIcon, IonSpinner } from '@ionic/angular';
 import type { Persona } from '../../models';
 import { PersonasService } from '../../services/personas.service';
+import { nombreCompleto } from '../../shared/persona-nombre';
 
 @Component({
   selector: 'app-ficha-perdida',
@@ -39,6 +40,8 @@ export class FichaPerdidaPage {
   muestraCampo(campo: string): boolean {
     return this.persona()?.qrPerdidaCamposPublicos?.includes(campo as never) ?? false;
   }
+
+  readonly nombreCompleto = nombreCompleto;
 
   llamar(telefono: string): void {
     window.location.href = `tel:${telefono}`;

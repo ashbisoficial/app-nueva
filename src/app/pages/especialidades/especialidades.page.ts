@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -56,6 +56,24 @@ export class EspecialidadesPage {
     this.route.paramMap.pipe(switchMap((params) => this.especialidadesSvc.activas$(params.get('id') ?? ''))),
     { initialValue: [] }
   );
+
+  /** Búsqueda rápida (sección 4.7): encontrar una especialidad puntual sin
+   *  tener que escanear toda la lista, útil apenas crece más allá de unas
+   *  pocas (ej. varios tratamientos crónicos a la vez). */
+  busqueda = signal('');
+  especialidadesFiltradas = computed(() => {
+    const texto = this.normalizar(this.busqueda());
+    if (!texto) return this.especialidades();
+    return this.especialidades().filter((e) => this.normalizar(e.nombre).includes(texto));
+  });
+
+  private normalizar(texto: string): string {
+    return texto
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '');
+  }
 
   mostrarForm = signal(false);
   nombre = '';

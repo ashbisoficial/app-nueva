@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/personas"></ion-back-button>
     </ion-buttons>
-    <ion-title>{{ persona()?.nombre ?? 'Persona' }}</ion-title>
+    <ion-title>{{ (persona() ? nombreCompleto(persona()!) : '') || 'Persona' }}</ion-title>
     <ion-buttons slot="end">
       <ion-button [routerLink]="['/personas', personaId, 'editar']">
         <ion-icon slot="icon-only" name="settings-outline"></ion-icon>
@@ -17,8 +17,13 @@
     @if (persona(); as p) {
       <section class="detalle-tarjeta">
         <p class="detalle-tarjeta__titulo">Resumen</p>
-        <p class="detalle-nacimiento"><strong>Nacimiento:</strong> {{ p.fechaNacimiento || '—' }}</p>
-        @if (p.grupoSanguineo || p.alergias?.length || p.enfermedadesCronicas?.length) {
+        <p class="detalle-nacimiento">
+          <strong>Nacimiento:</strong> {{ p.fechaNacimiento || '—' }}
+          @if (calcularEdad(p.fechaNacimiento); as edad) {
+            ({{ edad }} {{ edad === 1 ? 'año' : 'años' }})
+          }
+        </p>
+        @if (p.grupoSanguineo || p.alergias?.length || p.enfermedadesCronicas?.length || p.dispositivosMedicos?.length || p.donanteOrganos) {
           <div class="detalle-chips">
             @if (p.grupoSanguineo) {
               <span class="detalle-chip detalle-chip--sangre">Grupo {{ p.grupoSanguineo }}</span>
@@ -28,6 +33,12 @@
             }
             @for (e of p.enfermedadesCronicas; track e) {
               <span class="detalle-chip detalle-chip--cronica">{{ e }}</span>
+            }
+            @for (d of p.dispositivosMedicos; track d) {
+              <span class="detalle-chip detalle-chip--extra">{{ d }}</span>
+            }
+            @if (p.donanteOrganos) {
+              <span class="detalle-chip detalle-chip--extra">Donante de órganos</span>
             }
           </div>
         }

@@ -54,6 +54,10 @@
     background: color-mix(in srgb, var(--ion-color-secondary) 20%, white);
     color: var(--ion-color-secondary);
   }
+  &--extra {
+    background: var(--ion-color-step-100);
+    color: var(--ion-color-medium-shade);
+  }
 }
 
 .detalle-modulos {

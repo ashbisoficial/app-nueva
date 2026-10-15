@@ -4,10 +4,22 @@ export type RelacionPersona = 'yo_mismo' | 'menor_a_cargo' | 'adulto_mayor_a_car
 export interface Persona {
   id: string;
   uidTitular: string;
-  nombre: string;
+  nombres: string;
+  apellidos: string;
+  /**
+   * @deprecated Campo legado de antes de separar nombres/apellidos (un solo
+   * input "Nombre completo"). Ya no se escribe, pero se mantiene en el tipo
+   * porque los documentos creados antes de este cambio todavía lo tienen —
+   * ver nombreCompleto() en shared/persona-nombre.ts, que resuelve a este
+   * valor si nombres/apellidos vienen vacíos.
+   */
+  nombre?: string;
   fechaNacimiento: string;
   sexo: string;
   fotoUrl?: string;
+
+  direccion?: string;
+  comuna?: string;
 
   relacion: RelacionPersona;
   /**
@@ -24,6 +36,18 @@ export interface Persona {
   alergias?: string[];
   enfermedadesCronicas?: string[];
   medicamentosPermanentes?: string[];
+  /** Peso en kilos — relevante sobre todo para dosificar un medicamento en una urgencia (ej. a un menor). */
+  pesoKg?: number;
+  estaturaCm?: number;
+  /** Marcapasos, prótesis o cualquier implante metálico — relevante antes de una resonancia o cirugía de urgencia. */
+  dispositivosMedicos?: string[];
+  donanteOrganos?: boolean;
+  /** Previsión de salud (ej. "Fonasa", "Isapre Banmédica"), para saber a qué institución corresponde llevarla. */
+  prevision?: string;
+  medicoTratante?: string;
+  telefonoMedicoTratante?: string;
+  /** Cualquier otro dato relevante en una urgencia que no entra en un campo de arriba. */
+  notasEmergencia?: string;
 
   contactoEmergencia?: string;
   telefonoEmergencia?: string;
@@ -45,6 +69,13 @@ export interface Persona {
   uidsConAcceso?: string[];
 }
 
+/**
+ * Campos que se pueden marcar como públicos en el carnet de emergencia (opt-in,
+ * sección 4.6). Deliberadamente NO incluye `direccion` ni `comuna`: exponer la
+ * dirección de alguien en una ficha pública sin login es un riesgo de
+ * seguridad que no aporta nada a un médico de urgencia (principio de
+ * minimización de datos expuestos, sección 7).
+ */
 export type CampoFichaPublica =
   | 'nombre'
   | 'fechaNacimiento'
@@ -52,6 +83,14 @@ export type CampoFichaPublica =
   | 'alergias'
   | 'enfermedadesCronicas'
   | 'medicamentosPermanentes'
+  | 'pesoKg'
+  | 'estaturaCm'
+  | 'dispositivosMedicos'
+  | 'donanteOrganos'
+  | 'prevision'
+  | 'medicoTratante'
+  | 'telefonoMedicoTratante'
+  | 'notasEmergencia'
   | 'contactoEmergencia'
   | 'telefonoEmergencia';
 

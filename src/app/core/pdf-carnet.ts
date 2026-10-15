@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import type { Persona } from '../models';
+import { nombreCompleto } from '../shared/persona-nombre';
 
 const ETIQUETAS: Record<string, string> = {
   nombre: 'Nombre',
@@ -8,13 +9,25 @@ const ETIQUETAS: Record<string, string> = {
   alergias: 'Alergias',
   enfermedadesCronicas: 'Enfermedades crónicas',
   medicamentosPermanentes: 'Medicación permanente',
+  pesoKg: 'Peso',
+  estaturaCm: 'Estatura',
+  dispositivosMedicos: 'Dispositivos médicos',
+  donanteOrganos: 'Donante de órganos',
+  prevision: 'Previsión',
+  medicoTratante: 'Médico tratante',
+  telefonoMedicoTratante: 'Teléfono del médico tratante',
+  notasEmergencia: 'Otras notas',
   contactoEmergencia: 'Contacto de emergencia',
   telefonoEmergencia: 'Teléfono de emergencia',
 };
 
 function valorCampo(persona: Persona, campo: string): string {
+  if (campo === 'nombre') return nombreCompleto(persona) || '—';
   const v = (persona as unknown as Record<string, unknown>)[campo];
   if (Array.isArray(v)) return v.length ? v.join(', ') : '—';
+  if (typeof v === 'boolean') return v ? 'Sí' : 'No';
+  if (campo === 'pesoKg' && typeof v === 'number') return `${v} kg`;
+  if (campo === 'estaturaCm' && typeof v === 'number') return `${v} cm`;
   return v ? String(v) : '—';
 }
 
@@ -41,7 +54,7 @@ export function generarPdfCarnet(persona: Persona, campos: string[], qrDataUrl: 
   doc.text('Ficha de emergencia', 42.5, 10, { align: 'center' });
 
   doc.setFontSize(11);
-  doc.text(persona.nombre, 42.5, 17, { align: 'center' });
+  doc.text(nombreCompleto(persona), 42.5, 17, { align: 'center' });
 
   let y = 25;
   doc.setFontSize(9);
@@ -54,7 +67,7 @@ export function generarPdfCarnet(persona: Persona, campos: string[], qrDataUrl: 
 
   doc.addImage(qrDataUrl, 'PNG', 22.5, Math.max(y + 4, 70), 40, 40);
 
-  doc.save(`ficha-emergencia-${persona.nombre.replace(/\s+/g, '_')}.pdf`);
+  doc.save(`ficha-emergencia-${nombreCompleto(persona).replace(/\s+/g, '_')}.pdf`);
 }
 
 /**
@@ -84,7 +97,7 @@ export async function generarPdfPerdida(persona: Persona, qrDataUrl: string): Pr
   }
 
   doc.setFontSize(15);
-  doc.text(persona.nombre, 42.5, y, { align: 'center' });
+  doc.text(nombreCompleto(persona), 42.5, y, { align: 'center' });
   y += 8;
 
   if (persona.condicionPerdida) {
@@ -107,5 +120,5 @@ export async function generarPdfPerdida(persona: Persona, qrDataUrl: string): Pr
 
   doc.addImage(qrDataUrl, 'PNG', 22.5, Math.max(y + 3, 78), 40, 40);
 
-  doc.save(`qr-perdida-${persona.nombre.replace(/\s+/g, '_')}.pdf`);
+  doc.save(`qr-perdida-${nombreCompleto(persona).replace(/\s+/g, '_')}.pdf`);
 }

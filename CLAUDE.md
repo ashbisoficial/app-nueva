@@ -140,10 +140,18 @@ type RelacionPersona = 'yo_mismo' | 'menor_a_cargo' | 'adulto_mayor_a_cargo';
 interface Persona {
   id: string;
   uidTitular: string;        // quién administra este perfil (equivalente a uidUsuario)
-  nombre: string;
-  fechaNacimiento: string;
+  nombres: string;
+  apellidos: string;
+  nombre?: string;           // @deprecated — campo legado de antes de separar nombres/apellidos;
+                              // se mantiene solo por compatibilidad con documentos viejos, nunca
+                              // se vuelve a escribir. nombreCompleto() resuelve a este valor si
+                              // nombres/apellidos vienen vacíos (shared/persona-nombre.ts).
+  fechaNacimiento: string;    // la edad se calcula al vuelo (core/edad.ts), nunca se guarda
   sexo: string;
   fotoUrl?: string;
+
+  direccion?: string;        // opcional, ej. para indicarle a una ambulancia dónde ir
+  comuna?: string;
 
   relacion: RelacionPersona;
   // Para 'yo_mismo': copia de usuarios/{uid}.rut (no se puede editar distinto acá).
@@ -157,19 +165,31 @@ interface Persona {
   // al crearlo (sección 6.2).
   documentoRespaldoUrl?: string;
 
-  // Salud crítica — equivalente a alergias/enfermedadesCronicas/medicamentosPermanentes
+  // Salud crítica — todo lo que un médico/paramédico de urgencia necesitaría
+  // y nunca debería tener que adivinar (principio rector de esta sección).
   grupoSanguineo?: string;
   alergias?: string[];
   enfermedadesCronicas?: string[];
   medicamentosPermanentes?: string[];
+  pesoKg?: number;                   // relevante para dosificar un medicamento de urgencia (ej. a un menor)
+  estaturaCm?: number;
+  dispositivosMedicos?: string[];    // marcapasos, prótesis, implantes metálicos — relevante antes de una resonancia/cirugía
+  donanteOrganos?: boolean;
+  prevision?: string;                // ej. "Fonasa", "Isapre Banmédica" — a qué institución corresponde llevarla
+  medicoTratante?: string;
+  telefonoMedicoTratante?: string;
+  notasEmergencia?: string;          // texto libre, cualquier otra cosa relevante en una urgencia
 
   // Contacto de emergencia
   contactoEmergencia?: string;
   telefonoEmergencia?: string;
 
-  // QR del carnet de emergencia — datos médicos para mostrarle a un médico
+  // QR del carnet de emergencia — datos médicos para mostrarle a un médico.
+  // qrFichaCamposPublicos deliberadamente NO puede incluir direccion/comuna:
+  // exponer la dirección de alguien sin login es un riesgo que no aporta
+  // nada a un médico de urgencia (minimización de datos, sección 7).
   qrFichaToken?: string;            // token random, válido para siempre, enlaza a vista pública de solo lectura
-  qrFichaCamposPublicos?: string[]; // opt-in: qué secciones se muestran al escanear (alergias, contacto, medicación — NUNCA el historial completo NI archivos/documentos)
+  qrFichaCamposPublicos?: string[]; // opt-in: qué secciones se muestran al escanear (alergias, contacto, medicación — NUNCA el historial completo NI archivos/documentos NI dirección/comuna)
 
   // QR de pérdida — para personas con demencia/Alzheimer que se pueden
   // desorientar o perderse (sección 4.6). Token y campos visibles
@@ -459,6 +479,16 @@ informe que necesita en ese momento.
 - Etiquetar con especialidad es siempre opcional al crear una entrada,
   documento, cita o examen; no bloquea el flujo normal de la app para quien no
   lo necesita.
+- **Encontrar la especialidad correcta rápido:** el listado de
+  especialidades de una Persona tiene un buscador por nombre (aparece desde
+  la quinta especialidad en adelante — antes no hace falta). Se evaluó
+  también un mapa interactivo de cuerpo humano (tocar una zona como
+  "cabeza" → sugerir especialidades como psicología/neurología), pero se
+  descartó para esta etapa: el buscador cubre el caso real (encontrar
+  "Broncopulmonar" entre varias que ya creó el usuario, sección 4.7) con
+  mucho menos esfuerzo de construcción y es más accesible para el público
+  objetivo (sección 2.1) que interpretar un diagrama. Queda anotado como
+  posible mejora de fase 2, no se descarta para siempre.
 
 ## 5. Autenticación y estructura de cuenta
 
