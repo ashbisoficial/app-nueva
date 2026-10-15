@@ -7,9 +7,10 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <form (ngSubmit)="guardar()">
-    <ion-list>
+<ion-content>
+  <form (ngSubmit)="guardar()" class="form-cuerpo">
+    <section class="form-tarjeta">
+    <ion-list lines="inset">
       <ion-item>
         <ion-input label="Título" labelPlacement="floating" [(ngModel)]="titulo" name="titulo" required></ion-input>
       </ion-item>
@@ -39,12 +40,13 @@
           </ion-select>
         </ion-item>
       }
-      <ion-item>
+      <ion-item lines="none">
         <ion-textarea label="Notas" labelPlacement="floating" [(ngModel)]="notas" name="notas" autoGrow></ion-textarea>
       </ion-item>
     </ion-list>
+    </section>
 
-    <ion-button expand="block" type="submit" class="ion-margin-top" [disabled]="guardando() || !titulo">
+    <ion-button expand="block" type="submit" class="form-boton-principal" [disabled]="guardando() || !titulo">
       Guardar
     </ion-button>
     <ion-button expand="block" fill="outline" type="button" (click)="exportarIcs()">

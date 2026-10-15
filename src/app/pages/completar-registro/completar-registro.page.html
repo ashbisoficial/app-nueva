@@ -26,7 +26,7 @@
         </ion-text>
       }
 
-      <ion-button expand="block" type="submit" class="ion-margin-top" [disabled]="cargando() || !rut">
+      <ion-button expand="block" type="submit" class="form-boton-principal" [disabled]="cargando() || !rut">
         @if (cargando()) {
           <ion-spinner name="dots"></ion-spinner>
         } @else {

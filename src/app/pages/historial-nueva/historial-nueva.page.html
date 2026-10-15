@@ -7,9 +7,10 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <form (ngSubmit)="guardar()">
-    <ion-list>
+<ion-content>
+  <form (ngSubmit)="guardar()" class="form-cuerpo">
+    <section class="form-tarjeta">
+    <ion-list lines="inset">
       <ion-item>
         <ion-select label="Tipo de entrada" labelPlacement="floating" [(ngModel)]="tipo" name="tipo">
           @for (t of tipos; track t.value) {
@@ -80,12 +81,13 @@
         <input type="file" accept="image/*,application/pdf" (change)="onArchivoSeleccionado($event)" />
       </ion-item>
     </ion-list>
+    </section>
 
     @if (error()) {
-      <p class="ion-padding-start" style="color: var(--ion-color-danger)">{{ error() }}</p>
+      <p class="texto-error">{{ error() }}</p>
     }
 
-    <ion-button expand="block" type="submit" class="ion-margin-top" [disabled]="guardando()">
+    <ion-button expand="block" type="submit" class="form-boton-principal" [disabled]="guardando()">
       Guardar entrada
     </ion-button>
   </form>

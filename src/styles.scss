@@ -88,3 +88,52 @@ body {
   font-size: 0.88rem;
   line-height: 1.4;
 }
+
+/*
+ * Formularios de página completa (Nueva/editar persona, Nueva cita, Nueva
+ * entrada de historial, Completar registro, Canjear PIN): cada sección va
+ * en su propia tarjeta en vez de un <ion-list> largo con separadores planos.
+ */
+.form-cuerpo {
+  padding: 16px 20px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-tarjeta {
+  background: var(--ion-item-background);
+  border-radius: var(--radio-tarjeta);
+  box-shadow: var(--sombra-suave);
+  padding: 4px 4px 8px;
+}
+
+.form-tarjeta ion-list {
+  background: transparent;
+}
+
+.form-tarjeta__titulo {
+  margin: 12px 0 2px 16px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ion-color-medium);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.form-tarjeta ion-item {
+  --background: transparent;
+}
+
+.form-boton-principal {
+  --border-radius: var(--radio-campo);
+  --box-shadow: var(--sombra-flotante);
+  font-weight: 700;
+  margin: 0;
+}
+
+.texto-error {
+  margin: -6px 0 0;
+  color: var(--ion-color-danger, #c0392b);
+  font-size: 0.85rem;
+}
