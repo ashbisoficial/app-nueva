@@ -22,3 +22,17 @@ body {
 :root[data-tamano='grande'] {
   font-size: 19px;
 }
+
+/*
+ * Tokens de forma/elevación ("orgánico cálido" — propuesta visual
+ * aprobada): radios grandes y sombras tenues en vez de cajas rígidas.
+ * Las sombras se mezclan con el color de texto/primario de cada tema
+ * (color-mix) para que se vean coherentes en las 13 paletas, sin tener
+ * que repetirlas en cada bloque de theme/variables.css.
+ */
+:root {
+  --radio-tarjeta: 20px;
+  --radio-campo: 14px;
+  --sombra-suave: 0 4px 14px color-mix(in srgb, var(--ion-text-color) 8%, transparent);
+  --sombra-flotante: 0 10px 22px color-mix(in srgb, var(--ion-color-primary) 32%, transparent);
+}

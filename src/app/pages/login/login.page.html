@@ -1,36 +1,77 @@
-<ion-content class="ion-padding login-content">
-  <div class="login-card">
-    <p class="marca">Serangelia</p>
-    <h1>Mi salud y la de mi familia</h1>
-    <p class="subtitulo">Historial médico, documentos y recordatorios en un solo lugar.</p>
+<ion-content [fullscreen]="true" class="login-content" [scrollY]="false">
+ <div class="login-pantalla">
+  <div class="login-hero">
+    <div class="blob blob--1"></div>
+    <div class="blob blob--2"></div>
+    <div class="blob blob--3"></div>
 
-    <ion-segment [value]="modo()" (ionChange)="cambiarModo($event.detail.value)">
-      <ion-segment-button value="login">Ingresar</ion-segment-button>
-      <ion-segment-button value="registro">Crear cuenta</ion-segment-button>
+    <div class="login-hero__marca">
+      <div class="login-hero__icono">
+        <ion-icon name="heart-outline"></ion-icon>
+      </div>
+      <h1>Serangelia</h1>
+      <p>Tu salud y la de tu familia, en un solo lugar.</p>
+    </div>
+  </div>
+
+  <div class="login-hoja">
+    <ion-segment [value]="modo()" (ionChange)="cambiarModo($event.detail.value)" class="login-segmento">
+      <ion-segment-button value="login">
+        <ion-label>Ingresar</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="registro">
+        <ion-label>Crear cuenta</ion-label>
+      </ion-segment-button>
     </ion-segment>
 
-    <form (ngSubmit)="enviar()" class="ion-margin-top">
-      <ion-list>
+    <form (ngSubmit)="enviar()" class="login-form">
+      <ion-list lines="none" class="login-campos">
         @if (modo() === 'registro') {
           <ion-item>
-            <ion-input label="Nombre" labelPlacement="floating" name="nombre" [(ngModel)]="nombre" required></ion-input>
+            <ion-input
+              label="Nombre"
+              labelPlacement="stacked"
+              fill="outline"
+              name="nombre"
+              placeholder="Como quieres que te llamemos"
+              [(ngModel)]="nombre"
+              required
+            ></ion-input>
           </ion-item>
         }
         <ion-item>
-          <ion-input label="Email" labelPlacement="floating" type="email" name="email" [(ngModel)]="email" required></ion-input>
+          <ion-input
+            label="Email"
+            labelPlacement="stacked"
+            fill="outline"
+            type="email"
+            name="email"
+            placeholder="tu@email.com"
+            [(ngModel)]="email"
+            required
+          ></ion-input>
         </ion-item>
         <ion-item>
-          <ion-input label="Contraseña" labelPlacement="floating" type="password" name="password" [(ngModel)]="password" required></ion-input>
+          <ion-input
+            label="Contraseña"
+            labelPlacement="stacked"
+            fill="outline"
+            type="password"
+            name="password"
+            placeholder="••••••••"
+            [(ngModel)]="password"
+            required
+          ></ion-input>
         </ion-item>
       </ion-list>
 
       @if (error()) {
         <ion-text color="danger">
-          <p class="ion-padding-start">{{ error() }}</p>
+          <p class="login-error">{{ error() }}</p>
         </ion-text>
       }
 
-      <ion-button expand="block" type="submit" class="ion-margin-top" [disabled]="cargando()">
+      <ion-button expand="block" type="submit" [disabled]="cargando()" class="login-boton-principal">
         @if (cargando()) {
           <ion-spinner name="dots"></ion-spinner>
         } @else {
@@ -38,10 +79,15 @@
         }
       </ion-button>
 
-      <ion-button expand="block" fill="outline" type="button" (click)="conGoogle()" [disabled]="cargando()">
-        <ion-icon slot="start" name="log-in-outline"></ion-icon>
+      <div class="login-divisor"><span></span>o<span></span></div>
+
+      <ion-button expand="block" fill="outline" type="button" [disabled]="cargando()" (click)="conGoogle()" class="login-boton-google">
+        <span class="login-google-icono">G</span>
         Continuar con Google
       </ion-button>
+
+      <p class="login-aviso">Tus datos de salud están cifrados y nunca se comparten sin tu permiso.</p>
     </form>
   </div>
+ </div>
 </ion-content>

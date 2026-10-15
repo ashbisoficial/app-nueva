@@ -1,94 +1,102 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Hola{{ auth.usuario()?.displayName ? ', ' + auth.usuario()?.displayName : '' }}</ion-title>
-    <ion-buttons slot="end">
-      <ion-button routerLink="/configuracion">
-        <ion-icon slot="icon-only" name="settings-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="home-content">
+  <div class="home-blob" aria-hidden="true"></div>
 
-<ion-content class="ion-padding">
-  <div class="accesos-rapidos accesos-rapidos--principal">
-    <ion-button (click)="subirDocumento()" fill="solid" size="large">
-      <ion-icon slot="start" name="camera-outline"></ion-icon>
-      Subir documento
-    </ion-button>
-    <ion-button (click)="verMedicamentos()" fill="solid" color="secondary" size="large">
-      <ion-icon slot="start" name="medkit-outline"></ion-icon>
-      Mis medicamentos
-    </ion-button>
+  <div class="home-encabezado">
+    <div>
+      <p class="home-fecha">{{ hoy | date: "EEEE d 'de' MMMM" }}</p>
+      <h1>Hola{{ auth.usuario()?.displayName ? ', ' + auth.usuario()?.displayName?.split(' ')?.[0] : '' }}</h1>
+    </div>
+    <button class="home-ajustes" routerLink="/configuracion" aria-label="Configuración">
+      <ion-icon name="settings-outline"></ion-icon>
+    </button>
   </div>
 
-  <div class="accesos-rapidos">
-    <ion-button routerLink="/personas/nueva" fill="outline">
-      <ion-icon slot="start" name="person-add-outline"></ion-icon>
-      Agregar persona
-    </ion-button>
-    <ion-button routerLink="/agenda" fill="outline">
-      <ion-icon slot="start" name="calendar-outline"></ion-icon>
-      Ver agenda
-    </ion-button>
-    <ion-button routerLink="/personas" fill="outline">
-      <ion-icon slot="start" name="people-outline"></ion-icon>
-      Mis personas
-    </ion-button>
-    <ion-button routerLink="/canjear-pin" fill="outline">
-      <ion-icon slot="start" name="key-outline"></ion-icon>
-      Tengo un PIN
-    </ion-button>
-  </div>
+  <div class="home-cuerpo">
+    <div class="home-accesos">
+      <button class="home-acceso" (click)="subirDocumento()">
+        <span class="home-acceso__icono home-acceso__icono--rosa">
+          <ion-icon name="camera-outline"></ion-icon>
+        </span>
+        <span class="home-acceso__label">Subir documento</span>
+      </button>
+      <button class="home-acceso" (click)="verMedicamentos()">
+        <span class="home-acceso__icono home-acceso__icono--verde">
+          <ion-icon name="medkit-outline"></ion-icon>
+        </span>
+        <span class="home-acceso__label">Mis medicamentos</span>
+      </button>
+      <button class="home-acceso" routerLink="/personas/nueva">
+        <span class="home-acceso__icono home-acceso__icono--morado">
+          <ion-icon name="person-add-outline"></ion-icon>
+        </span>
+        <span class="home-acceso__label">Agregar persona</span>
+      </button>
+      <button class="home-acceso" routerLink="/agenda">
+        <span class="home-acceso__icono home-acceso__icono--ambar">
+          <ion-icon name="calendar-outline"></ion-icon>
+        </span>
+        <span class="home-acceso__label">Ver agenda</span>
+      </button>
+    </div>
 
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Próximos días</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
+    <button class="home-enlace-pin" routerLink="/canjear-pin">
+      <ion-icon name="key-outline"></ion-icon>
+      Tengo un PIN de acceso compartido
+    </button>
+
+    <section class="home-seccion">
+      <p class="home-seccion__titulo">Próximos días</p>
       @if ((eventos$ | async); as eventos) {
         @if (eventos.length === 0) {
-          <p class="vacio">No hay vacunas, citas ni tratamientos por vencer en los próximos 14 días.</p>
+          <p class="home-vacio">No hay vacunas, citas ni tratamientos por vencer en los próximos 14 días.</p>
         } @else {
-          <ion-list>
+          <div class="home-tarjeta">
             @for (ev of eventos; track ev.fecha + ev.titulo) {
-              <ion-item button [routerLink]="['/personas', ev.personaId]">
-                <ion-icon slot="start" [name]="iconoEvento(ev.tipo)"></ion-icon>
-                <ion-label>
-                  <h3>{{ ev.titulo }}</h3>
-                  <p>{{ ev.fecha | date: 'medium' }} @if (ev.personaNombre) { · {{ ev.personaNombre }} }</p>
-                </ion-label>
-              </ion-item>
+              <a class="home-evento" [routerLink]="['/personas', ev.personaId]">
+                <span class="evento-badge" [ngClass]="claseEvento(ev.tipo)">
+                  <ion-icon [name]="iconoEvento(ev.tipo)"></ion-icon>
+                </span>
+                <span class="home-evento__texto">
+                  <span class="home-evento__titulo">{{ ev.titulo }}</span>
+                  <span class="home-evento__fecha">{{ ev.fecha | date: 'medium' }} @if (ev.personaNombre) { · {{ ev.personaNombre }} }</span>
+                </span>
+                <ion-icon name="chevron-forward-outline" class="home-evento__flecha"></ion-icon>
+              </a>
             }
-          </ion-list>
+          </div>
         }
       }
-    </ion-card-content>
-  </ion-card>
+    </section>
 
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Mis personas</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
+    <section class="home-seccion">
+      <p class="home-seccion__titulo">Mis personas</p>
       @if ((personas$ | async); as personas) {
         @if (personas.length === 0) {
-          <p class="vacio">Todavía no agregaste a nadie. Empieza agregándote a ti mismo/a o a un familiar.</p>
+          <p class="home-vacio">Todavía no agregaste a nadie. Empieza agregándote a ti mismo/a o a un familiar.</p>
         } @else {
-          <ion-list>
-            @for (p of personas; track p.id) {
-              <ion-item button [routerLink]="['/personas', p.id]">
-                <ion-icon slot="start" name="person-circle-outline"></ion-icon>
-                <ion-label>{{ p.nombre }}</ion-label>
-              </ion-item>
+          <div class="home-personas">
+            @for (p of personas; track p.id; let i = $index) {
+              <a class="home-persona" [routerLink]="['/personas', p.id]">
+                <span class="home-persona__avatar" [style.background]="colorPersona(i)">{{ inicialPersona(p.nombre) }}</span>
+                <span class="home-persona__nombre">{{ p.nombre }}</span>
+              </a>
             }
-          </ion-list>
+            <a class="home-persona" routerLink="/personas/nueva">
+              <span class="home-persona__avatar home-persona__avatar--agregar">
+                <ion-icon name="add-outline"></ion-icon>
+              </span>
+              <span class="home-persona__nombre">Agregar</span>
+            </a>
+          </div>
         }
       }
-    </ion-card-content>
-  </ion-card>
+    </section>
 
-  <ion-button expand="block" fill="clear" color="medium" (click)="logout()">
-    <ion-icon slot="start" name="log-out-outline"></ion-icon>
-    Cerrar sesión
-  </ion-button>
+    <button class="home-cerrar-sesion" (click)="logout()">
+      <ion-icon name="log-out-outline"></ion-icon>
+      Cerrar sesión
+    </button>
+  </div>
+
+  <app-bottom-nav></app-bottom-nav>
 </ion-content>

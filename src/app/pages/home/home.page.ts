@@ -3,49 +3,20 @@ import { Component, inject } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import type { User } from 'firebase/auth';
-import {
-  IonButton,
-  IonButtons,
-  IonCard,
-  IonCardContent,
-  IonCardHeader,
-  IonCardTitle,
-  IonContent,
-  IonHeader,
-  IonIcon,
-  IonItem,
-  IonLabel,
-  IonList,
-  IonTitle,
-  IonToolbar,
-} from '@ionic/angular';
+import { IonContent, IonIcon } from '@ionic/angular';
 import { filter, switchMap } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { SelectorPersonaService } from '../../core/selector-persona.service';
 import { HomeService } from '../../services/home.service';
 import { PersonasService } from '../../services/personas.service';
+import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
+
+const COLORES_PERSONA = ['#A85C68', '#7C9473', '#9B7FB8', '#D98E2B', '#4F5F9E'];
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonButtons,
-    IonButton,
-    IonIcon,
-    IonContent,
-    IonCard,
-    IonCardHeader,
-    IonCardTitle,
-    IonCardContent,
-    IonList,
-    IonItem,
-    IonLabel,
-  ],
+  imports: [CommonModule, RouterLink, IonIcon, IonContent, BottomNavComponent],
   templateUrl: './home.page.html',
   styleUrl: './home.page.scss',
 })
@@ -57,6 +28,7 @@ export class HomePage {
   private router = inject(Router);
 
   private usuario$ = toObservable(this.auth.usuario);
+  readonly hoy = new Date();
 
   personas$ = this.usuario$.pipe(
     filter((u): u is User => !!u),
@@ -91,5 +63,20 @@ export class HomePage {
     if (tipo === 'cita') return 'calendar-outline';
     if (tipo === 'vacuna') return 'medical-outline';
     return 'medkit-outline';
+  }
+
+  /** Insignia de color por tipo de evento (sección "orgánico cálido": color por categoría, nunca borde lateral). */
+  claseEvento(tipo: string): string {
+    if (tipo === 'cita') return 'evento-badge--cita';
+    if (tipo === 'vacuna') return 'evento-badge--vacuna';
+    return 'evento-badge--medicamento';
+  }
+
+  inicialPersona(nombre: string): string {
+    return nombre?.trim().charAt(0).toUpperCase() || '?';
+  }
+
+  colorPersona(indice: number): string {
+    return COLORES_PERSONA[indice % COLORES_PERSONA.length];
   }
 }
