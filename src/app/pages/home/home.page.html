@@ -77,7 +77,13 @@
           <div class="home-personas">
             @for (p of personas; track p.id; let i = $index) {
               <a class="home-persona" [routerLink]="['/personas', p.id]">
-                <span class="home-persona__avatar" [style.background]="colorPersona(i)">{{ inicialPersona(nombreCompleto(p)) }}</span>
+                <span class="home-persona__avatar" [style.background]="colorPersona(i)">
+                  @if (p.fotoUrl) {
+                    <img [src]="p.fotoUrl" alt="" />
+                  } @else {
+                    {{ inicialPersona(nombreCompleto(p)) }}
+                  }
+                </span>
                 <span class="home-persona__nombre">{{ nombreCompleto(p) }}</span>
               </a>
             }

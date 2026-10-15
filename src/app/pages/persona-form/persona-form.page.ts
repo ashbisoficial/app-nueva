@@ -8,6 +8,7 @@ import {
   IonButtons,
   IonContent,
   IonHeader,
+  IonIcon,
   IonInput,
   IonItem,
   IonList,
@@ -18,6 +19,7 @@ import {
   IonToggle,
   IonToolbar,
 } from '@ionic/angular';
+import { deleteField } from 'firebase/firestore';
 import { AuthService } from '../../core/auth.service';
 import { formatearRut } from '../../core/rut';
 import { subirArchivo } from '../../core/storage';
@@ -39,6 +41,7 @@ import { PersonasService } from '../../services/personas.service';
     IonContent,
     IonList,
     IonItem,
+    IonIcon,
     IonInput,
     IonSelect,
     IonSelectOption,
@@ -86,6 +89,11 @@ export class PersonaFormPage implements OnInit {
   rutDependiente = '';
   documentoRespaldo: File | null = null;
 
+  fotoArchivo: File | null = null;
+  fotoPreviewUrl = signal<string | null>(null);
+  fotoExistenteUrl = signal<string | null>(null);
+  quitarFotoExistente = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -123,6 +131,7 @@ export class PersonaFormPage implements OnInit {
       this.prevision = persona.prevision ?? '';
       this.medicoTratante = persona.medicoTratante ?? '';
       this.telefonoMedicoTratante = persona.telefonoMedicoTratante ?? '';
+      this.fotoExistenteUrl.set(persona.fotoUrl ?? null);
       return;
     }
 
@@ -138,6 +147,20 @@ export class PersonaFormPage implements OnInit {
     this.documentoRespaldo = input.files?.[0] ?? null;
   }
 
+  onFotoSeleccionada(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const archivo = input.files?.[0] ?? null;
+    this.fotoArchivo = archivo;
+    this.quitarFotoExistente = false;
+    this.fotoPreviewUrl.set(archivo ? URL.createObjectURL(archivo) : null);
+  }
+
+  quitarFoto(): void {
+    this.fotoArchivo = null;
+    this.fotoPreviewUrl.set(null);
+    this.quitarFotoExistente = true;
+  }
+
   etiquetaDocumento(): string {
     return this.relacion === 'menor_a_cargo'
       ? 'Certificado de nacimiento'
@@ -149,6 +172,17 @@ export class PersonaFormPage implements OnInit {
     if (relacion === 'menor_a_cargo') return 'Menor de edad a cargo';
     if (relacion === 'adulto_mayor_a_cargo') return 'Adulto mayor/convaleciente a cargo';
     return '';
+  }
+
+  /** Sube la foto nueva (si se eligió una) o borra la existente (si se pidió quitarla). */
+  private async guardarFoto(id: string): Promise<void> {
+    if (this.fotoArchivo) {
+      const ruta = `personas/${id}/perfil/foto_${Date.now()}_${this.fotoArchivo.name}`;
+      const fotoUrl = await subirArchivo(ruta, this.fotoArchivo);
+      await this.personasSvc.actualizar(id, { fotoUrl });
+    } else if (this.quitarFotoExistente) {
+      await this.personasSvc.actualizar(id, { fotoUrl: deleteField() } as unknown as Partial<Persona>);
+    }
   }
 
   private aLista(texto: string): string[] {
@@ -187,6 +221,7 @@ export class PersonaFormPage implements OnInit {
 
       if (this.personaId) {
         await this.personasSvc.actualizar(this.personaId, datos);
+        await this.guardarFoto(this.personaId);
         await this.router.navigateByUrl(`/personas/${this.personaId}`);
         return;
       }
@@ -202,6 +237,7 @@ export class PersonaFormPage implements OnInit {
           return;
         }
         id = await this.personasSvc.crearTitular(uid, datos, usuario.rut);
+        await this.guardarFoto(id);
       } else {
         if (!this.documentoRespaldo) {
           this.error.set(`Falta subir: ${this.etiquetaDocumento()}.`);
@@ -216,6 +252,7 @@ export class PersonaFormPage implements OnInit {
         const ruta = `personas/${id}/perfil/respaldo_${Date.now()}_${this.documentoRespaldo.name}`;
         const url = await subirArchivo(ruta, this.documentoRespaldo);
         await this.personasSvc.actualizar(id, { documentoRespaldoUrl: url } as Partial<Persona>);
+        await this.guardarFoto(id);
       }
 
       await this.router.navigateByUrl(`/personas/${id}`);

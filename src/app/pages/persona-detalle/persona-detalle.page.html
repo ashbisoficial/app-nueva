@@ -16,7 +16,16 @@
   <div class="detalle-cuerpo">
     @if (persona(); as p) {
       <section class="detalle-tarjeta">
-        <p class="detalle-tarjeta__titulo">Resumen</p>
+        <div class="detalle-encabezado">
+          <span class="detalle-avatar">
+            @if (p.fotoUrl) {
+              <img [src]="p.fotoUrl" alt="" />
+            } @else {
+              {{ inicialPersona(nombreCompleto(p)) }}
+            }
+          </span>
+          <p class="detalle-tarjeta__titulo">Resumen</p>
+        </div>
         <p class="detalle-nacimiento">
           <strong>Nacimiento:</strong> {{ p.fechaNacimiento || '—' }}
           @if (calcularEdad(p.fechaNacimiento); as edad) {

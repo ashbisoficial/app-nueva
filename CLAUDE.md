@@ -148,6 +148,11 @@ interface Persona {
                               // nombres/apellidos vienen vacíos (shared/persona-nombre.ts).
   fechaNacimiento: string;    // la edad se calcula al vuelo (core/edad.ts), nunca se guarda
   sexo: string;
+  // Foto de perfil: se sube desde persona-form (Storage, personas/{id}/perfil/foto_...),
+  // se muestra como avatar circular en persona-detalle/personas-lista/home en vez
+  // de las iniciales (shared/avatar.ts) cuando existe. Reutiliza el mismo campo
+  // que ya usaba la foto del QR de pérdida (sección 4.6) — es la misma foto,
+  // un solo lugar para subirla/guardarla.
   fotoUrl?: string;
 
   direccion?: string;        // opcional, ej. para indicarle a una ambulancia dónde ir

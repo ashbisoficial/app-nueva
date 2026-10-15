@@ -59,6 +59,21 @@
 
     <section class="form-tarjeta">
       <p class="form-tarjeta__titulo">Datos básicos</p>
+
+      <div class="persona-foto-selector">
+        <label class="persona-foto-circulo">
+          @if (fotoPreviewUrl() || (!quitarFotoExistente && fotoExistenteUrl())) {
+            <img [src]="fotoPreviewUrl() || fotoExistenteUrl()" alt="" />
+          } @else {
+            <ion-icon name="camera-outline"></ion-icon>
+          }
+          <input type="file" accept="image/*" (change)="onFotoSeleccionada($event)" />
+        </label>
+        @if (fotoPreviewUrl() || (!quitarFotoExistente && fotoExistenteUrl())) {
+          <button type="button" class="persona-foto-quitar" (click)="quitarFoto()">Quitar foto</button>
+        }
+      </div>
+
       <ion-list lines="inset">
         <ion-item>
           <ion-input label="Nombres" labelPlacement="floating" [(ngModel)]="nombres" name="nombres" required></ion-input>

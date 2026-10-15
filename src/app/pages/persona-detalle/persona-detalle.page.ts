@@ -16,6 +16,7 @@ import {
 import { switchMap } from 'rxjs';
 import { calcularEdad } from '../../core/edad';
 import { PersonasService } from '../../services/personas.service';
+import { inicialPersona } from '../../shared/avatar';
 import { nombreCompleto } from '../../shared/persona-nombre';
 
 @Component({
@@ -61,6 +62,7 @@ export class PersonaDetallePage {
 
   readonly nombreCompleto = nombreCompleto;
   readonly calcularEdad = calcularEdad;
+  readonly inicialPersona = inicialPersona;
 
   async compartirPorPin(): Promise<void> {
     const pin = await this.personasSvc.generarPinCompartido(this.personaId);
