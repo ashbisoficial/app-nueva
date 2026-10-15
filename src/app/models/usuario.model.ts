@@ -10,4 +10,6 @@ export interface Usuario {
   /** Preferencias de personalización (sección 2.2) — siguen a la cuenta entre dispositivos. */
   temaColor?: string;
   tamanoFuente?: 'chico' | 'normal' | 'grande';
+  /** Recordatorios locales (sección 4.5, capa 1) — on por defecto si no está definido. */
+  notificacionesLocales?: boolean;
 }

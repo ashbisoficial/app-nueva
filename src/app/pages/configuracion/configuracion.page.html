@@ -59,6 +59,37 @@
     </section>
 
     <section class="config-tarjeta">
+      <p class="config-tarjeta__titulo">Notificaciones</p>
+      <div class="config-switch-fila">
+        <div class="config-switch-texto">
+          <p class="config-switch-titulo">Recordatorios en este dispositivo</p>
+          <p class="config-switch-ayuda">Avisos de vacunas, citas y tomas de medicamentos, programados en este teléfono.</p>
+        </div>
+        <ion-toggle
+          [checked]="notificacionesSvc.localesActivas()"
+          (ionChange)="elegirNotificacionesLocales($event.detail.checked)"
+        ></ion-toggle>
+      </div>
+      <div class="config-switch-fila">
+        <div class="config-switch-texto">
+          <p class="config-switch-titulo">Notificaciones push</p>
+          <p class="config-switch-ayuda">Próximamente: avisos del servidor aunque la app esté cerrada.</p>
+        </div>
+        <ion-toggle [checked]="false" [disabled]="true"></ion-toggle>
+      </div>
+    </section>
+
+    <section class="config-tarjeta">
+      <p class="config-tarjeta__titulo">Calendario</p>
+      <p class="config-texto-ayuda">
+        Desde el detalle de cada cita puedes agregarla a Google Calendar, Apple
+        Calendar o cualquier otra app de calendario con un archivo .ics.
+        Una sincronización automática y permanente con Google Calendar está
+        planeada para más adelante.
+      </p>
+    </section>
+
+    <section class="config-tarjeta">
       <p class="config-tarjeta__titulo">Legal</p>
       <a class="config-enlace-legal" routerLink="/privacidad">
         <ion-icon name="shield-checkmark-outline"></ion-icon>
@@ -70,7 +101,7 @@
       </a>
     </section>
 
-    <button class="config-cerrar-sesion" (click)="logout()">
+    <button class="config-cerrar-sesion" (click)="confirmarLogout()">
       <ion-icon name="log-out-outline"></ion-icon>
       Cerrar sesión
     </button>

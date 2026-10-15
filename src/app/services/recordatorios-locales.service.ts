@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { NotificacionesService } from '../core/notificaciones.service';
 
 /**
  * Capa 1 de recordatorios (sección 4.5): notificaciones locales programadas en
@@ -9,6 +10,7 @@ import { LocalNotifications } from '@capacitor/local-notifications';
  */
 @Injectable({ providedIn: 'root' })
 export class RecordatoriosLocalesService {
+  private notificacionesSvc = inject(NotificacionesService);
   /** Convierte un string en un entero positivo estable, para los ids numéricos que pide Capacitor. */
   private idNumerico(texto: string): number {
     let hash = 0;
@@ -36,6 +38,7 @@ export class RecordatoriosLocalesService {
    * a cancelarMedicamento() explícitamente (ver sección 4.4 del spec).
    */
   async programarMedicamento(medicamentoId: string, nombre: string, horarios: string[]): Promise<void> {
+    if (!this.notificacionesSvc.localesActivas()) return;
     if (!(await this.pedirPermiso())) return;
     try {
       const notifications = horarios.map((horario, i) => {
@@ -66,6 +69,7 @@ export class RecordatoriosLocalesService {
 
   /** Programa un único recordatorio para una cita, al momento de crearla. */
   async programarCita(citaId: string, titulo: string, fechaHoraISO: string): Promise<void> {
+    if (!this.notificacionesSvc.localesActivas()) return;
     if (!(await this.pedirPermiso())) return;
     try {
       await LocalNotifications.schedule({

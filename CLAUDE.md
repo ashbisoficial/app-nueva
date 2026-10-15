@@ -386,6 +386,12 @@ especialidad), sin que eso sea obligatorio para usar el resto de la app.
 - Pantalla de detalle de cita (ver/editar/eliminar), con botón de "agregar a
   mi calendario" (ICS) como paso intermedio antes de encarar una integración
   real con Google Calendar más adelante.
+- Configuración tiene una tarjeta "Calendario" que deja esto explícito al
+  usuario (no solo implícito en el código): hoy se usa `.ics` por cita, la
+  sincronización real con Google Calendar (OAuth) sigue pendiente — igual
+  que con el proveedor de KYC (6.1) y las notificaciones push (4.5), requiere
+  que el usuario cree primero credenciales OAuth en su propia consola de
+  Google Cloud antes de poder integrarlo.
 
 ### 4.4 Medicamentos
 
@@ -426,6 +432,24 @@ Usa `collectionGroup` para barrer TODAS las subcolecciones
 `vacunas`/`citas` de TODAS las personas de TODOS los usuarios en una sola
 consulta, en vez de iterar usuario por usuario — clave para que escale sin
 volverse lento ni caro a medida que crece la base de usuarios.
+
+**Estado real de cada capa (actualizado):**
+- Capa 1 (local): completamente funcional, y ahora además apagable desde
+  Configuración ("Recordatorios en este dispositivo", sección 8) — el
+  interruptor se guarda en `usuarios/{uid}.notificacionesLocales`
+  (`core/notificaciones.service.ts`, mismo patrón que `ThemeService`) y
+  `RecordatoriosLocalesService` lo consulta antes de programar un
+  recordatorio nuevo. Apagarlo no cancela retroactivamente lo que ya estaba
+  programado, solo evita programar recordatorios nuevos — a la UI se lo deja
+  así de claro para no prometer de más.
+- Capa 2 (push): la Cloud Function `recordatoriosDiarios` ya existe y
+  funciona, pero **todavía no hay ningún cliente que registre
+  `usuarios/{uid}.fcmToken`** — falta integrar Firebase Cloud Messaging del
+  lado web/Capacitor (service worker + VAPID key, que se genera en la
+  consola de Firebase — mismo tipo de bloqueo que el proveedor de KYC de la
+  sección 6.1: requiere un paso del usuario en su consola antes de poder
+  integrarlo). Por eso en Configuración el interruptor de "Notificaciones
+  push" aparece deshabilitado con la leyenda "Próximamente".
 
 ### 4.6 Carnet / fichas QR (emergencia y pérdida)
 
@@ -694,7 +718,11 @@ Protección de Datos Personales) que entra en vigencia en diciembre de 2026.
   médico/tratamiento con sus documentos, entradas, citas y exámenes)
 - Ficha de emergencia / QR (configurar qué se muestra + generar PDF + ver
   cómo la ve un extraño)
-- Configuración de cuenta
+- Configuración de cuenta: cuenta, color/tamaño de letra, notificaciones
+  (4.5), calendario (4.3), legal (7.1). "Cerrar sesión" es deliberadamente
+  poco vistoso — un link de texto simple al final de todo, no un botón
+  destacado — con una confirmación antes de ejecutar (pedido explícito del
+  usuario: que no sea lo primero que salta a la vista en Ajustes).
 - Política de Privacidad / Términos de Uso (sección 7.1, públicas sin login)
 
 ## 9. Fuera de alcance explícito (para no inflar el MVP)
