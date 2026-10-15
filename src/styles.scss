@@ -1,1 +1,24 @@
 /* You can add global styles to this file, and also import other style files */
+
+:root,
+body {
+  font-family: 'Atkinson Hyperlegible', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/*
+ * Tamaño de letra ajustable (sección 2.2 del spec): el tamaño base del
+ * documento escala, y como la tipografía de la app (propia y de Ionic) está
+ * mayormente en rem/em, el ajuste se propaga a casi todo el texto sin tocar
+ * cada pantalla una por una.
+ */
+:root {
+  font-size: 16px;
+}
+
+:root[data-tamano='chico'] {
+  font-size: 14px;
+}
+
+:root[data-tamano='grande'] {
+  font-size: 19px;
+}

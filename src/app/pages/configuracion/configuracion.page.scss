@@ -1,0 +1,78 @@
+.paletas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 12px;
+  padding: 12px 16px 20px;
+}
+
+.paleta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  font-family: inherit;
+
+  .muestra {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid transparent;
+    color: #fff;
+    font-size: 1.2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+
+  &.seleccionada .muestra {
+    border-color: var(--ion-color-dark, #333);
+  }
+
+  .nombre {
+    font-size: 0.75rem;
+    text-align: center;
+    color: var(--ion-text-color, #000);
+  }
+}
+
+.tamanos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+}
+
+.tamano {
+  background: var(--ion-color-step-50, #f4f4f4);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  width: 56px;
+  height: 56px;
+  font-family: inherit;
+  cursor: pointer;
+  color: var(--ion-text-color, #000);
+
+  &.tamano-chico {
+    font-size: 0.85rem;
+  }
+
+  &.tamano-grande {
+    font-size: 1.6rem;
+  }
+
+  &.seleccionado {
+    border-color: var(--ion-color-primary, #a85c68);
+    background: var(--ion-color-primary-tint, #b6727c);
+    color: var(--ion-color-primary-contrast, #fff);
+  }
+}
+
+.ejemplo-tamano {
+  color: var(--ion-color-medium, #666);
+}

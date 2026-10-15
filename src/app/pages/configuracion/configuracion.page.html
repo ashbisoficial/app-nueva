@@ -18,6 +18,51 @@
     </ion-item>
   </ion-list>
 
+  <ion-list>
+    <ion-list-header>Color de la app</ion-list-header>
+    <div class="paletas">
+      @for (tema of themeSvc.temas; track tema.id) {
+        <button
+          type="button"
+          class="paleta"
+          [class.seleccionada]="themeSvc.temaActual() === tema.id"
+          (click)="elegirTema(tema.id)"
+        >
+          <span
+            class="muestra"
+            [style.background]="'linear-gradient(135deg, ' + tema.primario + ' 50%, ' + tema.secundario + ' 50%)'"
+          >
+            @if (themeSvc.temaActual() === tema.id) {
+              <ion-icon name="checkmark"></ion-icon>
+            }
+          </span>
+          <span class="nombre">{{ tema.nombre }}</span>
+        </button>
+      }
+    </div>
+  </ion-list>
+
+  <ion-list>
+    <ion-list-header>Tamaño de letra</ion-list-header>
+    <div class="tamanos">
+      @for (opcion of tamanos; track opcion.valor) {
+        <button
+          type="button"
+          class="tamano"
+          [class.seleccionado]="themeSvc.tamanoActual() === opcion.valor"
+          [class.tamano-chico]="opcion.valor === 'chico'"
+          [class.tamano-grande]="opcion.valor === 'grande'"
+          (click)="elegirTamano(opcion.valor)"
+        >
+          {{ opcion.etiqueta }}
+        </button>
+      }
+    </div>
+    <p class="ion-padding-horizontal ion-text-center ejemplo-tamano">
+      Así se ve el texto con este tamaño.
+    </p>
+  </ion-list>
+
   <ion-button expand="block" fill="outline" color="danger" class="ion-margin" (click)="logout()">
     <ion-icon slot="start" name="log-out-outline"></ion-icon>
     Cerrar sesión
