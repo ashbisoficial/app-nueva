@@ -36,6 +36,16 @@ service cloud.firestore {
       return esTitular(personaId) || puedeEscribirCompartido(personaId);
     }
 
+    // Para reglas de collectionGroup (ver más abajo): `path` es lo que capturó
+    // el wildcard recursivo {path=**} antes del nombre de la subcolección —
+    // en nuestro caso siempre "personas/{personaId}", así que $(path) apunta
+    // directo al documento de la Persona dueña de esta subcolección.
+    function tieneAccesoPorPersonaPath(path) {
+      let persona = get(/databases/$(database)/documents/$(path)).data;
+      return persona.uidTitular == request.auth.uid ||
+        request.auth.uid in persona.get('uidsConAcceso', []);
+    }
+
     match /usuarios/{uid} {
       allow read, write: if estaAutenticado() && request.auth.uid == uid;
     }
@@ -53,7 +63,9 @@ service cloud.firestore {
     }
 
     match /personas/{personaId} {
-      allow read: if tieneAcceso(personaId);
+      allow read: if estaAutenticado() &&
+        (resource.data.uidTitular == request.auth.uid ||
+         request.auth.uid in resource.data.get('uidsConAcceso', []));
       allow create: if estaAutenticado() && request.resource.data.uidTitular == request.auth.uid;
       // Quien solo tiene acceso compartido nunca puede tocar la titularidad, el PIN
       // ni la lista de accesos: eso se administra únicamente vía Cloud Functions.
@@ -79,6 +91,22 @@ service cloud.firestore {
         allow create, update, delete: if puedeEscribir(personaId) &&
           coleccion in ['vacunas', 'medicamentosActivos', 'citas', 'examenes', 'documentos', 'especialidades'];
       }
+    }
+
+    // Reglas espejo para collectionGroup: el bloque anidado de arriba solo cubre
+    // consultas directas a la subcolección de UNA persona (personas/{id}/vacunas).
+    // Home y Agenda agregan vacunas/citas/medicamentosActivos de TODAS las
+    // personas de la cuenta en una sola consulta (sección 4.5 del spec), y
+    // Firestore exige un bloque aparte con el wildcard recursivo {path=**}
+    // para que las reglas se apliquen a ese tipo de consulta.
+    match /{path=**}/vacunas/{itemId} {
+      allow read: if estaAutenticado() && tieneAccesoPorPersonaPath(path);
+    }
+    match /{path=**}/medicamentosActivos/{itemId} {
+      allow read: if estaAutenticado() && tieneAccesoPorPersonaPath(path);
+    }
+    match /{path=**}/citas/{itemId} {
+      allow read: if estaAutenticado() && tieneAccesoPorPersonaPath(path);
     }
   }
 }
