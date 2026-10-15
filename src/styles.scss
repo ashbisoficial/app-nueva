@@ -154,6 +154,37 @@ body {
 }
 
 /*
+ * FIX CRÍTICO: AppShellComponent usa un <router-outlet> normal de Angular
+ * (no <ion-router-outlet>) para cargar cada pantalla dentro del shell
+ * responsivo (nav-principal + contenido). Eso significa que la clase
+ * "ion-page" (position:absolute + flex column, que Ionic normalmente le da
+ * a cada página para que su ion-content sepa calcular una altura acotada y
+ * scrollear internamente) termina aplicada a AppShellComponent mismo — que
+ * sí está registrado en el <ion-router-outlet> real — y NUNCA a la página
+ * real cargada adentro. Sin esa altura acotada, ion-content no puede
+ * scrollear: el contenido que no cabe en una pantalla queda recortado por
+ * el overflow:hidden del body, sin ninguna forma de alcanzarlo (el bug de
+ * "la pantalla se ve cortada, no se ve el botón de Guardar"). Se corrige
+ * emulando el layout de ion-page para cualquier página cargada dentro de
+ * ".shell__contenido", sin tener que repetirlo pantalla por pantalla.
+ */
+.shell__contenido > router-outlet {
+  display: none;
+}
+
+.shell__contenido > router-outlet ~ * {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.shell__contenido > router-outlet ~ * > ion-content {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/*
  * Pantallas de contenido (no la grilla de Agenda, que ya tiene su propio
  * layout de 2 columnas en escritorio): centradas con un ancho máximo
  * cómodo de leer en vez de estirarse a lo ancho de toda la pantalla.
