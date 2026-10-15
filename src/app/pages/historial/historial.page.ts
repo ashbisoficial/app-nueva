@@ -5,16 +5,12 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { switchMap } from 'rxjs';
 import {
   IonBackButton,
-  IonBadge,
   IonButtons,
   IonContent,
   IonFab,
   IonFabButton,
   IonHeader,
   IonIcon,
-  IonItem,
-  IonLabel,
-  IonList,
   IonTitle,
   IonToolbar,
 } from '@ionic/angular';
@@ -33,15 +29,12 @@ import { HistorialService } from '../../services/historial.service';
     IonButtons,
     IonBackButton,
     IonContent,
-    IonList,
-    IonItem,
-    IonLabel,
-    IonBadge,
     IonIcon,
     IonFab,
     IonFabButton,
   ],
   templateUrl: './historial.page.html',
+  styleUrl: './historial.page.scss',
 })
 export class HistorialPage {
   private route = inject(ActivatedRoute);

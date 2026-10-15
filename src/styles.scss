@@ -36,3 +36,55 @@ body {
   --sombra-suave: 0 4px 14px color-mix(in srgb, var(--ion-text-color) 8%, transparent);
   --sombra-flotante: 0 10px 22px color-mix(in srgb, var(--ion-color-primary) 32%, transparent);
 }
+
+/*
+ * Patrón reutilizable para las pantallas de listado dentro de una Persona
+ * (vacunas, medicamentos, exámenes, documentos, especialidades): mismas
+ * clases en todas para no repetir el CSS por pantalla. El swipe-to-delete
+ * de ion-item-sliding se mantiene — solo se reestiliza vía custom
+ * properties, Ionic no deja reemplazar ion-item por markup propio sin
+ * perder esa interacción nativa.
+ */
+.lista-content {
+  --background: var(--ion-background-color);
+}
+
+.lista-cuerpo {
+  padding: 16px 20px 90px;
+}
+
+.lista-vacio {
+  margin: 0;
+  color: var(--ion-color-medium);
+  font-size: 0.9rem;
+}
+
+.lista-tarjeta {
+  background: var(--ion-item-background);
+  border-radius: var(--radio-tarjeta);
+  box-shadow: var(--sombra-suave);
+  overflow: hidden;
+  padding: 0;
+}
+
+.lista-item {
+  --background: transparent;
+  --padding-start: 16px;
+  --inner-padding-end: 16px;
+  --min-height: 68px;
+  --border-color: var(--ion-border-color);
+}
+
+.lista-item__icono {
+  color: var(--ion-color-primary);
+  font-size: 20px;
+  margin-inline-end: 14px;
+}
+
+/** Texto explicativo corto antes de una lista (ej. Especialidades). */
+.texto-ayuda {
+  margin: 0 0 14px;
+  color: var(--ion-color-medium);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}

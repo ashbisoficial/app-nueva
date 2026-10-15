@@ -12,32 +12,34 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
-  @if (vacunas().length === 0) {
-    <p class="ion-padding" style="color: var(--ion-color-medium)">No hay vacunas registradas.</p>
-  } @else {
-    <ion-list>
-      @for (v of vacunas(); track v.id) {
-        <ion-item-sliding>
-          <ion-item>
-            <ion-icon slot="start" name="medical-outline"></ion-icon>
-            <ion-label>
-              <h2>{{ v.tipo }}</h2>
-              <p>Aplicada: {{ v.fechaAplicacion | date: 'mediumDate' }}</p>
-              @if (v.proximaFecha) {
-                <p>Próxima dosis: {{ v.proximaFecha | date: 'mediumDate' }}</p>
-              }
-            </ion-label>
-          </ion-item>
-          <ion-item-options side="end">
-            <ion-item-option color="danger" (click)="confirmarEliminar(v.id)">
-              <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
-            </ion-item-option>
-          </ion-item-options>
-        </ion-item-sliding>
-      }
-    </ion-list>
-  }
+<ion-content class="lista-content">
+  <div class="lista-cuerpo">
+    @if (vacunas().length === 0) {
+      <p class="lista-vacio">No hay vacunas registradas.</p>
+    } @else {
+      <ion-list class="lista-tarjeta" lines="none">
+        @for (v of vacunas(); track v.id) {
+          <ion-item-sliding>
+            <ion-item class="lista-item">
+              <ion-icon slot="start" name="medical-outline" class="lista-item__icono"></ion-icon>
+              <ion-label>
+                <h2>{{ v.tipo }}</h2>
+                <p>Aplicada: {{ v.fechaAplicacion | date: 'mediumDate' }}</p>
+                @if (v.proximaFecha) {
+                  <p>Próxima dosis: {{ v.proximaFecha | date: 'mediumDate' }}</p>
+                }
+              </ion-label>
+            </ion-item>
+            <ion-item-options side="end">
+              <ion-item-option color="danger" (click)="confirmarEliminar(v.id)">
+                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+              </ion-item-option>
+            </ion-item-options>
+          </ion-item-sliding>
+        }
+      </ion-list>
+    }
+  </div>
 </ion-content>
 
 <ion-modal [isOpen]="mostrarForm()" (didDismiss)="mostrarForm.set(false)">

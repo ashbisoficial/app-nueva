@@ -20,22 +20,24 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
-  @if (documentosFiltrados().length === 0) {
-    <p class="ion-padding" style="color: var(--ion-color-medium)">No hay documentos en esta categoría.</p>
-  } @else {
-    <ion-list>
-      @for (d of documentosFiltrados(); track d.id) {
-        <ion-item [href]="d.archivoUrl" target="_blank">
-          <ion-icon slot="start" name="document-text-outline"></ion-icon>
-          <ion-label class="ion-text-wrap">
-            <h2>{{ d.nombre }}</h2>
-            <p>{{ d.notas }}</p>
-          </ion-label>
-        </ion-item>
-      }
-    </ion-list>
-  }
+<ion-content class="lista-content">
+  <div class="lista-cuerpo">
+    @if (documentosFiltrados().length === 0) {
+      <p class="lista-vacio">No hay documentos en esta categoría.</p>
+    } @else {
+      <ion-list class="lista-tarjeta" lines="none">
+        @for (d of documentosFiltrados(); track d.id) {
+          <ion-item class="lista-item" [href]="d.archivoUrl" target="_blank">
+            <ion-icon slot="start" name="document-text-outline" class="lista-item__icono"></ion-icon>
+            <ion-label class="ion-text-wrap">
+              <h2>{{ d.nombre }}</h2>
+              <p>{{ d.notas }}</p>
+            </ion-label>
+          </ion-item>
+        }
+      </ion-list>
+    }
+  </div>
 </ion-content>
 
 <ion-modal [isOpen]="mostrarForm()" (didDismiss)="mostrarForm.set(false)">

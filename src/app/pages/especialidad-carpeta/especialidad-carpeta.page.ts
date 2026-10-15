@@ -12,7 +12,6 @@ import {
   IonItem,
   IonLabel,
   IonList,
-  IonListHeader,
   IonTitle,
   IonToolbar,
 } from '@ionic/angular';
@@ -34,13 +33,13 @@ import { HistorialService } from '../../services/historial.service';
     IonBackButton,
     IonContent,
     IonList,
-    IonListHeader,
     IonItem,
     IonLabel,
     IonIcon,
     IonBadge,
   ],
   templateUrl: './especialidad-carpeta.page.html',
+  styleUrl: './especialidad-carpeta.page.scss',
 })
 export class EspecialidadCarpetaPage {
   private route = inject(ActivatedRoute);

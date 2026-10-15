@@ -12,15 +12,16 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
-  @if (medicamentos().length === 0) {
-    <p class="ion-padding" style="color: var(--ion-color-medium)">No hay tratamientos registrados.</p>
-  } @else {
-    <ion-list>
-      @for (m of medicamentos(); track m.id) {
-        <ion-item-sliding>
-          <ion-item>
-            <ion-icon slot="start" name="medkit-outline"></ion-icon>
+<ion-content class="lista-content">
+  <div class="lista-cuerpo">
+    @if (medicamentos().length === 0) {
+      <p class="lista-vacio">No hay tratamientos registrados.</p>
+    } @else {
+      <ion-list class="lista-tarjeta" lines="none">
+        @for (m of medicamentos(); track m.id) {
+          <ion-item-sliding>
+            <ion-item class="lista-item">
+              <ion-icon slot="start" name="medkit-outline" class="lista-item__icono"></ion-icon>
             <ion-label class="ion-text-wrap">
               <h2>
                 {{ m.nombre }} — {{ m.dosis }}
@@ -55,8 +56,9 @@
           }
         </ion-item-sliding>
       }
-    </ion-list>
-  }
+      </ion-list>
+    }
+  </div>
 </ion-content>
 
 <ion-modal [isOpen]="mostrarForm()" (didDismiss)="mostrarForm.set(false)">

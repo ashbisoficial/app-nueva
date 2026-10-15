@@ -12,38 +12,47 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
-  @if (persona(); as p) {
-    <div class="ion-padding resumen">
-      <p><strong>Nacimiento:</strong> {{ p.fechaNacimiento || '—' }}</p>
-      @if (p.grupoSanguineo) {
-        <ion-chip color="danger">Grupo {{ p.grupoSanguineo }}</ion-chip>
-      }
-      @for (a of p.alergias; track a) {
-        <ion-chip color="warning">{{ a }}</ion-chip>
-      }
-      @for (e of p.enfermedadesCronicas; track e) {
-        <ion-chip color="tertiary">{{ e }}</ion-chip>
+<ion-content class="detalle-content">
+  <div class="detalle-cuerpo">
+    @if (persona(); as p) {
+      <section class="detalle-tarjeta">
+        <p class="detalle-tarjeta__titulo">Resumen</p>
+        <p class="detalle-nacimiento"><strong>Nacimiento:</strong> {{ p.fechaNacimiento || '—' }}</p>
+        @if (p.grupoSanguineo || p.alergias?.length || p.enfermedadesCronicas?.length) {
+          <div class="detalle-chips">
+            @if (p.grupoSanguineo) {
+              <span class="detalle-chip detalle-chip--sangre">Grupo {{ p.grupoSanguineo }}</span>
+            }
+            @for (a of p.alergias; track a) {
+              <span class="detalle-chip detalle-chip--alergia">{{ a }}</span>
+            }
+            @for (e of p.enfermedadesCronicas; track e) {
+              <span class="detalle-chip detalle-chip--cronica">{{ e }}</span>
+            }
+          </div>
+        }
+      </section>
+    }
+
+    <div class="detalle-modulos">
+      @for (m of modulos; track m.ruta) {
+        <a class="detalle-modulo" [routerLink]="['/personas', personaId, m.ruta]">
+          <span class="detalle-modulo__icono">
+            <ion-icon [name]="m.icono"></ion-icon>
+          </span>
+          <span class="detalle-modulo__label">{{ m.label }}</span>
+        </a>
       }
     </div>
-  }
 
-  <ion-list>
-    @for (m of modulos; track m.ruta) {
-      <ion-item button [routerLink]="['/personas', personaId, m.ruta]">
-        <ion-icon slot="start" [name]="m.icono"></ion-icon>
-        <ion-label>{{ m.label }}</ion-label>
-      </ion-item>
-    }
-  </ion-list>
+    <button class="detalle-compartir" (click)="compartirPorPin()">
+      <ion-icon name="key-outline"></ion-icon>
+      Compartir este perfil con un PIN
+    </button>
 
-  <ion-button expand="block" fill="outline" (click)="compartirPorPin()">
-    <ion-icon slot="start" name="key-outline"></ion-icon>
-    Compartir este perfil con un PIN
-  </ion-button>
-
-  <ion-button expand="block" fill="clear" color="danger" (click)="confirmarEliminar()">
-    <ion-icon slot="start" name="trash-outline"></ion-icon>
-    Eliminar persona
-  </ion-button>
+    <button class="detalle-eliminar" (click)="confirmarEliminar()">
+      <ion-icon name="trash-outline"></ion-icon>
+      Eliminar persona
+    </button>
+  </div>
 </ion-content>

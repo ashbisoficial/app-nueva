@@ -12,29 +12,31 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
-  <p class="ion-padding-horizontal" style="color: var(--ion-color-medium)">
-    Organiza documentos, consultas, citas y exámenes por médico o tratamiento,
-    para que no se mezclen entre sí.
-  </p>
+<ion-content class="lista-content">
+  <div class="lista-cuerpo">
+    <p class="texto-ayuda">
+      Organiza documentos, consultas, citas y exámenes por médico o tratamiento,
+      para que no se mezclen entre sí.
+    </p>
 
-  @if (especialidades().length === 0) {
-    <p class="ion-padding" style="color: var(--ion-color-medium)">Todavía no creaste ninguna.</p>
-  } @else {
-    <ion-list>
-      @for (e of especialidades(); track e.id) {
-        <ion-item button [routerLink]="['/personas', personaId, 'especialidades', e.id]">
-          <ion-icon slot="start" name="pricetag-outline"></ion-icon>
-          <ion-label>
-            <h2>{{ e.nombre }}</h2>
-            @if (e.notas) {
-              <p>{{ e.notas }}</p>
-            }
-          </ion-label>
-        </ion-item>
-      }
-    </ion-list>
-  }
+    @if (especialidades().length === 0) {
+      <p class="lista-vacio">Todavía no creaste ninguna.</p>
+    } @else {
+      <ion-list class="lista-tarjeta" lines="none">
+        @for (e of especialidades(); track e.id) {
+          <ion-item class="lista-item" button [routerLink]="['/personas', personaId, 'especialidades', e.id]">
+            <ion-icon slot="start" name="pricetag-outline" class="lista-item__icono"></ion-icon>
+            <ion-label>
+              <h2>{{ e.nombre }}</h2>
+              @if (e.notas) {
+                <p>{{ e.notas }}</p>
+              }
+            </ion-label>
+          </ion-item>
+        }
+      </ion-list>
+    }
+  </div>
 </ion-content>
 
 <ion-modal [isOpen]="mostrarForm()" (didDismiss)="mostrarForm.set(false)">

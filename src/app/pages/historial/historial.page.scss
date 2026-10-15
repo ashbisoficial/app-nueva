@@ -1,0 +1,69 @@
+.historial-content {
+  --background: var(--ion-background-color);
+}
+
+.historial-cuerpo {
+  padding: 16px 20px 90px;
+}
+
+.historial-vacio {
+  color: var(--ion-color-medium);
+  font-size: 0.9rem;
+}
+
+.historial-linea {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.historial-entrada {
+  background: var(--ion-item-background);
+  border-radius: var(--radio-tarjeta);
+  box-shadow: var(--sombra-suave);
+  padding: 14px 16px;
+}
+
+.historial-entrada__encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.historial-badge {
+  background: color-mix(in srgb, var(--ion-color-primary) 16%, white);
+  color: var(--ion-color-primary);
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.historial-fecha {
+  font-size: 0.8rem;
+  color: var(--ion-color-medium);
+}
+
+.historial-resumen {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--ion-text-color);
+}
+
+.historial-medicamentos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.historial-medicamento {
+  background: var(--ion-color-step-50);
+  color: var(--ion-color-medium);
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+}

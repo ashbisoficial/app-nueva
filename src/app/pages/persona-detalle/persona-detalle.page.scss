@@ -1,3 +1,121 @@
-.resumen {
-  padding-top: 0;
+.detalle-content {
+  --background: var(--ion-background-color);
+}
+
+.detalle-cuerpo {
+  padding: 16px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detalle-tarjeta {
+  background: var(--ion-item-background);
+  border-radius: var(--radio-tarjeta);
+  box-shadow: var(--sombra-suave);
+  padding: 16px;
+}
+
+.detalle-tarjeta__titulo {
+  margin: 0 0 10px 2px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ion-color-medium);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.detalle-nacimiento {
+  margin: 0 0 10px;
+  font-size: 0.92rem;
+}
+
+.detalle-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.detalle-chip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+
+  &--sangre {
+    background: color-mix(in srgb, var(--ion-color-primary) 16%, white);
+    color: var(--ion-color-primary);
+  }
+  &--alergia {
+    background: #fbefd9;
+    color: #b88a2c;
+  }
+  &--cronica {
+    background: color-mix(in srgb, var(--ion-color-secondary) 20%, white);
+    color: var(--ion-color-secondary);
+  }
+}
+
+.detalle-modulos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.detalle-modulo {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--ion-item-background);
+  border-radius: var(--radio-tarjeta);
+  box-shadow: var(--sombra-suave);
+  padding: 16px;
+  text-decoration: none;
+  color: inherit;
+  min-height: 92px;
+}
+
+.detalle-modulo__icono {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ion-color-primary) 16%, white);
+  color: var(--ion-color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+}
+
+.detalle-modulo__label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.detalle-compartir {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1.6px solid var(--ion-border-color);
+  border-radius: var(--radio-campo);
+  background: transparent;
+  color: var(--ion-color-primary);
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 13px;
+}
+
+.detalle-eliminar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  background: transparent;
+  color: var(--ion-color-danger, #c0392b);
+  font-weight: 700;
+  font-size: 0.88rem;
+  padding: 10px;
 }

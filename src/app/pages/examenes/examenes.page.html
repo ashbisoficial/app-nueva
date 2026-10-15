@@ -12,42 +12,44 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
-  @if (examenes().length === 0) {
-    <p class="ion-padding" style="color: var(--ion-color-medium)">No hay exámenes registrados.</p>
-  } @else {
-    <ion-list>
-      @for (e of examenes(); track e.id) {
-        <ion-item>
-          <ion-icon slot="start" name="flask-outline"></ion-icon>
-          <ion-label class="ion-text-wrap">
-            <h2>
-              {{ e.tipo }}
-              @if (e.realizado) {
-                <ion-badge color="success">Realizado</ion-badge>
-              } @else {
-                <ion-badge color="warning">Programado</ion-badge>
+<ion-content class="lista-content">
+  <div class="lista-cuerpo">
+    @if (examenes().length === 0) {
+      <p class="lista-vacio">No hay exámenes registrados.</p>
+    } @else {
+      <ion-list class="lista-tarjeta" lines="none">
+        @for (e of examenes(); track e.id) {
+          <ion-item class="lista-item">
+            <ion-icon slot="start" name="flask-outline" class="lista-item__icono"></ion-icon>
+            <ion-label class="ion-text-wrap">
+              <h2>
+                {{ e.tipo }}
+                @if (e.realizado) {
+                  <ion-badge color="success">Realizado</ion-badge>
+                } @else {
+                  <ion-badge color="warning">Programado</ion-badge>
+                }
+              </h2>
+              @if (e.fechaProgramada) {
+                <p>Programado: {{ e.fechaProgramada | date: 'mediumDate' }}</p>
               }
-            </h2>
-            @if (e.fechaProgramada) {
-              <p>Programado: {{ e.fechaProgramada | date: 'mediumDate' }}</p>
+              @if (e.fechaRealizado) {
+                <p>Realizado: {{ e.fechaRealizado | date: 'mediumDate' }}</p>
+              }
+              @if (e.lugar) {
+                <p>{{ e.lugar }}</p>
+              }
+            </ion-label>
+            @if (!e.realizado) {
+              <ion-button slot="end" fill="outline" size="small" (click)="abrirMarcarRealizado(e.id)">
+                Marcar realizado
+              </ion-button>
             }
-            @if (e.fechaRealizado) {
-              <p>Realizado: {{ e.fechaRealizado | date: 'mediumDate' }}</p>
-            }
-            @if (e.lugar) {
-              <p>{{ e.lugar }}</p>
-            }
-          </ion-label>
-          @if (!e.realizado) {
-            <ion-button slot="end" fill="outline" size="small" (click)="abrirMarcarRealizado(e.id)">
-              Marcar realizado
-            </ion-button>
-          }
-        </ion-item>
-      }
-    </ion-list>
-  }
+          </ion-item>
+        }
+      </ion-list>
+    }
+  </div>
 </ion-content>
 
 <ion-modal [isOpen]="mostrarForm()" (didDismiss)="mostrarForm.set(false)">
