@@ -3,44 +3,19 @@ import { Component, inject } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import type { User } from 'firebase/auth';
-import {
-  IonBackButton,
-  IonButtons,
-  IonContent,
-  IonFab,
-  IonFabButton,
-  IonHeader,
-  IonIcon,
-  IonItem,
-  IonLabel,
-  IonList,
-  IonTitle,
-  IonToolbar,
-} from '@ionic/angular';
+import { IonContent, IonIcon } from '@ionic/angular';
 import { filter, switchMap } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { PersonasService } from '../../services/personas.service';
+import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
+import { colorPersona, inicialPersona } from '../../shared/avatar';
 
 @Component({
   selector: 'app-personas-lista',
   standalone: true,
-  imports: [
-    CommonModule,
-    RouterLink,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonButtons,
-    IonBackButton,
-    IonContent,
-    IonList,
-    IonItem,
-    IonLabel,
-    IonIcon,
-    IonFab,
-    IonFabButton,
-  ],
+  imports: [CommonModule, RouterLink, IonContent, IonIcon, BottomNavComponent],
   templateUrl: './personas-lista.page.html',
+  styleUrl: './personas-lista.page.scss',
 })
 export class PersonasListaPage {
   private auth = inject(AuthService);
@@ -50,4 +25,7 @@ export class PersonasListaPage {
     filter((u): u is User => !!u),
     switchMap((u) => this.personasSvc.misPersonas$(u.uid))
   );
+
+  readonly inicialPersona = inicialPersona;
+  readonly colorPersona = colorPersona;
 }

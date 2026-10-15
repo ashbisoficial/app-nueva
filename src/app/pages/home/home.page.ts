@@ -10,8 +10,7 @@ import { SelectorPersonaService } from '../../core/selector-persona.service';
 import { HomeService } from '../../services/home.service';
 import { PersonasService } from '../../services/personas.service';
 import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
-
-const COLORES_PERSONA = ['#A85C68', '#7C9473', '#9B7FB8', '#D98E2B', '#4F5F9E'];
+import { colorPersona, inicialPersona } from '../../shared/avatar';
 
 @Component({
   selector: 'app-home',
@@ -72,11 +71,6 @@ export class HomePage {
     return 'evento-badge--medicamento';
   }
 
-  inicialPersona(nombre: string): string {
-    return nombre?.trim().charAt(0).toUpperCase() || '?';
-  }
-
-  colorPersona(indice: number): string {
-    return COLORES_PERSONA[indice % COLORES_PERSONA.length];
-  }
+  readonly inicialPersona = inicialPersona;
+  readonly colorPersona = colorPersona;
 }

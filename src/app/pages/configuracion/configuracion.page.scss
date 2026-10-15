@@ -1,8 +1,76 @@
+.config-content {
+  --background: var(--ion-background-color);
+}
+
+.config-encabezado {
+  padding: 26px 20px 4px;
+
+  h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+}
+
+.config-cuerpo {
+  padding: 14px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.config-tarjeta {
+  background: var(--ion-item-background);
+  border-radius: var(--radio-tarjeta);
+  box-shadow: var(--sombra-suave);
+  padding: 16px;
+}
+
+.config-tarjeta__titulo {
+  margin: 0 0 12px 2px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ion-color-medium);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.config-cuenta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.config-cuenta__avatar {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 50%;
+  background: var(--ion-color-primary);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.config-cuenta__nombre {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.config-cuenta__email {
+  margin: 2px 0 0;
+  font-size: 0.82rem;
+  color: var(--ion-color-medium);
+}
+
 .paletas {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
   gap: 12px;
-  padding: 12px 16px 20px;
 }
 
 .paleta {
@@ -17,26 +85,26 @@
   font-family: inherit;
 
   .muestra {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     border: 2px solid transparent;
     color: #fff;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   }
 
   &.seleccionada .muestra {
-    border-color: var(--ion-color-dark, #333);
+    border-color: var(--ion-text-color);
   }
 
   .nombre {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     text-align: center;
-    color: var(--ion-text-color, #000);
+    color: var(--ion-text-color);
   }
 }
 
@@ -45,18 +113,18 @@
   justify-content: center;
   align-items: center;
   gap: 16px;
-  padding: 16px;
+  padding: 4px 0 10px;
 }
 
 .tamano {
-  background: var(--ion-color-step-50, #f4f4f4);
+  background: var(--ion-color-step-50);
   border: 2px solid transparent;
-  border-radius: 12px;
+  border-radius: var(--radio-campo);
   width: 56px;
   height: 56px;
   font-family: inherit;
   cursor: pointer;
-  color: var(--ion-text-color, #000);
+  color: var(--ion-text-color);
 
   &.tamano-chico {
     font-size: 0.85rem;
@@ -67,12 +135,29 @@
   }
 
   &.seleccionado {
-    border-color: var(--ion-color-primary, #a85c68);
-    background: var(--ion-color-primary-tint, #b6727c);
-    color: var(--ion-color-primary-contrast, #fff);
+    border-color: var(--ion-color-primary);
+    background: var(--ion-color-primary-tint);
+    color: var(--ion-color-primary-contrast);
   }
 }
 
 .ejemplo-tamano {
-  color: var(--ion-color-medium, #666);
+  margin: 0;
+  text-align: center;
+  color: var(--ion-color-medium);
+  font-size: 0.85rem;
+}
+
+.config-cerrar-sesion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1.6px solid var(--ion-border-color);
+  border-radius: var(--radio-campo);
+  background: transparent;
+  color: var(--ion-color-danger, #c0392b);
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 13px;
 }

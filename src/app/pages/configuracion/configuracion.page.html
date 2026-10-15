@@ -1,70 +1,68 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Configuración</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="config-content">
+  <div class="config-encabezado">
+    <h1>Ajustes</h1>
+  </div>
 
-<ion-content>
-  <ion-list>
-    <ion-list-header>Cuenta</ion-list-header>
-    <ion-item>
-      <ion-label>
-        <h2>{{ auth.usuario()?.displayName || 'Sin nombre' }}</h2>
-        <p>{{ auth.usuario()?.email }}</p>
-      </ion-label>
-    </ion-item>
-  </ion-list>
+  <div class="config-cuerpo">
+    <section class="config-tarjeta">
+      <p class="config-tarjeta__titulo">Cuenta</p>
+      <div class="config-cuenta">
+        <span class="config-cuenta__avatar">{{ (auth.usuario()?.displayName || '?').charAt(0).toUpperCase() }}</span>
+        <div>
+          <p class="config-cuenta__nombre">{{ auth.usuario()?.displayName || 'Sin nombre' }}</p>
+          <p class="config-cuenta__email">{{ auth.usuario()?.email }}</p>
+        </div>
+      </div>
+    </section>
 
-  <ion-list>
-    <ion-list-header>Color de la app</ion-list-header>
-    <div class="paletas">
-      @for (tema of themeSvc.temas; track tema.id) {
-        <button
-          type="button"
-          class="paleta"
-          [class.seleccionada]="themeSvc.temaActual() === tema.id"
-          (click)="elegirTema(tema.id)"
-        >
-          <span
-            class="muestra"
-            [style.background]="'linear-gradient(135deg, ' + tema.primario + ' 50%, ' + tema.secundario + ' 50%)'"
+    <section class="config-tarjeta">
+      <p class="config-tarjeta__titulo">Color de la app</p>
+      <div class="paletas">
+        @for (tema of themeSvc.temas; track tema.id) {
+          <button
+            type="button"
+            class="paleta"
+            [class.seleccionada]="themeSvc.temaActual() === tema.id"
+            (click)="elegirTema(tema.id)"
           >
-            @if (themeSvc.temaActual() === tema.id) {
-              <ion-icon name="checkmark"></ion-icon>
-            }
-          </span>
-          <span class="nombre">{{ tema.nombre }}</span>
-        </button>
-      }
-    </div>
-  </ion-list>
+            <span
+              class="muestra"
+              [style.background]="'linear-gradient(135deg, ' + tema.primario + ' 50%, ' + tema.secundario + ' 50%)'"
+            >
+              @if (themeSvc.temaActual() === tema.id) {
+                <ion-icon name="checkmark-outline"></ion-icon>
+              }
+            </span>
+            <span class="nombre">{{ tema.nombre }}</span>
+          </button>
+        }
+      </div>
+    </section>
 
-  <ion-list>
-    <ion-list-header>Tamaño de letra</ion-list-header>
-    <div class="tamanos">
-      @for (opcion of tamanos; track opcion.valor) {
-        <button
-          type="button"
-          class="tamano"
-          [class.seleccionado]="themeSvc.tamanoActual() === opcion.valor"
-          [class.tamano-chico]="opcion.valor === 'chico'"
-          [class.tamano-grande]="opcion.valor === 'grande'"
-          (click)="elegirTamano(opcion.valor)"
-        >
-          {{ opcion.etiqueta }}
-        </button>
-      }
-    </div>
-    <p class="ion-padding-horizontal ion-text-center ejemplo-tamano">
-      Así se ve el texto con este tamaño.
-    </p>
-  </ion-list>
+    <section class="config-tarjeta">
+      <p class="config-tarjeta__titulo">Tamaño de letra</p>
+      <div class="tamanos">
+        @for (opcion of tamanos; track opcion.valor) {
+          <button
+            type="button"
+            class="tamano"
+            [class.seleccionado]="themeSvc.tamanoActual() === opcion.valor"
+            [class.tamano-chico]="opcion.valor === 'chico'"
+            [class.tamano-grande]="opcion.valor === 'grande'"
+            (click)="elegirTamano(opcion.valor)"
+          >
+            {{ opcion.etiqueta }}
+          </button>
+        }
+      </div>
+      <p class="ejemplo-tamano">Así se ve el texto con este tamaño.</p>
+    </section>
 
-  <ion-button expand="block" fill="outline" color="danger" class="ion-margin" (click)="logout()">
-    <ion-icon slot="start" name="log-out-outline"></ion-icon>
-    Cerrar sesión
-  </ion-button>
+    <button class="config-cerrar-sesion" (click)="logout()">
+      <ion-icon name="log-out-outline"></ion-icon>
+      Cerrar sesión
+    </button>
+  </div>
+
+  <app-bottom-nav></app-bottom-nav>
 </ion-content>

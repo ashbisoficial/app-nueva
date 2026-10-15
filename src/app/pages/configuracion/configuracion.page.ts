@@ -1,41 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import {
-  IonBackButton,
-  IonButton,
-  IonButtons,
-  IonContent,
-  IonHeader,
-  IonIcon,
-  IonItem,
-  IonLabel,
-  IonList,
-  IonListHeader,
-  IonTitle,
-  IonToolbar,
-} from '@ionic/angular';
+import { IonContent, IonIcon } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
 import { ThemeService, type TamanoFuente } from '../../core/theme.service';
+import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
 
 @Component({
   selector: 'app-configuracion',
   standalone: true,
-  imports: [
-    CommonModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonButtons,
-    IonBackButton,
-    IonButton,
-    IonIcon,
-    IonContent,
-    IonList,
-    IonListHeader,
-    IonItem,
-    IonLabel,
-  ],
+  imports: [CommonModule, IonIcon, IonContent, BottomNavComponent],
   templateUrl: './configuracion.page.html',
   styleUrl: './configuracion.page.scss',
 })
