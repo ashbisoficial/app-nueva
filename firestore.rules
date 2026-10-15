@@ -40,16 +40,27 @@ service cloud.firestore {
       allow read, write: if estaAutenticado() && request.auth.uid == uid;
     }
 
-    // Índice de unicidad de RUT (sección 6.1): el id del doc ES el RUT
-    // normalizado, así que un segundo "create" sobre el mismo RUT en
+    // Índice de unicidad de RUT (secciones 6.1 y 6.2): el id del doc ES el
+    // RUT normalizado, así que un segundo "create" sobre el mismo RUT en
     // realidad es un "update" para Firestore — y update está bloqueado acá,
-    // lo que impide tener dos cuentas con el mismo RUT sin depender de una
-    // Cloud Function.
+    // lo que impide reclamar dos veces el mismo RUT (como cuenta, como
+    // dependiente, o ambos) sin depender de una Cloud Function. Dos formas
+    // de documento según quién lo reclama: tipo 'titular' (uid propio, al
+    // completar el registro) o 'dependiente' (uidTitular + personaId, al
+    // crear una Persona menor_a_cargo/adulto_mayor_a_cargo).
     match /rutsRegistrados/{rut} {
       allow read: if false;
-      allow create: if estaAutenticado() && request.resource.data.uid == request.auth.uid;
+      allow create: if estaAutenticado() && (
+        (request.resource.data.tipo == 'titular' && request.resource.data.uid == request.auth.uid) ||
+        (request.resource.data.tipo == 'dependiente' && request.resource.data.uidTitular == request.auth.uid)
+      );
       allow update: if false;
-      allow delete: if estaAutenticado() && resource.data.uid == request.auth.uid;
+      // resource.data.get('tipo','titular'): los docs ya existentes de antes de
+      // esta regla no tienen campo "tipo" — se tratan como 'titular'.
+      allow delete: if estaAutenticado() && (
+        (resource.data.get('tipo', 'titular') == 'titular' && resource.data.uid == request.auth.uid) ||
+        (resource.data.get('tipo', 'titular') == 'dependiente' && resource.data.uidTitular == request.auth.uid)
+      );
     }
 
     match /personas/{personaId} {

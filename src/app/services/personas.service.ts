@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import {
   DocumentData,
   UpdateData,
-  addDoc,
   collection,
   deleteDoc,
   doc,
@@ -12,15 +11,20 @@ import {
   or,
   query,
   serverTimestamp,
+  setDoc,
   updateDoc,
   where,
+  writeBatch,
 } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { Observable } from 'rxjs';
+import { normalizarRut, validarRut } from '../core/rut';
 import { db, functions } from '../core/firebase';
 import { docData$ } from '../core/firestore-collection';
 import { generarPin6, generarToken } from '../core/random';
-import type { Persona } from '../models';
+import type { Persona, RelacionPersona } from '../models';
+
+type DatosPersonaNueva = Omit<Persona, 'id' | 'uidTitular' | 'relacion' | 'rut'>;
 
 @Injectable({ providedIn: 'root' })
 export class PersonasService {
@@ -40,6 +44,17 @@ export class PersonasService {
     });
   }
 
+  /** true si esta cuenta ya tiene su Persona "yo mismo/a" (solo puede haber una, sección 6.2). */
+  async tieneYoMismo(uidTitular: string): Promise<boolean> {
+    const q = query(
+      collection(db, 'personas'),
+      where('uidTitular', '==', uidTitular),
+      where('relacion', '==', 'yo_mismo')
+    );
+    const snap = await getDocs(q);
+    return !snap.empty;
+  }
+
   persona$(personaId: string): Observable<Persona | undefined> {
     return docData$<Persona>(`personas/${personaId}`);
   }
@@ -49,9 +64,52 @@ export class PersonasService {
     return snap.exists() ? ({ id: snap.id, ...snap.data() } as Persona) : undefined;
   }
 
-  async crear(uidTitular: string, datos: Omit<Persona, 'id' | 'uidTitular'>): Promise<string> {
-    const ref = await addDoc(collection(db, 'personas'), { ...datos, uidTitular });
+  /**
+   * Crea la Persona "yo mismo/a" del titular (sección 6.2): el RUT es el
+   * mismo que ya quedó reclamado en usuarios/{uid}.rut al completar el
+   * registro — no se vuelve a reclamar acá, solo se denormaliza en la
+   * Persona para que el resto de la app (ficha de emergencia, etc.) lo lea
+   * desde un solo lugar.
+   */
+  async crearTitular(uidTitular: string, datos: DatosPersonaNueva, rutTitular: string): Promise<string> {
+    const ref = doc(collection(db, 'personas'));
+    await setDoc(ref, { ...datos, uidTitular, relacion: 'yo_mismo' as const, rut: rutTitular });
     return ref.id;
+  }
+
+  /**
+   * Crea una Persona dependiente (menor de edad o adulto mayor/convaleciente
+   * a cargo, sección 6.2): a diferencia de "yo mismo/a", esta sí reclama un
+   * RUT nuevo en rutsRegistrados — mismo índice que usan las cuentas, mismo
+   * patrón atómico que AuthService.reclamarRut (create-only, batch), así
+   * que el mismo RUT no se puede usar dos veces ni como cuenta ni como
+   * dependiente de otra persona.
+   */
+  async crearDependiente(
+    uidTitular: string,
+    relacion: Extract<RelacionPersona, 'menor_a_cargo' | 'adulto_mayor_a_cargo'>,
+    datos: DatosPersonaNueva,
+    rut: string
+  ): Promise<string> {
+    const rutNormalizado = normalizarRut(rut);
+    if (!validarRut(rutNormalizado)) throw new Error('rut-invalido');
+
+    const personaRef = doc(collection(db, 'personas'));
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'rutsRegistrados', rutNormalizado), {
+      tipo: 'dependiente',
+      personaId: personaRef.id,
+      uidTitular,
+      reclamadoEn: serverTimestamp(),
+    });
+    batch.set(personaRef, { ...datos, uidTitular, relacion, rut: rutNormalizado });
+
+    try {
+      await batch.commit();
+    } catch {
+      throw new Error('rut-duplicado');
+    }
+    return personaRef.id;
   }
 
   async actualizar(personaId: string, cambios: Partial<Persona>): Promise<void> {

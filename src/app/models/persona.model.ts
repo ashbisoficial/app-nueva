@@ -1,3 +1,6 @@
+/** Sección 6.2 del spec: qué es esta Persona respecto de la cuenta que la administra. */
+export type RelacionPersona = 'yo_mismo' | 'menor_a_cargo' | 'adulto_mayor_a_cargo';
+
 export interface Persona {
   id: string;
   uidTitular: string;
@@ -5,6 +8,17 @@ export interface Persona {
   fechaNacimiento: string;
   sexo: string;
   fotoUrl?: string;
+
+  relacion: RelacionPersona;
+  /**
+   * Para 'yo_mismo': copia de usuarios/{uid}.rut, no editable distinto acá.
+   * Para los dependientes: RUT propio, obligatorio, único (rutsRegistrados,
+   * sección 6.2) — validado solo en formato, nunca verificado contra un
+   * registro real.
+   */
+  rut: string;
+  /** Solo dependientes: certificado de nacimiento (menor) o carnet + tutela (adulto mayor). */
+  documentoRespaldoUrl?: string;
 
   grupoSanguineo?: string;
   alergias?: string[];

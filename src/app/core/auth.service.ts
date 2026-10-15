@@ -75,7 +75,11 @@ export class AuthService {
     if (!validarRut(rutNormalizado)) throw new Error('rut-invalido');
 
     const batch = writeBatch(db);
-    batch.set(doc(db, 'rutsRegistrados', rutNormalizado), { uid: user.uid, creadoEn: serverTimestamp() });
+    batch.set(doc(db, 'rutsRegistrados', rutNormalizado), {
+      tipo: 'titular',
+      uid: user.uid,
+      reclamadoEn: serverTimestamp(),
+    });
     batch.set(doc(db, 'usuarios', user.uid), { rut: rutNormalizado }, { merge: true });
 
     try {

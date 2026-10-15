@@ -21,10 +21,16 @@ ni una plataforma de reserva de horas con terceros. Un médico real nunca
 inicia sesión en esta app; si alguien necesita mostrarle algo a un médico, lo
 hace con el PDF/QR generado, fuera de la app.
 
-**Multi-perfil bajo una sola cuenta.** Una cuenta puede llevar el registro de
-varias "personas" (uno mismo + hijos + familiares a cargo) — equivalente
-directo al concepto "una cuenta de dueño con varias mascotas" del sistema
-original (Ashbis).
+**Multi-perfil bajo una sola cuenta, pero no libre.** Una cuenta puede llevar
+el registro de varias "personas", pero no de cualquiera — equivalente directo
+al concepto "una cuenta de dueño con varias mascotas" del sistema original
+(Ashbis), salvo que acá las "mascotas" son personas reales y por eso hay una
+restricción explícita (ver sección 6.2): una cuenta siempre tiene **una
+Persona "yo mismo/a"**, y además puede tener **Personas dependientes** solo en
+dos casos — un **menor de edad a cargo** o un **adulto mayor/convaleciente a
+cargo**. Un adulto que puede manejar su propio teléfono y no es menor ni
+convaleciente **no se agrega como Persona dentro de la cuenta de otro** — se
+vincula con su propia cuenta vía PIN (sección 6).
 
 ## 2. Stack técnico
 
@@ -128,6 +134,9 @@ compartirse entre dos cuentas (ej. padres separados con un hijo en común),
 igual que el sistema original permite "co-dueños".
 
 ```ts
+// Sección 6.2: qué es esta Persona respecto de la cuenta que la administra.
+type RelacionPersona = 'yo_mismo' | 'menor_a_cargo' | 'adulto_mayor_a_cargo';
+
 interface Persona {
   id: string;
   uidTitular: string;        // quién administra este perfil (equivalente a uidUsuario)
@@ -135,6 +144,18 @@ interface Persona {
   fechaNacimiento: string;
   sexo: string;
   fotoUrl?: string;
+
+  relacion: RelacionPersona;
+  // Para 'yo_mismo': copia de usuarios/{uid}.rut (no se puede editar distinto acá).
+  // Para 'menor_a_cargo' / 'adulto_mayor_a_cargo': RUT propio del dependiente,
+  // obligatorio, único (mismo índice rutsRegistrados que usan las cuentas —
+  // ver 6.2), validado solo en formato, NO verificado contra un registro real.
+  rut: string;
+  // Solo dependientes: documento que respalda el vínculo (certificado de
+  // nacimiento para un menor; carnet + poder/documento de tutela para un
+  // adulto mayor). Se guarda como respaldo, nadie lo revisa automáticamente
+  // al crearlo (sección 6.2).
+  documentoRespaldoUrl?: string;
 
   // Salud crítica — equivalente a alergias/enfermedadesCronicas/medicamentosPermanentes
   grupoSanguineo?: string;
@@ -475,30 +496,101 @@ Sirve tanto para el caso de arriba (hijo ↔ padres, cada uno con cuenta
 propia) como para parejas o cuidadores que administran el perfil de un
 adulto mayor.
 
-## 6.1 Una cuenta por persona real
+## 6.1 Una cuenta por persona real — verificación del titular
 
-**Decisión tomada: opción liviana.** No se hace verificación de identidad
-real (KYC) por ahora — queda descartada esa opción (costo por verificación +
-integración con un proveedor externo aparte de Firebase).
+**Decisión tomada (reemplaza la decisión anterior de "opción liviana"): sí se
+hace verificación real**, parecida a cómo lo hace BancoEstado con CuentaRUT —
+cédula + selfie en vivo comparada contra la foto del Registro Civil — en vez
+de solo validar el formato del RUT.
 
-Lo que sí se construye:
+Por qué cambia la decisión original: para datos de salud, la unicidad de RUT
+sola (que alguien no pueda registrarse dos veces) no evita que alguien se
+registre con el RUT de **otra persona**. La verificación real sí lo evita,
+porque exige que la cara de quien se registra coincida con la foto oficial de
+ese RUT.
 
-- Al registrarse, se pide el RUT/cédula de la persona (además de
-  nombre/email). Se valida el formato y se guarda en `usuarios/{uid}` como
-  `rut`. Reglas de Firestore + una Cloud Function en el flujo de registro
-  bloquean que se cree una segunda cuenta con el mismo RUT — es una
-  validación de unicidad, no una verificación contra un registro real: si
-  alguien pone un RUT ajeno o inventado a propósito, el sistema no lo detecta.
-- "Dato biométrico" = biometría **local del dispositivo** (Face
-  ID/huella vía `@capacitor-community/biometric-auth` o similar), usada solo
-  para desbloquear la app ya logueada en ese teléfono — no verifica que la
-  persona sea realmente la dueña del RUT. Se ofrece como opción en
-  Configuración, no como requisito para registrarse.
+**Cómo funciona (investigado, no es la opción gratuita):**
+- ClaveÚnica (la identidad digital del Estado) es gratis, pero **solo para
+  organismos del Estado** — una empresa privada no puede integrarla
+  directamente.
+- Un médico real nunca entra a la app, pero el **titular de la cuenta sí**, y
+  es quien se verifica así. La verificación se hace vía un **proveedor
+  externo pagado** que compara la selfie contra la base del Registro Civil —
+  evaluados: **Didit** (~US$0,20 por verificación concluyente, el más barato,
+  enfocado en LatAm/Chile), Truora, Sumsub. Falta elegir y crear la cuenta del
+  proveedor (pendiente del usuario) antes de integrar la API.
+- Flujo: al completar el registro (junto con el RUT, pantalla
+  "completar-registro"), se pide escanear la cédula y tomarse una selfie; el
+  proveedor devuelve si coincide. Mientras no se decide/integra el proveedor,
+  el registro sigue funcionando con la validación liviana de formato + Cloud
+  Function de unicidad (`rutsRegistrados/{rut}`, sección 6.2) como hoy, para
+  no bloquear el desarrollo del resto de la app.
+- "Dato biométrico local" (Face ID/huella del teléfono) sigue existiendo pero
+  es algo distinto: solo desbloquea la app ya logueada en ESE teléfono, no
+  verifica identidad contra el Registro Civil (sección 2.2, tarea de
+  Configuración).
 
-Una vez que esto esté construido, hay que reflejarlo en los Términos y
-Condiciones y la Política de Privacidad (que se guarda el RUT, con qué base
-legal, por cuánto tiempo, quién lo puede ver) — se redactan después de tener
-el flujo de registro con RUT implementado, no antes.
+**Límite importante de esta verificación:** solo sirve para alguien que puede
+participar activamente (sacarse una foto, mostrar su cédula) — por eso no
+aplica a los dependientes de la sección 6.2, que se resuelven distinto.
+
+Una vez integrado el proveedor, hay que reflejar en los Términos y
+Condiciones y la Política de Privacidad que se procesa una selfie + foto de
+cédula con un tercero, con qué base legal, por cuánto tiempo se guarda el
+resultado (lo ideal es NO guardar la selfie/cédula, solo el resultado
+booleano "verificado sí/no" + fecha) y quién puede verlo.
+
+## 6.2 Personas dependientes (menores de edad / adultos mayores a cargo)
+
+Aplica el límite explícito de la sección 1: una cuenta tiene una Persona
+`yo_mismo` (el titular) y, opcionalmente, Personas `menor_a_cargo` o
+`adulto_mayor_a_cargo` — nunca un tercer tipo. Un adulto independiente nunca
+se agrega así; se vincula con su propia cuenta por PIN (sección 6).
+
+**Por qué un dependiente no pasa por la verificación de 6.1:** la
+verificación cédula+selfie necesita que la propia persona participe. Una
+guagua no tiene cédula con foto todavía; un adulto mayor convaleciente puede
+que no pueda operar el teléfono. Para ellos la app pide, al crear la Persona:
+
+- **RUT propio del dependiente** (obligatorio, no opcional) — en Chile los
+  RUT existen desde el nacimiento, así que un recién nacido ya tiene uno.
+  Mismo validador de formato que el del titular (sección 6.1).
+- **Documento de respaldo** (obligatorio): certificado de nacimiento escaneado
+  para un menor; carnet de identidad + algún documento de tutela/poder para
+  un adulto mayor. Sube a Storage igual que cualquier documento (sección
+  4.1), queda enlazado en `Persona.documentoRespaldoUrl`.
+- **No hay revisión automática ni manual del documento al crearlo** — queda
+  guardado como respaldo por si hay una disputa (ej. dos cuentas reclamando
+  el mismo RUT dependiente), no bloquea el flujo de alta.
+
+**Unicidad de RUT, ahora compartida entre cuentas y dependientes:** el mismo
+índice `rutsRegistrados/{rut}` de la sección 6.1 (el id del doc es el RUT
+normalizado, así que un segundo `create` sobre el mismo RUT es en realidad un
+`update`, y eso ya está bloqueado por reglas) se reutiliza para los
+dependientes, agregando qué lo reclamó:
+
+```ts
+// rutsRegistrados/{rutNormalizado}
+{
+  tipo: 'titular' | 'dependiente',
+  uid?: string,         // si tipo === 'titular'
+  personaId?: string,   // si tipo === 'dependiente'
+  uidTitular?: string,  // quién administra ese dependiente
+  reclamadoEn: any,     // serverTimestamp
+}
+```
+
+Esto evita, con la misma garantía atómica de antes (sin necesitar Cloud
+Function extra, solo reglas + batch): que dos cuentas reclamen el mismo RUT
+como titular, que un RUT ya usado como cuenta se reuse como dependiente de
+otra persona, o que el mismo dependiente se agregue dos veces (misma cuenta u
+otra). La creación de una Persona dependiente y el `create` en
+`rutsRegistrados` van en el mismo `writeBatch`, igual que `reclamarRut`.
+
+**Límite conocido, no resuelto todavía:** si un dependiente (ej. un menor)
+crece y quiere tener su propia cuenta, hoy no hay un flujo para "liberar" su
+RUT del índice y traspasarlo — queda anotado como trabajo futuro, no bloquea
+el MVP.
 
 ## 7. Reglas de seguridad (Firestore Rules) — principios
 

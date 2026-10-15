@@ -1,0 +1,32 @@
+.persona-relacion-fija {
+  padding: 4px 16px 12px;
+
+  p {
+    margin: 0 0 4px;
+  }
+}
+
+.persona-rut-fijo {
+  color: var(--ion-color-medium);
+  font-size: 0.88rem;
+}
+
+.persona-ayuda {
+  padding: 0 16px 12px;
+  margin: 0;
+}
+
+.persona-archivo-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.persona-archivo-label {
+  margin: 0 0 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ion-color-medium);
+}
