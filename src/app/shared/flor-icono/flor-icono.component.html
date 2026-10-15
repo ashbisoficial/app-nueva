@@ -1,34 +1,89 @@
 <svg viewBox="0 0 100 100" class="flor-svg" aria-hidden="true">
   @switch (forma) {
-    @case ('redonda') {
-      @for (ang of petalosRedonda; track ang) {
-        <ellipse cx="50" cy="27" rx="13" ry="21" [attr.fill]="primario" [attr.transform]="'rotate(' + ang + ' 50 50)'" />
+    @case ('rosa') {
+      <!-- Rosa: pétalos en espiral, corona exterior + interior rotada a medio paso, capullo al centro. -->
+      @for (ang of rosaExterior; track ang) {
+        <ellipse cx="50" cy="30" rx="13" ry="18" fill-opacity="0.82" [attr.fill]="primario" [attr.transform]="'rotate(' + ang + ' 50 50)'" />
       }
-      <circle cx="50" cy="50" r="10" [attr.fill]="secundario" />
-    }
-    @case ('puntiaguda') {
-      @for (ang of petalosPuntiaguda; track ang) {
-        <path d="M50,50 L45,12 L50,4 L55,12 Z" [attr.fill]="primario" [attr.transform]="'rotate(' + ang + ' 50 50)'" />
-      }
-      <circle cx="50" cy="50" r="15" [attr.fill]="secundario" />
-    }
-    @case ('trompeta') {
-      @for (ang of petalosTrompeta; track ang) {
-        <path
-          d="M50,50 C44,35 42,15 50,3 C58,15 56,35 50,50 Z"
-          [attr.fill]="primario"
-          [attr.transform]="'rotate(' + ang + ' 50 50)'"
-        />
+      @for (ang of rosaInterior; track ang) {
+        <ellipse cx="50" cy="38" rx="9" ry="13" [attr.fill]="primario" [attr.transform]="'rotate(' + ang + ' 50 50)'" />
       }
       <circle cx="50" cy="50" r="6" [attr.fill]="secundario" />
     }
-    @case ('racimo') {
-      @for (b of racimoBlossoms; track b.x + '-' + b.y) {
-        <circle [attr.cx]="b.x" [attr.cy]="b.y" [attr.r]="b.r" [attr.fill]="primario" />
-        <circle [attr.cx]="b.x" [attr.cy]="b.y" r="2.4" [attr.fill]="secundario" />
+    @case ('hibisco') {
+      <!-- Hibisco: 5 pétalos anchos + el pistilo largo que sobresale, con las anteras al final. -->
+      @for (ang of cincoPetalos; track ang) {
+        <ellipse cx="50" cy="29" rx="15" ry="20" [attr.fill]="primario" [attr.transform]="'rotate(' + ang + ' 50 50)'" />
       }
+      <circle cx="50" cy="50" r="7" [attr.fill]="secundario" />
+      <line x1="50" y1="50" x2="50" y2="90" [attr.stroke]="secundario" stroke-width="3" stroke-linecap="round" />
+      <circle cx="50" cy="90" r="4" [attr.fill]="secundario" />
+      <circle cx="45" cy="86" r="2.5" [attr.fill]="secundario" />
+      <circle cx="55" cy="86" r="2.5" [attr.fill]="secundario" />
     }
-    @case ('corazon') {
+    @case ('bailarina') {
+      <!-- Bailarinas (Impatiens): 5 pétalos planos y redondeados, sin pistilo, forma simple tipo molinillo. -->
+      @for (ang of cincoPetalos; track ang) {
+        <ellipse cx="50" cy="31" rx="14" ry="17" [attr.fill]="primario" [attr.transform]="'rotate(' + ang + ' 50 50)'" />
+      }
+      <circle cx="50" cy="50" r="7" [attr.fill]="secundario" />
+    }
+    @case ('girasol') {
+      <!-- Girasol: pétalos anchos y puntiagudos, centro grande y texturado. -->
+      @for (ang of girasolPetalos; track ang) {
+        <path d="M50,50 L41,16 Q50,8 59,16 Z" [attr.fill]="primario" [attr.transform]="'rotate(' + ang + ' 50 50)'" />
+      }
+      <!-- Centro café fijo (no el secundario del tema): el centro de un girasol real es siempre oscuro/café, nunca del color de acento de la paleta. -->
+      <circle cx="50" cy="50" r="18" fill="#5C3A1E" />
+      <circle cx="50" cy="50" r="18" fill="none" stroke="#3D2611" stroke-opacity="0.4" stroke-width="2" stroke-dasharray="3,3" />
+    }
+    @case ('calendula') {
+      <!-- Caléndula: muchísimos pétalos finos en dos coronas, centro chico y plano. -->
+      @for (ang of calendulaExterior; track ang) {
+        <path d="M50,50 L47,14 L50,10 L53,14 Z" [attr.fill]="primario" [attr.transform]="'rotate(' + ang + ' 50 50)'" />
+      }
+      @for (ang of calendulaInterior; track ang) {
+        <path d="M50,50 L47.5,24 L50,20 L52.5,24 Z" [attr.fill]="primario" fill-opacity="0.85" [attr.transform]="'rotate(' + ang + ' 50 50)'" />
+      }
+      <circle cx="50" cy="50" r="8" [attr.fill]="secundario" />
+    }
+    @case ('dalia') {
+      <!-- Dalia: pétalos puntiagudos en tres coronas concéntricas, muy llena y simétrica. -->
+      @for (ang of daliaExterior; track ang) {
+        <path d="M50,50 L44,17 L50,10 L56,17 Z" [attr.fill]="primario" [attr.transform]="'rotate(' + ang + ' 50 50)'" />
+      }
+      @for (ang of daliaMedio; track ang) {
+        <path d="M50,50 L45.5,26 L50,19 L54.5,26 Z" [attr.fill]="primario" fill-opacity="0.88" [attr.transform]="'rotate(' + ang + ' 50 50)'" />
+      }
+      @for (ang of daliaInterior; track ang) {
+        <path d="M50,50 L46.5,34 L50,28 L53.5,34 Z" [attr.fill]="secundario" [attr.transform]="'rotate(' + ang + ' 50 50)'" />
+      }
+      <circle cx="50" cy="50" r="5" [attr.fill]="secundario" />
+    }
+    @case ('lirio') {
+      <!-- Lirio: estrella de 6 puntas recurvadas + estambres finos entre los pétalos. -->
+      @for (ang of lirioPetalos; track ang) {
+        <path d="M50,50 C46,36 44,20 50,6 C56,20 54,36 50,50 Z" [attr.fill]="primario" [attr.transform]="'rotate(' + ang + ' 50 50)'" />
+      }
+      @for (ang of lirioEstambres; track ang) {
+        <line x1="50" y1="50" x2="50" y2="24" [attr.stroke]="secundario" stroke-width="1.6" [attr.transform]="'rotate(' + ang + ' 50 50)'" />
+        <circle cx="50" cy="24" r="2.2" [attr.fill]="secundario" [attr.transform]="'rotate(' + ang + ' 50 50)'" />
+      }
+      <circle cx="50" cy="50" r="4" [attr.fill]="secundario" />
+    }
+    @case ('copihue') {
+      <!-- Copihue: campanita alargada que cuelga, con el cáliz arriba y el borde acampanado abajo. -->
+      <path
+        d="M50,16 C66,24 69,52 60,76 C56,86 44,86 40,76 C31,52 34,24 50,16 Z"
+        [attr.fill]="primario"
+      />
+      <path d="M44,74 Q50,84 56,74" fill="none" [attr.stroke]="secundario" stroke-width="2.5" stroke-linecap="round" />
+      <path d="M50,16 C55,9 63,9 67,15 C61,20 54,20 50,16 Z" [attr.fill]="secundario" />
+      <path d="M50,16 C45,9 37,9 33,15 C39,20 46,20 50,16 Z" [attr.fill]="secundario" />
+      <ellipse cx="46" cy="42" rx="2.5" ry="4" fill="#fff" fill-opacity="0.35" />
+    }
+    @case ('pensamiento') {
+      <!-- Pensamientos (pansy): 2 pétalos superiores grandes superpuestos + 3 inferiores, cara oscura al centro. -->
       <ellipse cx="38" cy="34" rx="17" ry="15" [attr.fill]="secundario" transform="rotate(-18 38 34)" />
       <ellipse cx="62" cy="34" rx="17" ry="15" [attr.fill]="secundario" transform="rotate(18 62 34)" />
       <ellipse cx="50" cy="62" rx="15" ry="18" [attr.fill]="primario" />
@@ -36,15 +91,8 @@
       <ellipse cx="71" cy="56" rx="13" ry="15" [attr.fill]="primario" transform="rotate(28 71 56)" />
       <circle cx="50" cy="52" r="6" fill="#3D2C2E" />
     }
-    @case ('campana') {
-      <path
-        d="M50,20 C68,28 70,55 58,78 C54,86 46,86 42,78 C30,55 32,28 50,20 Z"
-        [attr.fill]="primario"
-      />
-      <path d="M50,18 C56,10 64,10 68,16 C62,22 55,22 50,18 Z" [attr.fill]="secundario" />
-      <path d="M50,18 C44,10 36,10 32,16 C38,22 45,22 50,18 Z" [attr.fill]="secundario" />
-    }
-    @case ('exotica') {
+    @case ('ave-del-paraiso') {
+      <!-- Ave del paraíso: vaina horizontal tipo pico + corona de pétalos en flama + lengüeta azul. -->
       <path
         d="M12,62 C30,58 48,58 66,62 C70,63 70,69 66,70 C48,74 30,74 12,70 C8,69 8,63 12,62 Z"
         [attr.fill]="primario"
@@ -52,6 +100,26 @@
       <path d="M50,60 C52,42 60,26 74,16 C76,30 72,46 60,58 Z" [attr.fill]="primario" />
       <path d="M46,58 C44,40 48,24 58,12 C62,26 60,42 52,56 Z" [attr.fill]="primario" />
       <path d="M44,62 C34,52 32,40 40,30 C46,40 46,52 44,62 Z" [attr.fill]="secundario" />
+    }
+    @case ('racimo-pequeno') {
+      <!-- Lilas: espiga suelta de florecitas chicas de 4 pétalos. -->
+      @for (b of racimoPequeno; track b.x + '-' + b.y) {
+        <ellipse [attr.cx]="b.x" [attr.cy]="b.y - b.r * 0.95" [attr.rx]="b.r * 0.55" [attr.ry]="b.r * 0.75" [attr.fill]="primario" />
+        <ellipse [attr.cx]="b.x" [attr.cy]="b.y + b.r * 0.95" [attr.rx]="b.r * 0.55" [attr.ry]="b.r * 0.75" [attr.fill]="primario" />
+        <ellipse [attr.cx]="b.x - b.r * 0.95" [attr.cy]="b.y" [attr.rx]="b.r * 0.75" [attr.ry]="b.r * 0.55" [attr.fill]="primario" />
+        <ellipse [attr.cx]="b.x + b.r * 0.95" [attr.cy]="b.y" [attr.rx]="b.r * 0.75" [attr.ry]="b.r * 0.55" [attr.fill]="primario" />
+        <circle [attr.cx]="b.x" [attr.cy]="b.y" [attr.r]="b.r * 0.4" [attr.fill]="secundario" />
+      }
+    }
+    @case ('racimo-grande') {
+      <!-- Hortensia: domo denso y redondo de florecitas chicas de 4 pétalos. -->
+      @for (b of racimoGrande; track b.x + '-' + b.y) {
+        <ellipse [attr.cx]="b.x" [attr.cy]="b.y - b.r * 0.95" [attr.rx]="b.r * 0.55" [attr.ry]="b.r * 0.75" [attr.fill]="primario" />
+        <ellipse [attr.cx]="b.x" [attr.cy]="b.y + b.r * 0.95" [attr.rx]="b.r * 0.55" [attr.ry]="b.r * 0.75" [attr.fill]="primario" />
+        <ellipse [attr.cx]="b.x - b.r * 0.95" [attr.cy]="b.y" [attr.rx]="b.r * 0.75" [attr.ry]="b.r * 0.55" [attr.fill]="primario" />
+        <ellipse [attr.cx]="b.x + b.r * 0.95" [attr.cy]="b.y" [attr.rx]="b.r * 0.75" [attr.ry]="b.r * 0.55" [attr.fill]="primario" />
+        <circle [attr.cx]="b.x" [attr.cy]="b.y" [attr.r]="b.r * 0.4" [attr.fill]="secundario" />
+      }
     }
   }
 </svg>
