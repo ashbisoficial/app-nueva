@@ -14,6 +14,11 @@
       "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run build"]
     }
   ],
+  "emulators": {
+    "auth": { "port": 9099 },
+    "firestore": { "port": 8080 },
+    "ui": { "enabled": true, "port": 4000 }
+  },
   "hosting": {
     "site": "serangelia",
     "public": "dist/app-nueva/browser",

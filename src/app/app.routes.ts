@@ -25,108 +25,99 @@ export const routes: Routes = [
   {
     path: '',
     canActivate: [authGuard],
-    loadComponent: () => import('./pages/home/home.page').then((m) => m.HomePage),
-  },
-  {
-    path: 'configuracion',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./pages/configuracion/configuracion.page').then((m) => m.ConfiguracionPage),
-  },
-  {
-    path: 'canjear-pin',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/canjear-pin/canjear-pin.page').then((m) => m.CanjearPinPage),
-  },
-  {
-    path: 'agenda',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/agenda/agenda.page').then((m) => m.AgendaPage),
-  },
-  {
-    path: 'agenda/:personaId/nueva',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/cita-form/cita-form.page').then((m) => m.CitaFormPage),
-  },
-  {
-    path: 'agenda/:personaId/:citaId',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/cita-form/cita-form.page').then((m) => m.CitaFormPage),
-  },
-  {
-    path: 'personas',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/personas-lista/personas-lista.page').then((m) => m.PersonasListaPage),
-  },
-  {
-    path: 'personas/nueva',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/persona-form/persona-form.page').then((m) => m.PersonaFormPage),
-  },
-  {
-    path: 'personas/:id',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/persona-detalle/persona-detalle.page').then((m) => m.PersonaDetallePage),
-  },
-  {
-    path: 'personas/:id/editar',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/persona-form/persona-form.page').then((m) => m.PersonaFormPage),
-  },
-  {
-    path: 'personas/:id/historial',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/historial/historial.page').then((m) => m.HistorialPage),
-  },
-  {
-    path: 'personas/:id/historial/nueva',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./pages/historial-nueva/historial-nueva.page').then((m) => m.HistorialNuevaPage),
-  },
-  {
-    path: 'personas/:id/vacunas',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/vacunas/vacunas.page').then((m) => m.VacunasPage),
-  },
-  {
-    path: 'personas/:id/medicamentos',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/medicamentos/medicamentos.page').then((m) => m.MedicamentosPage),
-  },
-  {
-    path: 'personas/:id/examenes',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/examenes/examenes.page').then((m) => m.ExamenesPage),
-  },
-  {
-    path: 'personas/:id/documentos',
-    canActivate: [authGuard],
-    loadComponent: () => import('./pages/documentos/documentos.page').then((m) => m.DocumentosPage),
-  },
-  {
-    path: 'personas/:id/especialidades',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./pages/especialidades/especialidades.page').then((m) => m.EspecialidadesPage),
-  },
-  {
-    path: 'personas/:id/especialidades/:especialidadId',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./pages/especialidad-carpeta/especialidad-carpeta.page').then((m) => m.EspecialidadCarpetaPage),
-  },
-  {
-    path: 'personas/:id/ficha',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./pages/ficha-emergencia/ficha-emergencia.page').then((m) => m.FichaEmergenciaPage),
-  },
-  {
-    path: 'personas/:id/ficha-perdida',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./pages/ficha-perdida-config/ficha-perdida-config.page').then((m) => m.FichaPerdidaConfigPage),
+    loadComponent: () => import('./shell/app-shell.component').then((m) => m.AppShellComponent),
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./pages/home/home.page').then((m) => m.HomePage),
+      },
+      {
+        path: 'configuracion',
+        loadComponent: () =>
+          import('./pages/configuracion/configuracion.page').then((m) => m.ConfiguracionPage),
+      },
+      {
+        path: 'canjear-pin',
+        loadComponent: () => import('./pages/canjear-pin/canjear-pin.page').then((m) => m.CanjearPinPage),
+      },
+      {
+        path: 'agenda',
+        loadComponent: () => import('./pages/agenda/agenda.page').then((m) => m.AgendaPage),
+      },
+      {
+        path: 'agenda/:personaId/nueva',
+        loadComponent: () => import('./pages/cita-form/cita-form.page').then((m) => m.CitaFormPage),
+      },
+      {
+        path: 'agenda/:personaId/:citaId',
+        loadComponent: () => import('./pages/cita-form/cita-form.page').then((m) => m.CitaFormPage),
+      },
+      {
+        path: 'personas',
+        loadComponent: () =>
+          import('./pages/personas-lista/personas-lista.page').then((m) => m.PersonasListaPage),
+      },
+      {
+        path: 'personas/nueva',
+        loadComponent: () => import('./pages/persona-form/persona-form.page').then((m) => m.PersonaFormPage),
+      },
+      {
+        path: 'personas/:id',
+        loadComponent: () =>
+          import('./pages/persona-detalle/persona-detalle.page').then((m) => m.PersonaDetallePage),
+      },
+      {
+        path: 'personas/:id/editar',
+        loadComponent: () => import('./pages/persona-form/persona-form.page').then((m) => m.PersonaFormPage),
+      },
+      {
+        path: 'personas/:id/historial',
+        loadComponent: () => import('./pages/historial/historial.page').then((m) => m.HistorialPage),
+      },
+      {
+        path: 'personas/:id/historial/nueva',
+        loadComponent: () =>
+          import('./pages/historial-nueva/historial-nueva.page').then((m) => m.HistorialNuevaPage),
+      },
+      {
+        path: 'personas/:id/vacunas',
+        loadComponent: () => import('./pages/vacunas/vacunas.page').then((m) => m.VacunasPage),
+      },
+      {
+        path: 'personas/:id/medicamentos',
+        loadComponent: () => import('./pages/medicamentos/medicamentos.page').then((m) => m.MedicamentosPage),
+      },
+      {
+        path: 'personas/:id/examenes',
+        loadComponent: () => import('./pages/examenes/examenes.page').then((m) => m.ExamenesPage),
+      },
+      {
+        path: 'personas/:id/documentos',
+        loadComponent: () => import('./pages/documentos/documentos.page').then((m) => m.DocumentosPage),
+      },
+      {
+        path: 'personas/:id/especialidades',
+        loadComponent: () =>
+          import('./pages/especialidades/especialidades.page').then((m) => m.EspecialidadesPage),
+      },
+      {
+        path: 'personas/:id/especialidades/:especialidadId',
+        loadComponent: () =>
+          import('./pages/especialidad-carpeta/especialidad-carpeta.page').then((m) => m.EspecialidadCarpetaPage),
+      },
+      {
+        path: 'personas/:id/ficha',
+        loadComponent: () =>
+          import('./pages/ficha-emergencia/ficha-emergencia.page').then((m) => m.FichaEmergenciaPage),
+      },
+      {
+        path: 'personas/:id/ficha-perdida',
+        loadComponent: () =>
+          import('./pages/ficha-perdida-config/ficha-perdida-config.page').then(
+            (m) => m.FichaPerdidaConfigPage
+          ),
+      },
+    ],
   },
   { path: '**', redirectTo: '' },
 ];

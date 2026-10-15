@@ -9,13 +9,12 @@ import { AuthService } from '../../core/auth.service';
 import { SelectorPersonaService } from '../../core/selector-persona.service';
 import { HomeService } from '../../services/home.service';
 import { PersonasService } from '../../services/personas.service';
-import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
 import { colorPersona, inicialPersona } from '../../shared/avatar';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink, IonIcon, IonContent, BottomNavComponent],
+  imports: [CommonModule, RouterLink, IonIcon, IonContent],
   templateUrl: './home.page.html',
   styleUrl: './home.page.scss',
 })

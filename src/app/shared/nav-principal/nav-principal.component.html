@@ -1,0 +1,25 @@
+<nav class="nav-principal" [class.nav-principal--visible-movil]="enRutaRaiz()" aria-label="Navegación principal">
+  <div class="nav-principal__marca">
+    <span class="nav-principal__marca-icono">
+      <ion-icon name="heart-outline"></ion-icon>
+    </span>
+    <span class="nav-principal__marca-texto">Serangelia</span>
+  </div>
+
+  <a routerLink="/" routerLinkActive="activo" [routerLinkActiveOptions]="{ exact: true }" class="nav-principal__item">
+    <ion-icon name="home-outline"></ion-icon>
+    <span>Inicio</span>
+  </a>
+  <a routerLink="/agenda" routerLinkActive="activo" class="nav-principal__item">
+    <ion-icon name="calendar-outline"></ion-icon>
+    <span>Agenda</span>
+  </a>
+  <a routerLink="/personas" routerLinkActive="activo" class="nav-principal__item">
+    <ion-icon name="people-outline"></ion-icon>
+    <span>Personas</span>
+  </a>
+  <a routerLink="/configuracion" routerLinkActive="activo" class="nav-principal__item">
+    <ion-icon name="settings-outline"></ion-icon>
+    <span>Ajustes</span>
+  </a>
+</nav>

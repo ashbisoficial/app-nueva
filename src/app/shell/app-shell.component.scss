@@ -1,0 +1,19 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.shell {
+  height: 100%;
+}
+
+.shell__contenido {
+  height: 100%;
+}
+
+@media (min-width: 900px) {
+  .shell__contenido {
+    margin-left: 232px;
+    width: calc(100% - 232px);
+  }
+}

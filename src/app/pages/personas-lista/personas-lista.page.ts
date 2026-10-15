@@ -7,13 +7,12 @@ import { IonContent, IonIcon } from '@ionic/angular';
 import { filter, switchMap } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { PersonasService } from '../../services/personas.service';
-import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
 import { colorPersona, inicialPersona } from '../../shared/avatar';
 
 @Component({
   selector: 'app-personas-lista',
   standalone: true,
-  imports: [CommonModule, RouterLink, IonContent, IonIcon, BottomNavComponent],
+  imports: [CommonModule, RouterLink, IonContent, IonIcon],
   templateUrl: './personas-lista.page.html',
   styleUrl: './personas-lista.page.scss',
 })

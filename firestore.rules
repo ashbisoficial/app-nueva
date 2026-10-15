@@ -36,16 +36,6 @@ service cloud.firestore {
       return esTitular(personaId) || puedeEscribirCompartido(personaId);
     }
 
-    // Para reglas de collectionGroup (ver más abajo): `path` es lo que capturó
-    // el wildcard recursivo {path=**} antes del nombre de la subcolección —
-    // en nuestro caso siempre "personas/{personaId}", así que $(path) apunta
-    // directo al documento de la Persona dueña de esta subcolección.
-    function tieneAccesoPorPersonaPath(path) {
-      let persona = get(/databases/$(database)/documents/$(path)).data;
-      return persona.uidTitular == request.auth.uid ||
-        request.auth.uid in persona.get('uidsConAcceso', []);
-    }
-
     match /usuarios/{uid} {
       allow read, write: if estaAutenticado() && request.auth.uid == uid;
     }
@@ -99,14 +89,22 @@ service cloud.firestore {
     // personas de la cuenta en una sola consulta (sección 4.5 del spec), y
     // Firestore exige un bloque aparte con el wildcard recursivo {path=**}
     // para que las reglas se apliquen a ese tipo de consulta.
+    //
+    // En vez de resolver la persona dueña con un get() (la interpolación del
+    // wildcard recursivo en un path de get()/exists() no funcionó de forma
+    // confiable, probado contra el emulador), se usa directamente
+    // `creadoPor`: ya es el mismo filtro que usan estas consultas en el
+    // cliente (HomeService/AgendaPage piden where('creadoPor','==',uid)), así
+    // que la regla queda provablemente correcta para la consulta real y sin
+    // necesitar una lectura extra.
     match /{path=**}/vacunas/{itemId} {
-      allow read: if estaAutenticado() && tieneAccesoPorPersonaPath(path);
+      allow read: if estaAutenticado() && resource.data.creadoPor == request.auth.uid;
     }
     match /{path=**}/medicamentosActivos/{itemId} {
-      allow read: if estaAutenticado() && tieneAccesoPorPersonaPath(path);
+      allow read: if estaAutenticado() && resource.data.creadoPor == request.auth.uid;
     }
     match /{path=**}/citas/{itemId} {
-      allow read: if estaAutenticado() && tieneAccesoPorPersonaPath(path);
+      allow read: if estaAutenticado() && resource.data.creadoPor == request.auth.uid;
     }
   }
 }

@@ -12,7 +12,6 @@ import { TIPOS_CITA } from '../../models';
 import { CitasService } from '../../services/citas.service';
 import { MedicamentosActivosService } from '../../services/medicamentos-activos.service';
 import { VacunasService } from '../../services/vacunas.service';
-import { BottomNavComponent } from '../../shared/bottom-nav/bottom-nav.component';
 
 interface EventoDia {
   tipo: 'cita' | 'vacuna' | 'medicamento-fin';
@@ -32,7 +31,7 @@ interface CeldaMes {
 @Component({
   selector: 'app-agenda',
   standalone: true,
-  imports: [CommonModule, RouterLink, IonIcon, IonContent, BottomNavComponent],
+  imports: [CommonModule, RouterLink, IonIcon, IonContent],
   templateUrl: './agenda.page.html',
   styleUrl: './agenda.page.scss',
 })

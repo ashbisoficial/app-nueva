@@ -50,4 +50,5 @@ Thumbs.db
 .firebase/
 firebase-debug.log
 firebase-debug.*.log
+firestore-debug.log
 *.local.json
