@@ -90,11 +90,16 @@ look fijo para todos:
   café-rosado oscuro, nunca negro puro). El resto de paletas predefinidas
   siguen una "colección floral" (todas nombradas como flores, para que
   elegir una se sienta cercano en vez de elegir "Tema 3"): **Rosa palo**
-  (predeterminada), **Lavanda**, **Hortensia**, **Azahar**, **Manzanilla** y
-  **Camelia**. Técnicamente esto se resuelve con tokens de color (variables
-  CSS) por tema, nunca colores hardcodeados en los componentes — ver el
-  borrador con los valores concretos en el artifact "Identidad visual
-  Serangelia" (pendiente de aprobación final).
+  (predeterminada), **Lilas**, **Pensamientos**, **Hibisco**, **Caléndula**,
+  **Girasol**, **Lirios**, **Ave del paraíso**, **Bailarinas**, **Copihue**,
+  **Rosas**, **Hortensia** y **Dalia** — 13 en total, cada una con su color
+  primario/secundario tomado del color real de la flor (ej. Copihue en rojo
+  profundo con verde oscuro, por ser la flor nacional de Chile). Implementado:
+  tokens de color (variables CSS, `src/theme/variables.css`) por tema vía
+  `[data-tema="<id>"]` en `<html>`, nunca colores hardcodeados en los
+  componentes; metadata en `core/temas.ts`; aplicación/persistencia
+  (localStorage + `usuarios/{uid}`) en `core/theme.service.ts`; selector de
+  paleta en Configuración.
 - **Tipografía.** Fuente cálida y "familiar", no corporativa fría. Entre las
   opciones evaluadas, **Atkinson Hyperlegible** (diseñada por el Braille
   Institute específicamente para legibilidad en baja visión) es la
