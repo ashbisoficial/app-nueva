@@ -1,0 +1,61 @@
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--ion-background-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bloqueo-pantalla {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  width: 100%;
+  max-width: 360px;
+}
+
+.bloqueo-marca {
+  text-align: center;
+
+  h1 {
+    margin: 10px 0 4px;
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 0;
+    color: var(--ion-color-medium);
+    font-size: 0.9rem;
+  }
+}
+
+.bloqueo-icono {
+  font-size: 40px;
+}
+
+.bloqueo-error {
+  margin: 0;
+  color: var(--ion-color-danger, #c0392b);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.bloqueo-intentos {
+  margin: 0;
+  color: var(--ion-color-medium);
+  font-size: 0.82rem;
+}
+
+.bloqueo-olvide {
+  border: none;
+  background: transparent;
+  color: var(--ion-color-medium);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 10px;
+}

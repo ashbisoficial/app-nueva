@@ -175,6 +175,7 @@
   text-decoration: none;
   font-size: 0.92rem;
   font-weight: 600;
+  cursor: pointer;
 
   ion-icon {
     color: var(--ion-color-primary);
@@ -184,6 +185,36 @@
   & + & {
     border-top: 1px solid var(--ion-border-color);
   }
+
+  &--peligro {
+    color: var(--ion-color-danger, #c0392b);
+
+    ion-icon {
+      color: var(--ion-color-danger, #c0392b);
+    }
+  }
+}
+
+.pin-modal-contenido {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding-top: 32px;
+  text-align: center;
+}
+
+.pin-modal-titulo {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.pin-modal-error {
+  margin: 0;
+  color: var(--ion-color-danger, #c0392b);
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .config-switch-fila {

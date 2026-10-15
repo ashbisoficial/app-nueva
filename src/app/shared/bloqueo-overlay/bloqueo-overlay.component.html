@@ -1,0 +1,17 @@
+<div class="bloqueo-pantalla">
+  <div class="bloqueo-marca">
+    <div class="bloqueo-icono">🔒</div>
+    <h1>Ingresa tu PIN</h1>
+    <p>Para continuar en Serangelia en este dispositivo</p>
+  </div>
+
+  <app-pin-pad [largo]="6" [error]="error()" (pinCompleto)="onPinCompleto($event)"></app-pin-pad>
+
+  @if (error()) {
+    <p class="bloqueo-error">PIN incorrecto. Inténtalo de nuevo.</p>
+  } @else if (intentosFallidos > 0) {
+    <p class="bloqueo-intentos">Intento {{ intentosFallidos }} de 5.</p>
+  }
+
+  <button type="button" class="bloqueo-olvide" (click)="olvide()">¿Olvidaste tu PIN? Cierra sesión</button>
+</div>

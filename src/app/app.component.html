@@ -1,3 +1,6 @@
 <ion-app>
   <ion-router-outlet></ion-router-outlet>
+  @if (mostrarBloqueo()) {
+    <app-bloqueo-overlay></app-bloqueo-overlay>
+  }
 </ion-app>

@@ -1,0 +1,75 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+.pin-puntos {
+  display: flex;
+  gap: 14px;
+
+  &--error {
+    animation: pin-shake 0.4s;
+  }
+}
+
+.pin-punto {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--ion-color-primary);
+  background: transparent;
+  transition: background 0.15s ease;
+
+  &--lleno {
+    background: var(--ion-color-primary);
+  }
+}
+
+.pin-teclado {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.pin-tecla {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: none;
+  background: var(--ion-color-step-50);
+  color: var(--ion-text-color);
+  font-size: 1.4rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:active {
+    background: var(--ion-color-step-100);
+  }
+
+  &--vacia {
+    background: transparent;
+  }
+
+  &--borrar {
+    background: transparent;
+    font-size: 1.3rem;
+    color: var(--ion-color-medium);
+  }
+}
+
+@keyframes pin-shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20%, 60% {
+    transform: translateX(-8px);
+  }
+  40%, 80% {
+    transform: translateX(8px);
+  }
+}

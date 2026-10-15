@@ -594,6 +594,42 @@ cédula con un tercero, con qué base legal, por cuánto tiempo se guarda el
 resultado (lo ideal es NO guardar la selfie/cédula, solo el resultado
 booleano "verificado sí/no" + fecha) y quién puede verlo.
 
+### PIN de reingreso rápido (implementado)
+
+Pedido explícito del usuario: la verificación cédula+selfie de arriba pasa
+**una sola vez**, al crear la cuenta — nunca se repite en cada apertura de
+la app, porque sería una obstrucción. Para la seguridad del día a día
+(ej. que alguien tome el teléfono ya desbloqueado) se usa en cambio un PIN
+de 6 dígitos estilo apps bancarias, configurable desde Configuración →
+Seguridad:
+
+- **Puramente local, nunca en el servidor**: el PIN se guarda como hash
+  SHA-256 en `localStorage` del dispositivo (`core/bloqueo.service.ts`), no
+  en Firestore — no necesita viajar entre dispositivos (cada dispositivo
+  tiene el suyo) y guardarlo del lado del servidor no aportaría nada a su
+  propósito, que es puramente de conveniencia/seguridad local.
+- **Cuándo se pide**: al abrir la app por primera vez en una sesión (carga
+  fría) si ya hay un PIN configurado, y al volver de segundo plano después
+  de ~10 segundos oculto (`document.visibilitychange`) — no se usa un
+  plugin nativo de Capacitor para detectar foreground/background, la API
+  web estándar alcanza tanto en navegador como dentro del WebView de
+  Capacitor.
+- **Pantalla de bloqueo** (`shared/bloqueo-overlay/`): se monta en
+  `app.component.html` por encima de `<ion-router-outlet>`, cubriendo toda
+  la app mientras `BloqueoService.desbloqueado()` sea `false`. Después de 5
+  intentos fallidos, cierra la sesión automáticamente (no deja intentar
+  PINs indefinidamente).
+- **"Olvidé mi PIN"**: como el PIN es solo una conveniencia local, nunca un
+  reemplazo del login real, olvidarlo no es grave — el botón simplemente
+  cierra la sesión para volver a entrar con el método real (email/
+  contraseña o Google).
+- **Teclado numérico reutilizable** (`shared/pin-pad/`): mismo componente
+  para la pantalla de bloqueo y para crear/cambiar/quitar el PIN desde
+  Configuración (que pide el PIN actual antes de cambiarlo o quitarlo).
+- Distinto del desbloqueo biométrico (Face ID/huella) mencionado arriba,
+  que sigue sin implementar (ver lista de tareas) — son dos mecanismos de
+  conveniencia local complementarios, no mutuamente excluyentes.
+
 ## 6.2 Personas dependientes (menores de edad / adultos mayores a cargo)
 
 Aplica el límite explícito de la sección 1: una cuenta tiene una Persona
@@ -719,7 +755,8 @@ Protección de Datos Personales) que entra en vigencia en diciembre de 2026.
 - Ficha de emergencia / QR (configurar qué se muestra + generar PDF + ver
   cómo la ve un extraño)
 - Configuración de cuenta: cuenta, color/tamaño de letra, notificaciones
-  (4.5), calendario (4.3), legal (7.1). "Cerrar sesión" es deliberadamente
+  (4.5), seguridad (PIN de reingreso rápido, sección 6.1), calendario (4.3),
+  legal (7.1). "Cerrar sesión" es deliberadamente
   poco vistoso — un link de texto simple al final de todo, no un botón
   destacado — con una confirmación antes de ejecutar (pedido explícito del
   usuario: que no sea lo primero que salta a la vista en Ajustes).

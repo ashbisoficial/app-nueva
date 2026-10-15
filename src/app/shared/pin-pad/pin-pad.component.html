@@ -1,0 +1,19 @@
+<div class="pin-puntos" [class.pin-puntos--error]="error">
+  @for (i of [].constructor(largo); track $index) {
+    <span class="pin-punto" [class.pin-punto--lleno]="$index < digitos().length"></span>
+  }
+</div>
+
+<div class="pin-teclado">
+  @for (tecla of teclas; track $index) {
+    @if (tecla === 'borrar') {
+      <button type="button" class="pin-tecla pin-tecla--borrar" (click)="tocar(tecla)" aria-label="Borrar">
+        <ion-icon name="backspace-outline"></ion-icon>
+      </button>
+    } @else if (tecla === '') {
+      <span class="pin-tecla pin-tecla--vacia"></span>
+    } @else {
+      <button type="button" class="pin-tecla" (click)="tocar(tecla)">{{ tecla }}</button>
+    }
+  }
+</div>

@@ -80,6 +80,30 @@
     </section>
 
     <section class="config-tarjeta">
+      <p class="config-tarjeta__titulo">Seguridad</p>
+      <p class="config-texto-ayuda">
+        Un PIN de 6 dígitos para volver a entrar rápido en este dispositivo
+        sin escribir tu contraseña cada vez — útil si se te pierde o te
+        roban el teléfono. Nunca reemplaza tu inicio de sesión real.
+      </p>
+      @if (bloqueoSvc.pinConfigurado()) {
+        <a class="config-enlace-legal" (click)="abrirCambiarPin()">
+          <ion-icon name="key-outline"></ion-icon>
+          Cambiar PIN
+        </a>
+        <a class="config-enlace-legal config-enlace-legal--peligro" (click)="quitarPin()">
+          <ion-icon name="trash-outline"></ion-icon>
+          Quitar PIN
+        </a>
+      } @else {
+        <a class="config-enlace-legal" (click)="abrirCrearPin()">
+          <ion-icon name="key-outline"></ion-icon>
+          Crear PIN de acceso rápido
+        </a>
+      }
+    </section>
+
+    <section class="config-tarjeta">
       <p class="config-tarjeta__titulo">Calendario</p>
       <p class="config-texto-ayuda">
         Desde el detalle de cada cita puedes agregarla a Google Calendar, Apple
@@ -107,3 +131,24 @@
     </button>
   </div>
 </ion-content>
+
+<ion-modal [isOpen]="modalPinAbierto()" (didDismiss)="modalPinAbierto.set(false)">
+  <ng-template>
+    <ion-content class="ion-padding pin-modal-contenido">
+      <h2 class="pin-modal-titulo">
+        @switch (pasoPin()) {
+          @case ('verificar-actual') { Ingresa tu PIN actual }
+          @case ('crear') { Crea un PIN de 6 dígitos }
+          @case ('confirmar') { Vuelve a escribirlo }
+        }
+      </h2>
+      <app-pin-pad [largo]="6" [error]="errorPin()" (pinCompleto)="onPinIngresado($event)"></app-pin-pad>
+      @if (errorPin()) {
+        <p class="pin-modal-error">
+          @if (pasoPin() === 'verificar-actual') { PIN incorrecto. } @else { Los PIN no coinciden, probemos de nuevo. }
+        </p>
+      }
+      <ion-button fill="clear" (click)="modalPinAbierto.set(false)">Cancelar</ion-button>
+    </ion-content>
+  </ng-template>
+</ion-modal>
