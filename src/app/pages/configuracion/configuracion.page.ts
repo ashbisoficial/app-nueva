@@ -3,6 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AlertController, IonButton, IonContent, IonIcon, IonModal, IonToggle } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
+import { BiometriaService } from '../../core/biometria.service';
 import { BloqueoService } from '../../core/bloqueo.service';
 import { NotificacionesService } from '../../core/notificaciones.service';
 import { ThemeService, type ModoColor, type TamanoFuente } from '../../core/theme.service';
@@ -33,6 +34,7 @@ export class ConfiguracionPage {
   themeSvc = inject(ThemeService);
   notificacionesSvc = inject(NotificacionesService);
   bloqueoSvc = inject(BloqueoService);
+  biometriaSvc = inject(BiometriaService);
   private router = inject(Router);
   private alertCtrl = inject(AlertController);
 
@@ -69,6 +71,14 @@ export class ConfiguracionPage {
     await this.notificacionesSvc.elegirLocalesActivas(activas, this.auth.uidActual);
   }
 
+  async elegirBiometria(activar: boolean): Promise<void> {
+    if (activar) {
+      await this.biometriaSvc.activarConConfirmacion();
+    } else {
+      this.biometriaSvc.desactivar();
+    }
+  }
+
   abrirCrearPin(): void {
     this.pinNuevoTemporal = '';
     this.errorPin.set(false);
@@ -89,7 +99,14 @@ export class ConfiguracionPage {
       message: 'Vas a tener que iniciar sesión completa cada vez que abras la app en este dispositivo. ¿Continuar?',
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
-        { text: 'Quitar PIN', role: 'destructive', handler: () => this.bloqueoSvc.quitarPin() },
+        {
+          text: 'Quitar PIN',
+          role: 'destructive',
+          handler: () => {
+            this.bloqueoSvc.quitarPin();
+            this.biometriaSvc.desactivar();
+          },
+        },
       ],
     });
     await alert.present();

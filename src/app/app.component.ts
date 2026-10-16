@@ -1,6 +1,7 @@
 import { Component, computed, effect, inject } from '@angular/core';
 import { IonApp, IonRouterOutlet } from '@ionic/angular';
 import { AuthService } from './core/auth.service';
+import { BiometriaService } from './core/biometria.service';
 import { BloqueoService } from './core/bloqueo.service';
 import { NotificacionesService } from './core/notificaciones.service';
 import { ThemeService } from './core/theme.service';
@@ -17,6 +18,7 @@ export class AppComponent {
   private themeSvc = inject(ThemeService);
   private notificacionesSvc = inject(NotificacionesService);
   private bloqueoSvc = inject(BloqueoService);
+  private biometriaSvc = inject(BiometriaService);
 
   readonly mostrarBloqueo = computed(
     () => !!this.auth.usuario() && this.bloqueoSvc.pinConfigurado() && !this.bloqueoSvc.desbloqueado()
@@ -26,6 +28,7 @@ export class AppComponent {
     // Aplica lo guardado en este dispositivo de una, sin esperar la red.
     this.themeSvc.inicializarLocal();
     this.notificacionesSvc.inicializarLocal();
+    void this.biometriaSvc.inicializar();
 
     // Una vez logueado, lo guardado en la cuenta manda (sigue a la persona entre dispositivos).
     effect(() => {

@@ -607,8 +607,8 @@ ese RUT.
   no bloquear el desarrollo del resto de la app.
 - "Dato biométrico local" (Face ID/huella del teléfono) sigue existiendo pero
   es algo distinto: solo desbloquea la app ya logueada en ESE teléfono, no
-  verifica identidad contra el Registro Civil (sección 2.2, tarea de
-  Configuración).
+  verifica identidad contra el Registro Civil — ver subsección "Desbloqueo
+  biométrico" más abajo.
 
 **Límite importante de esta verificación:** solo sirve para alguien que puede
 participar activamente (sacarse una foto, mostrar su cédula) — por eso no
@@ -652,9 +652,50 @@ Seguridad:
 - **Teclado numérico reutilizable** (`shared/pin-pad/`): mismo componente
   para la pantalla de bloqueo y para crear/cambiar/quitar el PIN desde
   Configuración (que pide el PIN actual antes de cambiarlo o quitarlo).
-- Distinto del desbloqueo biométrico (Face ID/huella) mencionado arriba,
-  que sigue sin implementar (ver lista de tareas) — son dos mecanismos de
-  conveniencia local complementarios, no mutuamente excluyentes.
+- Distinto del desbloqueo biométrico (Face ID/huella), ver subsección
+  siguiente — son dos mecanismos de conveniencia local complementarios, no
+  mutuamente excluyentes.
+
+### Desbloqueo biométrico (implementado)
+
+Face ID / huella / reconocimiento facial u ojo en Android, vía
+`@aparajita/capacitor-biometric-auth` (+ `@capacitor/app`, que necesita como
+peer dependency para detectar cuándo la app vuelve a primer plano).
+**Nunca reemplaza el PIN de arriba, es un atajo sobre él**: solo se puede
+activar si ya hay un PIN configurado, y si la biometría falla, se cancela, o
+el dispositivo no la soporta (ej. navegador de escritorio — ahí
+`checkBiometry()` siempre reporta `isAvailable: false`), el teclado de PIN
+sigue siempre disponible como respaldo en la misma pantalla.
+
+- **`core/biometria.service.ts`**: expone `disponible`/`tipo` (resultado de
+  `checkBiometry()` — qué soporta y tiene enrolado ESTE dispositivo) y
+  `activa` (preferencia del usuario). Igual que el PIN, `activa` se guarda
+  solo en `localStorage` (`serangelia.biometriaActiva`), nunca en
+  Firestore — es un dato puramente local del hardware/SO.
+- **Se re-chequea al volver a primer plano**, no solo al abrir la app
+  (`BiometricAuth.addResumeListener`, que interiormente usa
+  `@capacitor/app` → `appStateChange`): si el usuario enrola o borra una
+  huella mientras la app está en segundo plano, Configuración lo refleja
+  sin tener que reabrir la app.
+- **Activar pide confirmar con el sensor primero**
+  (`activarConConfirmacion()`): nunca se guarda la preferencia como activa
+  si la autenticación de prueba falla, para no dejar un atajo roto.
+- **Configuración → Seguridad**: el switch "Desbloquear con Face ID/huella/
+  etc." (etiqueta dinámica según `BiometryType`) solo aparece si ya hay PIN
+  Y el dispositivo soporta biometría — mismo patrón visual que el resto de
+  switches de Configuración.
+- **`shared/bloqueo-overlay/`**: si la biometría está activa y disponible,
+  se intenta automáticamente al mostrarse la pantalla de bloqueo
+  (`ngOnInit`), con un botón para reintentar a mano si se cancela — el
+  teclado de PIN de abajo sigue siempre visible y funcional como respaldo,
+  nunca se oculta.
+- Quitar el PIN (desde Configuración o desde "¿Olvidaste tu PIN?") también
+  apaga la preferencia de biometría, para no dejar un atajo activo sin el
+  PIN que lo respalda.
+- **Pendiente para cuando se agregue la plataforma iOS**: el `Info.plist`
+  necesita la clave `NSFaceIDUsageDescription` (requisito de Apple para usar
+  Face ID) — no existe todavía porque `npx cap add ios` no se ha corrido en
+  este proyecto (sección 2, sigue siendo solo PWA/web).
 
 ## 6.2 Personas dependientes (menores de edad / adultos mayores a cargo)
 

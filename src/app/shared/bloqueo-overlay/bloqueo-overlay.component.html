@@ -5,6 +5,19 @@
     <p>Para continuar en Serangelia en este dispositivo</p>
   </div>
 
+  @if (biometriaSvc.activa() && biometriaSvc.disponible()) {
+    <button
+      type="button"
+      class="bloqueo-biometria"
+      [disabled]="intentandoBiometria()"
+      (click)="intentarBiometria()"
+    >
+      <ion-icon name="finger-print-outline"></ion-icon>
+      Desbloquear con {{ biometriaSvc.etiqueta }}
+    </button>
+    <p class="bloqueo-o">o ingresa tu PIN</p>
+  }
+
   <app-pin-pad [largo]="6" [error]="error()" (pinCompleto)="onPinCompleto($event)"></app-pin-pad>
 
   @if (error()) {

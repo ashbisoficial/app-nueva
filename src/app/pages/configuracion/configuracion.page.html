@@ -118,6 +118,21 @@
           Crear PIN de acceso rápido
         </a>
       }
+
+      @if (bloqueoSvc.pinConfigurado() && biometriaSvc.disponible()) {
+        <div class="config-switch-fila">
+          <div class="config-switch-texto">
+            <p class="config-switch-titulo">Desbloquear con {{ biometriaSvc.etiqueta }}</p>
+            <p class="config-switch-ayuda">
+              Un atajo sobre el PIN en este dispositivo — el PIN sigue funcionando siempre como respaldo.
+            </p>
+          </div>
+          <ion-toggle
+            [checked]="biometriaSvc.activa()"
+            (ionChange)="elegirBiometria($event.detail.checked)"
+          ></ion-toggle>
+        </div>
+      }
     </section>
 
     <section class="config-tarjeta">

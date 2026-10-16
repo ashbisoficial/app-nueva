@@ -62,6 +62,12 @@ export class BloqueoService {
     this.intentosFallidos.set(0);
   }
 
+  /** Desbloqueo vía core/biometria.service.ts — misma garantía que un PIN correcto, sin consumir intentos. */
+  desbloquearPorBiometria(): void {
+    this.desbloqueado.set(true);
+    this.intentosFallidos.set(0);
+  }
+
   /** true si coincide. Al 5to intento fallido, señaliza con una excepción especial para forzar cierre de sesión. */
   async verificarPin(pin: string): Promise<boolean> {
     const guardado = localStorage.getItem(CLAVE_HASH);
