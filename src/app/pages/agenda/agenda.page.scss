@@ -77,6 +77,8 @@
   justify-content: center;
   gap: 2px;
   cursor: pointer;
+  color: var(--ion-text-color);
+  font-family: inherit;
 
   &.vacia {
     cursor: default;
