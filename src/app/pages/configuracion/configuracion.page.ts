@@ -5,7 +5,7 @@ import { AlertController, IonButton, IonContent, IonIcon, IonModal, IonToggle } 
 import { AuthService } from '../../core/auth.service';
 import { BloqueoService } from '../../core/bloqueo.service';
 import { NotificacionesService } from '../../core/notificaciones.service';
-import { ThemeService, type TamanoFuente } from '../../core/theme.service';
+import { ThemeService, type ModoColor, type TamanoFuente } from '../../core/theme.service';
 import { FlorIconoComponent } from '../../shared/flor-icono/flor-icono.component';
 import { PinPadComponent } from '../../shared/pin-pad/pin-pad.component';
 
@@ -47,12 +47,22 @@ export class ConfiguracionPage {
     { valor: 'grande', etiqueta: 'A' },
   ];
 
+  readonly modos: { valor: ModoColor; etiqueta: string; icono: string }[] = [
+    { valor: 'claro', etiqueta: 'Claro', icono: 'sunny-outline' },
+    { valor: 'oscuro', etiqueta: 'Oscuro', icono: 'moon-outline' },
+    { valor: 'sistema', etiqueta: 'Sistema', icono: 'phone-portrait-outline' },
+  ];
+
   async elegirTema(id: string): Promise<void> {
     await this.themeSvc.elegirTema(id, this.auth.uidActual);
   }
 
   async elegirTamano(tamano: TamanoFuente): Promise<void> {
     await this.themeSvc.elegirTamano(tamano, this.auth.uidActual);
+  }
+
+  async elegirModo(modo: ModoColor): Promise<void> {
+    await this.themeSvc.elegirModo(modo, this.auth.uidActual);
   }
 
   async elegirNotificacionesLocales(activas: boolean): Promise<void> {

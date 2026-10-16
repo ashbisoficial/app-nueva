@@ -159,6 +159,41 @@
   }
 }
 
+.modos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.modo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: var(--ion-color-step-50);
+  border: 2px solid transparent;
+  border-radius: var(--radio-campo);
+  padding: 12px 8px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--ion-text-color);
+
+  ion-icon {
+    font-size: 22px;
+  }
+
+  &.seleccionado {
+    border-color: var(--ion-color-primary);
+    background: var(--ion-color-primary-tint);
+    color: var(--ion-color-primary-contrast);
+  }
+}
+
 .ejemplo-tamano {
   margin: 0;
   text-align: center;

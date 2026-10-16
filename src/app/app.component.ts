@@ -32,7 +32,7 @@ export class AppComponent {
       const usuario = this.auth.usuario();
       if (!usuario) return;
       void this.auth.obtenerUsuario(usuario.uid).then((datos) => {
-        this.themeSvc.sincronizarConUsuario(datos?.temaColor, datos?.tamanoFuente);
+        this.themeSvc.sincronizarConUsuario(datos?.temaColor, datos?.tamanoFuente, datos?.modoColor);
         this.notificacionesSvc.sincronizarConUsuario(datos?.notificacionesLocales);
       });
     });

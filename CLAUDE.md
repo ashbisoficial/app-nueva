@@ -120,6 +120,21 @@ look fijo para todos:
 - **Tamaño de letra / tamaño de interfaz.** Ajustable desde Configuración
   (ej. tres pasos: chico/normal/grande) y aplicado a toda la app vía un
   token de escala, no pantalla por pantalla.
+- **Modo oscuro.** Preferencia de tres opciones — **Claro**, **Oscuro**,
+  **Sistema** (sigue `prefers-color-scheme` del dispositivo en vivo, sin
+  recargar) — elegible desde Configuración junto al resto de personalización,
+  con la misma persistencia que tema/tamaño (localStorage para aplicarlo al
+  instante + `usuarios/{uid}.modoColor` para que siga a la cuenta entre
+  dispositivos). Implementado como una segunda capa de tokens CSS por tema
+  (`:root[data-tema="X"][data-modo="oscuro"]` en `src/theme/variables.css`,
+  además del bloque claro `:root[data-tema="X"]` ya existente — la combinación
+  de ambos atributos en `<html>`, manejada por `core/theme.service.ts`, decide
+  qué bloque gana sin depender del orden del archivo), nunca una inversión
+  automática de colores: cada una de las 13 paletas tiene su propio set
+  oscuro derivado a mano conservando su identidad de matiz (ej. Copihue sigue
+  viéndose rojo/verde en oscuro, Girasol sigue amarillo), con fondo casi
+  negro (nunca negro puro) y texto casi blanco (nunca blanco puro) — mismo
+  principio que ya regía el modo claro de no usar negro/blanco puros.
 
 ## 3. Modelo de datos (Firestore)
 

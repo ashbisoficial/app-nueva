@@ -40,6 +40,23 @@
     </section>
 
     <section class="config-tarjeta">
+      <p class="config-tarjeta__titulo">Modo de color</p>
+      <div class="modos">
+        @for (opcion of modos; track opcion.valor) {
+          <button
+            type="button"
+            class="modo"
+            [class.seleccionado]="themeSvc.modoActual() === opcion.valor"
+            (click)="elegirModo(opcion.valor)"
+          >
+            <ion-icon [name]="opcion.icono"></ion-icon>
+            {{ opcion.etiqueta }}
+          </button>
+        }
+      </div>
+    </section>
+
+    <section class="config-tarjeta">
       <p class="config-tarjeta__titulo">Tamaño de letra</p>
       <div class="tamanos">
         @for (opcion of tamanos; track opcion.valor) {
