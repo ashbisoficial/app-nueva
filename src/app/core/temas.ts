@@ -45,15 +45,15 @@ export const TEMAS: Tema[] = [
   { id: 'lilas', nombre: 'Lilas', primario: '#A87FBD', secundario: '#8A9B6E', fondo: '#F7EFFA', forma: 'racimo-pequeno', imagenUrl: 'assets/flores/lilas.png' },
   { id: 'pensamientos', nombre: 'Pensamientos', primario: '#5E3597', secundario: '#C9A86E', fondo: '#F4EFFA', forma: 'pensamiento' },
   { id: 'hibisco', nombre: 'Hibisco', primario: '#D62F29', secundario: '#D9A441', fondo: '#FAF0EF', forma: 'hibisco', imagenUrl: 'assets/flores/hibisco.png' },
-  { id: 'calendula', nombre: 'Caléndula', primario: '#DB8F24', secundario: '#8B5E34', fondo: '#FCF6EE', forma: 'calendula' },
+  { id: 'calendula', nombre: 'Caléndula', primario: '#DB8F24', secundario: '#8B5E34', fondo: '#FCF6EE', forma: 'calendula', imagenUrl: 'assets/flores/calendula.png' },
   { id: 'girasol', nombre: 'Girasol', primario: '#D8B731', secundario: '#6B4423', fondo: '#FCF9EE', forma: 'girasol', imagenUrl: 'assets/flores/girasol.png' },
-  { id: 'lirios', nombre: 'Lirios', primario: '#C79775', secundario: '#7FA89A', fondo: '#FCF4EE', forma: 'lirio' },
+  { id: 'lirios', nombre: 'Lirios', primario: '#C79775', secundario: '#7FA89A', fondo: '#FCF4EE', forma: 'lirio', imagenUrl: 'assets/flores/lirios.png' },
   { id: 'ave-del-paraiso', nombre: 'Ave del paraíso', primario: '#D66329', secundario: '#4A4E8C', fondo: '#FCF2EE', forma: 'ave-del-paraiso' },
   { id: 'bailarinas', nombre: 'Bailarinas', primario: '#CE55A5', secundario: '#6FA36B', fondo: '#FAEFF7', forma: 'bailarina' },
   { id: 'copihue', nombre: 'Copihue', primario: '#7C1D25', secundario: '#4A6B4F', fondo: '#FAEFF0', forma: 'copihue', imagenUrl: 'assets/flores/copihue.png' },
-  { id: 'rosas', nombre: 'Rosas', primario: '#B53051', secundario: '#5B7A4F', fondo: '#FAEFF2', forma: 'rosa' },
-  { id: 'hortensia', nombre: 'Hortensia', primario: '#4B5CA0', secundario: '#C98A94', fondo: '#EFF2FA', forma: 'racimo-grande' },
-  { id: 'dalia', nombre: 'Dalia', primario: '#8C2C5C', secundario: '#D4A857', fondo: '#FAEFF5', forma: 'dalia' },
+  { id: 'rosas', nombre: 'Rosas', primario: '#B53051', secundario: '#5B7A4F', fondo: '#FAEFF2', forma: 'rosa', imagenUrl: 'assets/flores/rosas.png' },
+  { id: 'hortensia', nombre: 'Hortensia', primario: '#4B5CA0', secundario: '#C98A94', fondo: '#EFF2FA', forma: 'racimo-grande', imagenUrl: 'assets/flores/hortensia.png' },
+  { id: 'dalia', nombre: 'Dalia', primario: '#8C2C5C', secundario: '#D4A857', fondo: '#FAEFF5', forma: 'dalia', imagenUrl: 'assets/flores/dalia.png' },
 ];
 
 export const TEMA_PREDETERMINADO = 'rosa-palo';
