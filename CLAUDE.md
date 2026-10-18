@@ -383,6 +383,19 @@ especialidad), sin que eso sea obligatorio para usar el resto de la app.
   (resultado de examen, orden firmada escaneada).
 - Listado filtrable por persona, por categoría **y por especialidad**; vista
   de detalle con el archivo embebido + metadata.
+- **`core/storage.ts` → `subirArchivo()` reintenta ante `storage/unauthorized`**
+  (hasta 3 veces, con espera creciente): las reglas de Storage validan acceso
+  leyendo el documento de Firestore de la Persona dueña
+  (`storage.rules` → `personaDoc()`), y esa lectura cruzada Storage→Firestore
+  es de consistencia eventual (documentado por Firebase) — justo después de
+  crear una Persona nueva, subir su primera foto/documento puede chocar con
+  un 403 aunque el documento ya exista, porque la regla todavía no lo ve. Un
+  error de permisos genuino (no por esto) sigue fallando igual tras los
+  reintentos. En `persona-form`, si aun así falla (ej. en el emulador local,
+  donde esta lectura cruzada no funciona de forma confiable — limitación ya
+  conocida, no de producción), la Persona ya quedó guardada: se avisa aparte
+  (alerta, no bloqueante) en vez de mostrar "no se pudo guardar" y arriesgar
+  crear un duplicado si el usuario reintenta.
 
 ### 4.2 Exámenes
 
@@ -744,6 +757,16 @@ otra persona, o que el mismo dependiente se agregue dos veces (misma cuenta u
 otra). La creación de una Persona dependiente y el `create` en
 `rutsRegistrados` van en el mismo `writeBatch`, igual que `reclamarRut`.
 
+**Una cuenta tampoco puede tener dos Personas `yo_mismo` (implementado vía
+reglas, no solo la UI):** `PersonasService.crearTitular()` fija, en el mismo
+batch que crea la Persona, `usuarios/{uid}.personaYoMismoId`;
+`firestore.rules` bloquea un segundo `create` con `relacion == 'yo_mismo'`
+para esa cuenta leyendo ese campo, y además bloquea reescribirlo a otro id
+una vez fijado. Antes esto solo lo evitaba la UI (`tieneYoMismo()`, una
+consulta client-side) — una cuenta vieja que ya tenía su `yo_mismo` antes de
+este cambio queda protegida recién la primera vez que esto se evalúa (no hay
+backfill retroactivo, anotado como límite conocido, igual que el de abajo).
+
 **Límite conocido, no resuelto todavía:** si un dependiente (ej. un menor)
 crece y quiere tener su propia cuenta, hoy no hay un flujo para "liberar" su
 RUT del índice y traspasarlo — queda anotado como trabajo futuro, no bloquea
@@ -828,6 +851,29 @@ Protección de Datos Personales) que entra en vigencia en diciembre de 2026.
   destacado — con una confirmación antes de ejecutar (pedido explícito del
   usuario: que no sea lo primero que salta a la vista en Ajustes).
 - Política de Privacidad / Términos de Uso (sección 7.1, públicas sin login)
+
+**Validaciones de formulario** (pedido explícito del usuario: mensajes
+claros, no solo bloquear en silencio): `core/validadores.ts` centraliza los
+patrones reutilizados entre pantallas (nombre: solo letras/espacios/tilde/
+apóstrofo/guión; teléfono: dígitos/espacios/guión con "+" inicial
+opcional) — se usan tanto como atributo `pattern` nativo en el `ion-input`
+(feedback inmediato del teclado/navegador) como validados de nuevo en
+TypeScript antes de enviar (mensaje en español específico por campo, ej.
+"El nombre solo puede tener letras y espacios", no un genérico "dato
+inválido"). Implementado primero en `persona-form` (nombres/apellidos
+obligatorios con ese patrón, fecha de nacimiento obligatoria y no futura,
+sexo obligatorio, RUT del dependiente validado con dígito verificador antes
+de llamar al servidor, teléfonos opcionales pero con formato si se llenan,
+peso/estatura con rango razonable) — pendiente extender el mismo criterio al
+resto de formularios (cita, nueva entrada de historial, etc.) cuando se
+toquen. Nota técnica: el atributo HTML `pattern` se interpreta con el flag
+`v` (unicode sets) de `RegExp`, que es más estricto que el modo normal de
+JS — un rango manual de acentos (`À-ÖØ-öø-ÿ`) o un `-` suelto al final de
+una clase mezclado con un escape (`\s`, `\p{L}`) tira
+"Invalid character (in) class" ahí; `core/validadores.ts` ya resuelve esto
+(usa `\p{L}` en vez de rangos manuales, y escapa el guión como `\-`) — para
+agregar un patrón nuevo conviene probarlo con `new RegExp(patron, 'v')`
+antes de usarlo en un `pattern`.
 
 ## 9. Fuera de alcance explícito (para no inflar el MVP)
 

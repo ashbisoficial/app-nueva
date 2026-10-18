@@ -3,6 +3,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
+  AlertController,
   IonBackButton,
   IonButton,
   IonButtons,
@@ -21,8 +22,9 @@ import {
 } from '@ionic/angular';
 import { deleteField } from 'firebase/firestore';
 import { AuthService } from '../../core/auth.service';
-import { formatearRut } from '../../core/rut';
+import { formatearRut, validarRut } from '../../core/rut';
 import { subirArchivo } from '../../core/storage';
+import { PATRON_NOMBRE, PATRON_TELEFONO, nombreValido, telefonoValido } from '../../core/validadores';
 import type { Persona, RelacionPersona } from '../../models';
 import { PersonasService } from '../../services/personas.service';
 
@@ -52,6 +54,10 @@ import { PersonasService } from '../../services/personas.service';
   styleUrl: './persona-form.page.scss',
 })
 export class PersonaFormPage implements OnInit {
+  readonly patronNombre = PATRON_NOMBRE;
+  readonly patronTelefono = PATRON_TELEFONO;
+  readonly hoyISO = new Date().toISOString().slice(0, 10);
+
   personaId: string | null = null;
   guardando = signal(false);
   error = signal<string | null>(null);
@@ -98,7 +104,8 @@ export class PersonaFormPage implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private auth: AuthService,
-    private personasSvc: PersonasService
+    private personasSvc: PersonasService,
+    private alertCtrl: AlertController
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -167,6 +174,11 @@ export class PersonaFormPage implements OnInit {
       : 'Carnet + documento de tutela/poder';
   }
 
+  /** true solo cuando ya se escribió algo y ese algo no pasa el dígito verificador (no molesta mientras el campo está vacío). */
+  get rutDependienteInvalido(): boolean {
+    return this.rutDependiente.trim().length > 0 && !validarRut(this.rutDependiente);
+  }
+
   etiquetaRelacion(relacion: RelacionPersona | null): string {
     if (relacion === 'yo_mismo') return 'Yo mismo/a';
     if (relacion === 'menor_a_cargo') return 'Menor de edad a cargo';
@@ -192,8 +204,75 @@ export class PersonaFormPage implements OnInit {
       .filter((s) => s.length > 0);
   }
 
+  /** Validaciones que no dependen del servidor — se revisan antes de gastar una llamada de red. */
+  private validarCamposBasicos(): string | null {
+    if (!this.nombres.trim()) return 'El nombre es obligatorio.';
+    if (!nombreValido(this.nombres)) return 'El nombre solo puede tener letras y espacios.';
+    if (!this.apellidos.trim()) return 'El apellido es obligatorio.';
+    if (!nombreValido(this.apellidos)) return 'El apellido solo puede tener letras y espacios.';
+    if (!this.fechaNacimiento) return 'La fecha de nacimiento es obligatoria.';
+    if (this.fechaNacimiento > this.hoyISO) return 'La fecha de nacimiento no puede ser futura.';
+    if (!this.sexo) return 'Elige el sexo.';
+    if (this.telefonoEmergencia && !telefonoValido(this.telefonoEmergencia)) {
+      return 'El teléfono de emergencia no tiene un formato válido (solo números, espacios, guiones y un "+" inicial).';
+    }
+    if (this.telefonoMedicoTratante && !telefonoValido(this.telefonoMedicoTratante)) {
+      return 'El teléfono del médico no tiene un formato válido (solo números, espacios, guiones y un "+" inicial).';
+    }
+    return null;
+  }
+
+  /**
+   * Sube la foto y (para dependientes) el documento de respaldo. Se llama
+   * DESPUÉS de que la Persona ya quedó creada/actualizada: si esto falla acá,
+   * los datos principales ya están guardados — no se trata como un fallo
+   * total ("no se pudo guardar") ni se deja reintentar guardar() de nuevo,
+   * porque eso volvería a crear la Persona (duplicado). Se avisa aparte y se
+   * navega igual; la foto/el respaldo se pueden volver a subir desde Editar.
+   */
+  private async guardarArchivos(id: string): Promise<void> {
+    try {
+      if (this.relacion !== 'yo_mismo' && this.documentoRespaldo) {
+        const ruta = `personas/${id}/perfil/respaldo_${Date.now()}_${this.documentoRespaldo.name}`;
+        const url = await subirArchivo(ruta, this.documentoRespaldo);
+        await this.personasSvc.actualizar(id, { documentoRespaldoUrl: url } as Partial<Persona>);
+      }
+      await this.guardarFoto(id);
+    } catch {
+      const alert = await this.alertCtrl.create({
+        header: 'Persona guardada',
+        message:
+          'Se guardaron los datos, pero no se pudo subir la foto o el documento adjunto. Puedes volver a intentarlo desde "Editar persona".',
+        buttons: ['Entendido'],
+      });
+      await alert.present();
+      await alert.onDidDismiss();
+    }
+  }
+
   async guardar(): Promise<void> {
     this.error.set(null);
+
+    const errorValidacion = this.validarCamposBasicos();
+    if (errorValidacion) {
+      this.error.set(errorValidacion);
+      return;
+    }
+    if (!this.personaId && this.relacion !== 'yo_mismo') {
+      if (!this.rutDependiente.trim()) {
+        this.error.set('El RUT es obligatorio.');
+        return;
+      }
+      if (this.rutDependienteInvalido) {
+        this.error.set('Ese RUT no es válido. Revisa los números y el dígito verificador.');
+        return;
+      }
+      if (!this.documentoRespaldo) {
+        this.error.set(`Falta subir: ${this.etiquetaDocumento()}.`);
+        return;
+      }
+    }
+
     this.guardando.set(true);
     try {
       const datos = {
@@ -221,7 +300,7 @@ export class PersonaFormPage implements OnInit {
 
       if (this.personaId) {
         await this.personasSvc.actualizar(this.personaId, datos);
-        await this.guardarFoto(this.personaId);
+        await this.guardarArchivos(this.personaId);
         await this.router.navigateByUrl(`/personas/${this.personaId}`);
         return;
       }
@@ -237,24 +316,16 @@ export class PersonaFormPage implements OnInit {
           return;
         }
         id = await this.personasSvc.crearTitular(uid, datos, usuario.rut);
-        await this.guardarFoto(id);
       } else {
-        if (!this.documentoRespaldo) {
-          this.error.set(`Falta subir: ${this.etiquetaDocumento()}.`);
-          return;
-        }
         id = await this.personasSvc.crearDependiente(
           uid,
           this.relacion as 'menor_a_cargo' | 'adulto_mayor_a_cargo',
           datos,
           this.rutDependiente
         );
-        const ruta = `personas/${id}/perfil/respaldo_${Date.now()}_${this.documentoRespaldo.name}`;
-        const url = await subirArchivo(ruta, this.documentoRespaldo);
-        await this.personasSvc.actualizar(id, { documentoRespaldoUrl: url } as Partial<Persona>);
-        await this.guardarFoto(id);
       }
 
+      await this.guardarArchivos(id);
       await this.router.navigateByUrl(`/personas/${id}`);
     } catch (e) {
       const codigo = (e as Error).message;

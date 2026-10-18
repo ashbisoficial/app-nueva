@@ -37,7 +37,13 @@ service cloud.firestore {
     }
 
     match /usuarios/{uid} {
-      allow read, write: if estaAutenticado() && request.auth.uid == uid;
+      allow read, create, delete: if estaAutenticado() && request.auth.uid == uid;
+      // personaYoMismoId (sección 6.2): una vez fijado, no se puede reescribir a
+      // otro id — es el candado que usa `personas/{personaId}` para bloquear
+      // una segunda Persona "yo mismo/a" de la misma cuenta (ver esa regla).
+      allow update: if estaAutenticado() && request.auth.uid == uid &&
+        (!('personaYoMismoId' in resource.data) ||
+         request.resource.data.personaYoMismoId == resource.data.personaYoMismoId);
     }
 
     // Índice de unicidad de RUT (secciones 6.1 y 6.2): el id del doc ES el
@@ -67,7 +73,14 @@ service cloud.firestore {
       allow read: if estaAutenticado() &&
         (resource.data.uidTitular == request.auth.uid ||
          request.auth.uid in resource.data.get('uidsConAcceso', []));
-      allow create: if estaAutenticado() && request.resource.data.uidTitular == request.auth.uid;
+      // Sección 6.2: una cuenta nunca puede tener dos Personas "yo mismo/a" — se
+      // bloquea leyendo usuarios/{uid}.personaYoMismoId, que el mismo batch que
+      // crea esta Persona fija de forma atómica (ver PersonasService.crearTitular).
+      // Cuentas que ya tenían su "yo mismo/a" antes de esta regla (sin ese campo
+      // todavía) quedan protegidas recién la primera vez que esto se evalúa.
+      allow create: if estaAutenticado() && request.resource.data.uidTitular == request.auth.uid &&
+        (request.resource.data.relacion != 'yo_mismo' ||
+         !('personaYoMismoId' in get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data));
       // Quien solo tiene acceso compartido nunca puede tocar la titularidad, el PIN
       // ni la lista de accesos: eso se administra únicamente vía Cloud Functions.
       allow update: if esTitular(personaId) ||

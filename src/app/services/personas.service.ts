@@ -11,7 +11,6 @@ import {
   or,
   query,
   serverTimestamp,
-  setDoc,
   updateDoc,
   where,
   writeBatch,
@@ -70,10 +69,19 @@ export class PersonasService {
    * registro — no se vuelve a reclamar acá, solo se denormaliza en la
    * Persona para que el resto de la app (ficha de emergencia, etc.) lo lea
    * desde un solo lugar.
+   *
+   * Junto con la Persona, el mismo batch marca usuarios/{uid}.personaYoMismoId:
+   * la UI ya evita ofrecer "Yo mismo/a" si tieneYoMismo() es true (ver
+   * ngOnInit de persona-form), pero esto además lo hace imposible de burlar
+   * a nivel de reglas — ver el comentario en firestore.rules sobre la
+   * regla de creación de `personas/{personaId}`.
    */
   async crearTitular(uidTitular: string, datos: DatosPersonaNueva, rutTitular: string): Promise<string> {
     const ref = doc(collection(db, 'personas'));
-    await setDoc(ref, { ...datos, uidTitular, relacion: 'yo_mismo' as const, rut: rutTitular });
+    const batch = writeBatch(db);
+    batch.set(ref, { ...datos, uidTitular, relacion: 'yo_mismo' as const, rut: rutTitular });
+    batch.update(doc(db, 'usuarios', uidTitular), { personaYoMismoId: ref.id });
+    await batch.commit();
     return ref.id;
   }
 

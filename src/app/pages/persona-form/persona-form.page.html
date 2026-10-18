@@ -48,8 +48,11 @@
             <ion-item>
               <ion-input label="RUT" labelPlacement="floating" placeholder="12.345.678-9" [(ngModel)]="rutDependiente" name="rutDependiente" required></ion-input>
             </ion-item>
+            @if (rutDependienteInvalido) {
+              <p class="texto-error-campo">Ese RUT no es válido. Revisa los números y el dígito verificador.</p>
+            }
             <ion-item lines="none" class="persona-archivo-item">
-              <p class="persona-archivo-label">{{ etiquetaDocumento() }}</p>
+              <p class="persona-archivo-label">{{ etiquetaDocumento() }} (obligatorio)</p>
               <input type="file" accept="image/*,application/pdf" capture="environment" (change)="onArchivoSeleccionado($event)" />
             </ion-item>
           </ion-list>
@@ -76,13 +79,36 @@
 
       <ion-list lines="inset">
         <ion-item>
-          <ion-input label="Nombres" labelPlacement="floating" [(ngModel)]="nombres" name="nombres" required></ion-input>
+          <ion-input
+            label="Nombres"
+            labelPlacement="floating"
+            [(ngModel)]="nombres"
+            name="nombres"
+            [pattern]="patronNombre"
+            required
+          ></ion-input>
         </ion-item>
         <ion-item>
-          <ion-input label="Apellidos" labelPlacement="floating" [(ngModel)]="apellidos" name="apellidos"></ion-input>
+          <ion-input
+            label="Apellidos"
+            labelPlacement="floating"
+            [(ngModel)]="apellidos"
+            name="apellidos"
+            [pattern]="patronNombre"
+            required
+          ></ion-input>
         </ion-item>
+        <p class="texto-ayuda persona-ayuda">Solo letras y espacios, sin números ni símbolos.</p>
         <ion-item>
-          <ion-input label="Fecha de nacimiento" labelPlacement="floating" type="date" [(ngModel)]="fechaNacimiento" name="fechaNacimiento"></ion-input>
+          <ion-input
+            label="Fecha de nacimiento"
+            labelPlacement="floating"
+            type="date"
+            [max]="hoyISO"
+            [(ngModel)]="fechaNacimiento"
+            name="fechaNacimiento"
+            required
+          ></ion-input>
         </ion-item>
         <ion-item lines="none">
           <ion-select label="Sexo" labelPlacement="floating" [(ngModel)]="sexo" name="sexo">
@@ -130,10 +156,10 @@
           <ion-textarea label="Medicamentos permanentes (separados por coma)" labelPlacement="floating" [(ngModel)]="medicamentosTexto" name="medicamentos" autoGrow></ion-textarea>
         </ion-item>
         <ion-item>
-          <ion-input label="Peso (kg)" labelPlacement="floating" type="number" inputmode="decimal" [(ngModel)]="pesoKg" name="pesoKg"></ion-input>
+          <ion-input label="Peso (kg)" labelPlacement="floating" type="number" inputmode="decimal" min="0.5" max="300" [(ngModel)]="pesoKg" name="pesoKg"></ion-input>
         </ion-item>
         <ion-item>
-          <ion-input label="Estatura (cm)" labelPlacement="floating" type="number" inputmode="numeric" [(ngModel)]="estaturaCm" name="estaturaCm"></ion-input>
+          <ion-input label="Estatura (cm)" labelPlacement="floating" type="number" inputmode="numeric" min="20" max="250" [(ngModel)]="estaturaCm" name="estaturaCm"></ion-input>
         </ion-item>
         <ion-item>
           <ion-textarea label="Dispositivos médicos (marcapasos, prótesis, implantes...)" labelPlacement="floating" [(ngModel)]="dispositivosMedicosTexto" name="dispositivosMedicos" autoGrow></ion-textarea>
@@ -157,7 +183,15 @@
           <ion-input label="Médico tratante" labelPlacement="floating" [(ngModel)]="medicoTratante" name="medicoTratante"></ion-input>
         </ion-item>
         <ion-item lines="none">
-          <ion-input label="Teléfono del médico tratante" labelPlacement="floating" type="tel" [(ngModel)]="telefonoMedicoTratante" name="telefonoMedicoTratante"></ion-input>
+          <ion-input
+            label="Teléfono del médico tratante"
+            labelPlacement="floating"
+            type="tel"
+            placeholder="+56 9 1234 5678"
+            [pattern]="patronTelefono"
+            [(ngModel)]="telefonoMedicoTratante"
+            name="telefonoMedicoTratante"
+          ></ion-input>
         </ion-item>
       </ion-list>
     </section>
@@ -169,7 +203,15 @@
           <ion-input label="Nombre del contacto" labelPlacement="floating" [(ngModel)]="contactoEmergencia" name="contactoEmergencia"></ion-input>
         </ion-item>
         <ion-item lines="none">
-          <ion-input label="Teléfono" labelPlacement="floating" type="tel" [(ngModel)]="telefonoEmergencia" name="telefonoEmergencia"></ion-input>
+          <ion-input
+            label="Teléfono"
+            labelPlacement="floating"
+            type="tel"
+            placeholder="+56 9 1234 5678"
+            [pattern]="patronTelefono"
+            [(ngModel)]="telefonoEmergencia"
+            name="telefonoEmergencia"
+          ></ion-input>
         </ion-item>
       </ion-list>
     </section>

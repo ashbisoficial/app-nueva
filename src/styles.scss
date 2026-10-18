@@ -156,6 +156,13 @@ body {
   font-size: 0.85rem;
 }
 
+/* Mensaje de validación de un campo puntual (ej. RUT inválido), más chico que .texto-error y pegado al campo. */
+.texto-error-campo {
+  margin: -4px 0 6px 16px;
+  color: var(--ion-color-danger, #c0392b);
+  font-size: 0.78rem;
+}
+
 /*
  * Navegación principal responsiva (ver shared/nav-principal): en mobile es
  * una barra fija abajo (tipo Instagram), así que las 4 pantallas raíz
