@@ -176,8 +176,20 @@ interface Persona {
   // un solo lugar para subirla/guardarla.
   fotoUrl?: string;
 
-  direccion?: string;        // opcional, ej. para indicarle a una ambulancia dónde ir
-  comuna?: string;
+  nacionalidad?: string;
+
+  // Datos personales esenciales (pedido explícito: toda Persona que se crea
+  // o se une tiene identificación, contacto, vivienda y contacto de
+  // emergencia). persona-form los exige al guardar; quedan opcionales en el
+  // tipo porque las Personas creadas antes no los tienen — para esas,
+  // datosFaltantes() (shared/persona-datos.ts) avisa en Home, en el detalle
+  // y en "Datos personales" qué falta completar.
+  telefono?: string;         // obligatorio salvo para un menor a cargo (se le ubica por su contacto de emergencia)
+  email?: string;
+  direccion?: string;        // obligatorio: calle y número — para indicarle a una ambulancia dónde ir
+  direccionDetalle?: string; // depto., casa, block
+  comuna?: string;           // obligatorio
+  region?: string;           // obligatorio, una de REGIONES_CHILE
 
   relacion: RelacionPersona;
   // Para 'yo_mismo': copia de usuarios/{uid}.rut (no se puede editar distinto acá).
@@ -207,8 +219,9 @@ interface Persona {
   notasEmergencia?: string;          // texto libre, cualquier otra cosa relevante en una urgencia
 
   // Contacto de emergencia
-  contactoEmergencia?: string;
-  telefonoEmergencia?: string;
+  contactoEmergencia?: string;            // obligatorio
+  contactoEmergenciaParentesco?: string;  // obligatorio, una de PARENTESCOS (se muestra también en el QR de pérdida)
+  telefonoEmergencia?: string;            // obligatorio
 
   // QR del carnet de emergencia — datos médicos para mostrarle a un médico.
   // qrFichaCamposPublicos deliberadamente NO puede incluir direccion/comuna:
@@ -826,12 +839,27 @@ Protección de Datos Personales) que entra en vigencia en diciembre de 2026.
 ## 8. Pantallas principales
 
 - Login/registro
-- Home: accesos rápidos (agregar persona, subir documento, ver agenda, ver
-  medicamentos activos) + próximos eventos (vacunas/citas/medicamentos de los
-  próximos días, de todas las personas)
+- Completar registro (RUT) → lleva directo a crear la Persona "yo mismo/a"
+  con sus datos personales (`/personas/nueva?bienvenida=1`), así ninguna
+  cuenta nueva queda sin sus datos esenciales.
+- Home: aviso "Completa tus datos personales" si la cuenta todavía no tiene
+  su "yo mismo/a"; accesos rápidos (agregar persona, subir documento, ver
+  agenda, ver medicamentos activos) + próximos eventos (vacunas/citas/
+  medicamentos de los próximos días, de todas las personas); "Mis personas"
+  marca con "!" a quien le faltan datos esenciales. Sin "Cerrar sesión" ni
+  engranaje propio (Ajustes ya está en la navegación principal).
 - Listar personas (perfiles bajo la cuenta)
-- Detalle de persona: datos básicos, accesos a Historial clínico /
-  Calendario / Vacunas / Medicamentos / Documentos / Especialidades / Ficha QR
+- Detalle de persona: arriba solo lo urgente (edad, relación, grupo
+  sanguíneo/alergias/crónicas como chips, contacto de emergencia con un toque
+  para llamar, aviso de datos faltantes); abajo los módulos Historial
+  clínico / Vacunas / Medicamentos / Exámenes / Documentos / Especialidades /
+  Carnet / QR de pérdida. El engranaje lleva a "Datos personales".
+- Datos personales de una persona (`/personas/:id/datos`): todos sus datos
+  en secciones de solo lectura (identificación, contacto, vivienda, contacto
+  de emergencia, salud urgente, previsión) + "Editar datos personales"
+  (persona-form) + administración del perfil (compartir con PIN, eliminar),
+  esto último solo visible para el titular. Para "yo mismo/a" también se
+  llega desde Ajustes → Cuenta → "Mis datos personales".
 - Historial clínico: timeline de entradas, botón "Nueva entrada" con
   selector de tipo (consulta/receta/vacunación/examen/cirugía/indicaciones de
   alta/solicitud de examen) que cambia los campos del formulario
@@ -844,12 +872,16 @@ Protección de Datos Personales) que entra en vigencia en diciembre de 2026.
   médico/tratamiento con sus documentos, entradas, citas y exámenes)
 - Ficha de emergencia / QR (configurar qué se muestra + generar PDF + ver
   cómo la ve un extraño)
-- Configuración de cuenta: cuenta, color/tamaño de letra, notificaciones
+- Configuración de cuenta: cuenta (+ acceso a "Mis datos personales"), color/tamaño de letra, notificaciones
   (4.5), seguridad (PIN de reingreso rápido, sección 6.1), calendario (4.3),
   legal (7.1). "Cerrar sesión" es deliberadamente
   poco vistoso — un link de texto simple al final de todo, no un botón
   destacado — con una confirmación antes de ejecutar (pedido explícito del
-  usuario: que no sea lo primero que salta a la vista en Ajustes).
+  usuario: que no sea lo primero que salta a la vista en Ajustes). Es el
+  único lugar de la app con "Cerrar sesión" (pedido explícito), salvo dos
+  salidas de emergencia que no se pueden quitar: "Completar registro" (antes
+  de tener RUT no se llega a Ajustes) y "¿Olvidaste tu PIN?" en la pantalla
+  de bloqueo.
 - Política de Privacidad / Términos de Uso (sección 7.1, públicas sin login)
 
 **Validaciones de formulario** (pedido explícito del usuario: mensajes
@@ -860,13 +892,28 @@ opcional) — se usan tanto como atributo `pattern` nativo en el `ion-input`
 (feedback inmediato del teclado/navegador) como validados de nuevo en
 TypeScript antes de enviar (mensaje en español específico por campo, ej.
 "El nombre solo puede tener letras y espacios", no un genérico "dato
-inválido"). Implementado primero en `persona-form` (nombres/apellidos
-obligatorios con ese patrón, fecha de nacimiento obligatoria y no futura,
-sexo obligatorio, RUT del dependiente validado con dígito verificador antes
-de llamar al servidor, teléfonos opcionales pero con formato si se llenan,
-peso/estatura con rango razonable) — pendiente extender el mismo criterio al
-resto de formularios (cita, nueva entrada de historial, etc.) cuando se
-toquen. Nota técnica: el atributo HTML `pattern` se interpreta con el flag
+inválido").
+
+**Implementado en todos los formularios** (login, completar registro,
+canjear PIN, persona, cita, vacuna, medicamento, examen, documento,
+especialidad, nueva entrada de historial, QR de pérdida) con
+`ValidacionFormulario` (`core/validadores.ts`): cada campo declara su regla
+(`reglas.requerido`, `reglas.correo`, `reglas.telefono`, `reglas.nombre`,
+`reglas.noFutura`, `reglas.rango`, `reglas.largoMaximo`, `errorArchivo`
+para tipo/tamaño de archivo, encadenables con `primerError`) y los mensajes
+salen de `MENSAJES` ("Este campo es obligatorio.", "Ingresa un correo
+válido, por ejemplo nombre@correo.com.", etc.) para que digan lo mismo en
+toda la app. Patrón en la plantilla: `[class.campo-invalido]` en el
+`ion-item` (borde rojo), `(ionBlur)="v.campo('x')"` valida al salir del
+campo, `(ngModelChange)="v.revalidar('x')"` borra el error apenas se
+corrige (sin marcar errores mientras se escribe por primera vez), y el
+mensaje va debajo en `<p class="texto-error-campo">`. Al enviar,
+`v.todo()` marca todos los campos de una vez; el botón de guardar nunca se
+deshabilita por datos faltantes (si no, el usuario no sabría qué le falta).
+Los obligatorios llevan "*" en la etiqueta. Los errores de guardado nunca
+muestran el mensaje técnico de Firebase (viene en inglés): siempre un texto
+en español ("No se pudo guardar… Revisa tu conexión e intenta de nuevo.").
+Nota técnica: el atributo HTML `pattern` se interpreta con el flag
 `v` (unicode sets) de `RegExp`, que es más estricto que el modo normal de
 JS — un rango manual de acentos (`À-ÖØ-öø-ÿ`) o un `-` suelto al final de
 una clase mezclado con un escape (`\s`, `\p{L}`) tira

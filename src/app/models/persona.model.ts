@@ -16,10 +16,21 @@ export interface Persona {
   nombre?: string;
   fechaNacimiento: string;
   sexo: string;
+  nacionalidad?: string;
   fotoUrl?: string;
 
+  // Contacto propio de la Persona (no el de emergencia). Obligatorio salvo
+  // para un menor a cargo — ver datosFaltantes() en shared/persona-datos.ts.
+  telefono?: string;
+  email?: string;
+
+  // Vivienda. Obligatorios en Personas nuevas (dirección, comuna, región);
+  // opcionales en el tipo porque las creadas antes no los tienen.
   direccion?: string;
+  /** Depto., casa, block — lo que no entra en "calle y número". */
+  direccionDetalle?: string;
   comuna?: string;
+  region?: string;
 
   relacion: RelacionPersona;
   /**
@@ -50,6 +61,8 @@ export interface Persona {
   notasEmergencia?: string;
 
   contactoEmergencia?: string;
+  /** Qué es el contacto de emergencia de esta Persona (ej. "Hija", "Vecino"). */
+  contactoEmergenciaParentesco?: string;
   telefonoEmergencia?: string;
 
   // Carnet de emergencia (dato médico, para un médico)

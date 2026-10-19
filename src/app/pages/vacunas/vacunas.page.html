@@ -53,19 +53,61 @@
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
-      <ion-item>
-        <ion-input label="Tipo de vacuna" labelPlacement="floating" [(ngModel)]="tipo" name="tipo" required></ion-input>
+      <p class="texto-ayuda">Los campos con * son obligatorios.</p>
+      <ion-item [class.campo-invalido]="v.error('tipo')">
+        <ion-input
+          label="Tipo de vacuna *"
+          labelPlacement="floating"
+          [(ngModel)]="tipo"
+          name="tipo"
+          maxlength="80"
+          (ngModelChange)="v.revalidar('tipo')"
+          (ionBlur)="v.campo('tipo')"
+        ></ion-input>
       </ion-item>
-      <ion-item>
-        <ion-input label="Fecha de aplicación" labelPlacement="floating" type="date" [(ngModel)]="fechaAplicacion" name="fechaAplicacion"></ion-input>
+      @if (v.error('tipo'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      <ion-item [class.campo-invalido]="v.error('fechaAplicacion')">
+        <ion-input
+          label="Fecha de aplicación *"
+          labelPlacement="floating"
+          type="date"
+          [max]="hoyISO"
+          [(ngModel)]="fechaAplicacion"
+          name="fechaAplicacion"
+          (ngModelChange)="v.revalidar('fechaAplicacion')"
+          (ionBlur)="v.campo('fechaAplicacion')"
+        ></ion-input>
       </ion-item>
-      <ion-item>
-        <ion-input label="Próxima dosis (opcional)" labelPlacement="floating" type="date" [(ngModel)]="proximaFecha" name="proximaFecha"></ion-input>
+      @if (v.error('fechaAplicacion'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      <ion-item [class.campo-invalido]="v.error('proximaFecha')">
+        <ion-input
+          label="Próxima dosis (opcional)"
+          labelPlacement="floating"
+          type="date"
+          [min]="fechaAplicacion"
+          [(ngModel)]="proximaFecha"
+          name="proximaFecha"
+          (ngModelChange)="v.revalidar('proximaFecha')"
+          (ionBlur)="v.campo('proximaFecha')"
+        ></ion-input>
       </ion-item>
-      <ion-item>
-        <ion-input label="Notas" labelPlacement="floating" [(ngModel)]="notas" name="notas"></ion-input>
+      @if (v.error('proximaFecha'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      <ion-item [class.campo-invalido]="v.error('notas')">
+        <ion-input
+          label="Notas"
+          labelPlacement="floating"
+          [(ngModel)]="notas"
+          name="notas"
+          maxlength="500"
+          (ngModelChange)="v.revalidar('notas')"
+          (ionBlur)="v.campo('notas')"
+        ></ion-input>
       </ion-item>
-      <ion-button expand="block" class="ion-margin-top" [disabled]="!tipo" (click)="guardar()">Guardar</ion-button>
+      @if (v.error('notas'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      @if (error()) {
+        <p class="texto-error ion-margin-top" role="alert">{{ error() }}</p>
+      }
+      <ion-button expand="block" class="ion-margin-top" [disabled]="guardando()" (click)="guardar()">Guardar</ion-button>
     </ion-content>
   </ng-template>
 </ion-modal>

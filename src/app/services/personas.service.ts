@@ -45,13 +45,22 @@ export class PersonasService {
 
   /** true si esta cuenta ya tiene su Persona "yo mismo/a" (solo puede haber una, sección 6.2). */
   async tieneYoMismo(uidTitular: string): Promise<boolean> {
+    return (await this.idYoMismo(uidTitular)) !== null;
+  }
+
+  /**
+   * Id de la Persona "yo mismo/a" de la cuenta, o null si todavía no la creó.
+   * Se consulta en vez de leer usuarios/{uid}.personaYoMismoId porque las
+   * cuentas anteriores a ese campo no lo tienen.
+   */
+  async idYoMismo(uidTitular: string): Promise<string | null> {
     const q = query(
       collection(db, 'personas'),
       where('uidTitular', '==', uidTitular),
       where('relacion', '==', 'yo_mismo')
     );
     const snap = await getDocs(q);
-    return !snap.empty;
+    return snap.empty ? null : snap.docs[0].id;
   }
 
   persona$(personaId: string): Observable<Persona | undefined> {

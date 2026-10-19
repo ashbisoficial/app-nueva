@@ -20,6 +20,7 @@ import {
   IonToolbar,
 } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
+import { ValidacionFormulario, primerError, reglas } from '../../core/validadores';
 import { EspecialidadesService } from '../../services/especialidades.service';
 
 @Component({
@@ -76,25 +77,49 @@ export class EspecialidadesPage {
   }
 
   mostrarForm = signal(false);
+  guardando = signal(false);
+  error = signal<string | null>(null);
   nombre = '';
   notas = '';
 
+  readonly v = new ValidacionFormulario({
+    nombre: () =>
+      primerError(
+        reglas.requerido(this.nombre),
+        reglas.largoMaximo(this.nombre, 80),
+        this.especialidades().some((e) => this.normalizar(e.nombre) === this.normalizar(this.nombre))
+          ? 'Ya existe una especialidad con ese nombre.'
+          : null
+      ),
+    notas: () => reglas.largoMaximo(this.notas, 500),
+  });
+
   abrirForm(): void {
+    this.v.limpiar();
+    this.error.set(null);
     this.nombre = '';
     this.notas = '';
     this.mostrarForm.set(true);
   }
 
   async guardar(): Promise<void> {
+    this.error.set(null);
     const uid = this.auth.usuario()?.uid;
-    if (!uid || !this.nombre) return;
-    await this.especialidadesSvc.crear(this.personaId, {
-      nombre: this.nombre,
-      notas: this.notas || undefined,
-      activa: true,
-      creadoPor: uid,
-      creadoEn: new Date().toISOString(),
-    });
-    this.mostrarForm.set(false);
+    if (!uid || !this.v.todo()) return;
+    this.guardando.set(true);
+    try {
+      await this.especialidadesSvc.crear(this.personaId, {
+        nombre: this.nombre.trim(),
+        notas: this.notas.trim() || undefined,
+        activa: true,
+        creadoPor: uid,
+        creadoEn: new Date().toISOString(),
+      });
+      this.mostrarForm.set(false);
+    } catch {
+      this.error.set('No se pudo guardar la especialidad. Revisa tu conexión e intenta de nuevo.');
+    } finally {
+      this.guardando.set(false);
+    }
   }
 }

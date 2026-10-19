@@ -14,6 +14,7 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/angular';
+import { MENSAJES, ValidacionFormulario, primerError, reglas } from '../../core/validadores';
 import { PersonasService } from '../../services/personas.service';
 
 @Component({
@@ -43,14 +44,19 @@ export class CanjearPinPage {
   cargando = signal(false);
   error = signal<string | null>(null);
 
+  readonly v = new ValidacionFormulario({
+    pin: () => primerError(reglas.requerido(this.pin), /^\d{6}$/.test(this.pin.trim()) ? null : MENSAJES.pin),
+  });
+
   async canjear(): Promise<void> {
     this.error.set(null);
+    if (!this.v.todo()) return;
     this.cargando.set(true);
     try {
-      const { personaId } = await this.personasSvc.canjearPin(this.pin);
+      const { personaId } = await this.personasSvc.canjearPin(this.pin.trim());
       await this.router.navigateByUrl(`/personas/${personaId}`);
     } catch {
-      this.error.set('PIN inválido o vencido. Pedile a la persona que te comparta uno nuevo.');
+      this.error.set('PIN inválido o vencido. Pídele a la persona que te comparta uno nuevo.');
     } finally {
       this.cargando.set(false);
     }

@@ -24,34 +24,40 @@
       </ion-segment-button>
     </ion-segment>
 
-    <form (ngSubmit)="enviar()" class="login-form">
+    <form (ngSubmit)="enviar()" class="login-form" novalidate>
       <ion-list lines="none" class="login-campos">
         @if (modo() === 'registro') {
-          <ion-item>
+          <ion-item [class.campo-invalido]="v.error('nombre')">
             <ion-input
               label="Nombre"
               labelPlacement="stacked"
               fill="outline"
               name="nombre"
-              placeholder="Como quieres que te llamemos"
+              placeholder="Cómo quieres que te llamemos"
+              maxlength="80"
               [(ngModel)]="nombre"
-              required
+              (ngModelChange)="v.revalidar('nombre')"
+              (ionBlur)="v.campo('nombre')"
             ></ion-input>
           </ion-item>
+          @if (v.error('nombre'); as e) { <p class="texto-error-campo">{{ e }}</p> }
         }
-        <ion-item>
+        <ion-item [class.campo-invalido]="v.error('email')">
           <ion-input
-            label="Email"
+            label="Correo electrónico"
             labelPlacement="stacked"
             fill="outline"
             type="email"
+            inputmode="email"
             name="email"
-            placeholder="tu@email.com"
+            placeholder="nombre@correo.com"
             [(ngModel)]="email"
-            required
+            (ngModelChange)="v.revalidar('email')"
+            (ionBlur)="v.campo('email')"
           ></ion-input>
         </ion-item>
-        <ion-item>
+        @if (v.error('email'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        <ion-item [class.campo-invalido]="v.error('password')">
           <ion-input
             label="Contraseña"
             labelPlacement="stacked"
@@ -60,14 +66,16 @@
             name="password"
             placeholder="••••••••"
             [(ngModel)]="password"
-            required
+            (ngModelChange)="v.revalidar('password')"
+            (ionBlur)="v.campo('password')"
           ></ion-input>
         </ion-item>
+        @if (v.error('password'); as e) { <p class="texto-error-campo">{{ e }}</p> }
       </ion-list>
 
       @if (error()) {
         <ion-text color="danger">
-          <p class="login-error">{{ error() }}</p>
+          <p class="login-error" role="alert">{{ error() }}</p>
         </ion-text>
       }
 

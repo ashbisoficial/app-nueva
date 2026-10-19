@@ -22,6 +22,7 @@ import {
 } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
 import { descargarIcs } from '../../core/ics';
+import { MENSAJES, ValidacionFormulario, primerError, reglas } from '../../core/validadores';
 import { TIPOS_CITA, type TipoCita } from '../../models';
 import { CitasService } from '../../services/citas.service';
 import { EspecialidadesService } from '../../services/especialidades.service';
@@ -76,6 +77,19 @@ export class CitaFormPage implements OnInit {
   especialidadId = '';
 
   guardando = signal(false);
+  error = signal<string | null>(null);
+
+  readonly v = new ValidacionFormulario({
+    titulo: () => primerError(reglas.requerido(this.titulo), reglas.largoMaximo(this.titulo, 100)),
+    tipo: () => reglas.elegir(this.tipo),
+    fechaInicio: () => reglas.requerido(this.fechaInicio),
+    fechaFin: () =>
+      this.fechaFin && this.fechaInicio && this.fechaFin <= this.fechaInicio
+        ? MENSAJES.fechaPosterior('la fecha de inicio')
+        : null,
+    lugar: () => reglas.largoMaximo(this.lugar, 120),
+    notas: () => reglas.largoMaximo(this.notas, 1000),
+  });
 
   async ngOnInit(): Promise<void> {
     if (!this.citaId) return;
@@ -95,15 +109,20 @@ export class CitaFormPage implements OnInit {
   }
 
   async guardar(): Promise<void> {
+    this.error.set(null);
     const uid = this.auth.usuario()?.uid;
-    if (!uid || !this.titulo || !this.fechaInicio) return;
+    if (!uid) return;
+    if (!this.v.todo()) {
+      this.error.set('Revisa los campos marcados en rojo.');
+      return;
+    }
 
     this.guardando.set(true);
     try {
       const persona = await this.personasSvc.obtener(this.personaId);
 
       const datos = {
-        titulo: this.titulo,
+        titulo: this.titulo.trim(),
         tipo: this.tipo,
         fechaInicio: this.fechaInicio,
         fechaFin: this.fechaFin || undefined,
@@ -125,6 +144,8 @@ export class CitaFormPage implements OnInit {
       }
 
       await this.router.navigateByUrl('/agenda');
+    } catch {
+      this.error.set('No se pudo guardar la cita. Revisa tu conexión e intenta de nuevo.');
     } finally {
       this.guardando.set(false);
     }

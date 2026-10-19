@@ -233,3 +233,10 @@ body {
     box-sizing: border-box;
   }
 }
+
+/* Campo con error de validación (ver ValidacionFormulario en core/validadores.ts). */
+ion-item.campo-invalido {
+  --border-color: var(--ion-color-danger, #c0392b);
+  --highlight-color-focused: var(--ion-color-danger, #c0392b);
+  --highlight-color-valid: var(--ion-color-danger, #c0392b);
+}

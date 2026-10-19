@@ -8,24 +8,34 @@
 </ion-header>
 
 <ion-content>
-  <form (ngSubmit)="canjear()" class="form-cuerpo">
+  <form (ngSubmit)="canjear()" class="form-cuerpo" novalidate>
     <p class="texto-ayuda">
       Ingresa el código de 6 dígitos que te compartió el titular de un perfil para acceder a él.
     </p>
 
     <section class="form-tarjeta">
       <ion-list lines="none">
-        <ion-item>
-          <ion-input label="PIN" labelPlacement="floating" inputmode="numeric" maxlength="6" [(ngModel)]="pin" name="pin" required></ion-input>
+        <ion-item [class.campo-invalido]="v.error('pin')">
+          <ion-input
+            label="PIN *"
+            labelPlacement="floating"
+            inputmode="numeric"
+            maxlength="6"
+            [(ngModel)]="pin"
+            name="pin"
+            (ngModelChange)="v.revalidar('pin')"
+            (ionBlur)="v.campo('pin')"
+          ></ion-input>
         </ion-item>
+        @if (v.error('pin'); as e) { <p class="texto-error-campo">{{ e }}</p> }
       </ion-list>
     </section>
 
     @if (error()) {
-      <p class="texto-error">{{ error() }}</p>
+      <p class="texto-error" role="alert">{{ error() }}</p>
     }
 
-    <ion-button expand="block" type="submit" class="form-boton-principal" [disabled]="cargando() || pin.length !== 6">
+    <ion-button expand="block" type="submit" class="form-boton-principal" [disabled]="cargando()">
       Acceder
     </ion-button>
   </form>

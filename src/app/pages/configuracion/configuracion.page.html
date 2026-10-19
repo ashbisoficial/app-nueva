@@ -13,6 +13,15 @@
           <p class="config-cuenta__email">{{ auth.usuario()?.email }}</p>
         </div>
       </div>
+      @if (idYoMismo() !== undefined) {
+        <a
+          class="config-enlace-legal"
+          [routerLink]="idYoMismo() ? ['/personas', idYoMismo(), 'datos'] : ['/personas/nueva']"
+        >
+          <ion-icon name="person-outline"></ion-icon>
+          {{ idYoMismo() ? 'Mis datos personales' : 'Completar mis datos personales' }}
+        </a>
+      }
     </section>
 
     <section class="config-tarjeta">

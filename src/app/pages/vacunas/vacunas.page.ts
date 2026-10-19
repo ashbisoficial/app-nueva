@@ -24,6 +24,7 @@ import {
   IonToolbar,
 } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
+import { MENSAJES, ValidacionFormulario, primerError, reglas } from '../../core/validadores';
 import { VacunasService } from '../../services/vacunas.service';
 
 @Component({
@@ -64,13 +65,28 @@ export class VacunasPage {
     { initialValue: [] }
   );
 
+  readonly hoyISO = new Date().toISOString().slice(0, 10);
   mostrarForm = signal(false);
+  guardando = signal(false);
+  error = signal<string | null>(null);
   tipo = '';
   fechaAplicacion = new Date().toISOString().slice(0, 10);
   proximaFecha = '';
   notas = '';
 
+  readonly v = new ValidacionFormulario({
+    tipo: () => primerError(reglas.requerido(this.tipo), reglas.largoMaximo(this.tipo, 80)),
+    fechaAplicacion: () => primerError(reglas.requerido(this.fechaAplicacion), reglas.noFutura(this.fechaAplicacion)),
+    proximaFecha: () =>
+      this.proximaFecha && this.fechaAplicacion && this.proximaFecha <= this.fechaAplicacion
+        ? MENSAJES.fechaPosterior('la fecha de aplicación')
+        : null,
+    notas: () => reglas.largoMaximo(this.notas, 500),
+  });
+
   abrirForm(): void {
+    this.v.limpiar();
+    this.error.set(null);
     this.tipo = '';
     this.fechaAplicacion = new Date().toISOString().slice(0, 10);
     this.proximaFecha = '';
@@ -79,16 +95,24 @@ export class VacunasPage {
   }
 
   async guardar(): Promise<void> {
+    this.error.set(null);
     const uid = this.auth.usuario()?.uid;
-    if (!uid || !this.tipo) return;
-    await this.vacunasSvc.crear(this.personaId, {
-      tipo: this.tipo,
-      fechaAplicacion: this.fechaAplicacion,
-      proximaFecha: this.proximaFecha || undefined,
-      notas: this.notas || undefined,
-      creadoPor: uid,
-    });
-    this.mostrarForm.set(false);
+    if (!uid || !this.v.todo()) return;
+    this.guardando.set(true);
+    try {
+      await this.vacunasSvc.crear(this.personaId, {
+        tipo: this.tipo.trim(),
+        fechaAplicacion: this.fechaAplicacion,
+        proximaFecha: this.proximaFecha || undefined,
+        notas: this.notas.trim() || undefined,
+        creadoPor: uid,
+      });
+      this.mostrarForm.set(false);
+    } catch {
+      this.error.set('No se pudo guardar la vacuna. Revisa tu conexión e intenta de nuevo.');
+    } finally {
+      this.guardando.set(false);
+    }
   }
 
   async confirmarEliminar(id: string): Promise<void> {

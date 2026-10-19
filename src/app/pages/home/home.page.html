@@ -6,12 +6,22 @@
       <p class="home-fecha">{{ hoy | date: "EEEE d 'de' MMMM" }}</p>
       <h1>Hola{{ auth.usuario()?.displayName ? ', ' + auth.usuario()?.displayName?.split(' ')?.[0] : '' }}</h1>
     </div>
-    <button class="home-ajustes" routerLink="/configuracion" aria-label="Configuración">
-      <ion-icon name="settings-outline"></ion-icon>
-    </button>
   </div>
 
   <div class="home-cuerpo">
+    @if ((sinDatosPropios$ | async) === true) {
+      <a class="home-completar" routerLink="/personas/nueva">
+        <span class="home-completar__icono">
+          <ion-icon name="person-outline"></ion-icon>
+        </span>
+        <span class="home-completar__texto">
+          <strong>Completa tus datos personales</strong>
+          <span>Identificación, contacto, vivienda y contacto de emergencia: lo que se usa en tu carnet de emergencia.</span>
+        </span>
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </a>
+    }
+
     <div class="home-accesos">
       <button class="home-acceso" (click)="subirDocumento()">
         <span class="home-acceso__icono home-acceso__icono--rosa">
@@ -77,11 +87,16 @@
           <div class="home-personas">
             @for (p of personas; track p.id; let i = $index) {
               <a class="home-persona" [routerLink]="['/personas', p.id]">
-                <span class="home-persona__avatar" [style.background]="colorPersona(i)">
-                  @if (p.fotoUrl) {
-                    <img [src]="p.fotoUrl" alt="" />
-                  } @else {
-                    {{ inicialPersona(nombreCompleto(p)) }}
+                <span class="home-persona__avatar-marco">
+                  <span class="home-persona__avatar" [style.background]="colorPersona(i)">
+                    @if (p.fotoUrl) {
+                      <img [src]="p.fotoUrl" alt="" />
+                    } @else {
+                      {{ inicialPersona(nombreCompleto(p)) }}
+                    }
+                  </span>
+                  @if (faltanDatos(p)) {
+                    <span class="home-persona__aviso" title="Faltan datos esenciales">!</span>
                   }
                 </span>
                 <span class="home-persona__nombre">{{ nombreCompleto(p) }}</span>
@@ -97,10 +112,5 @@
         }
       }
     </section>
-
-    <button class="home-cerrar-sesion" (click)="logout()">
-      <ion-icon name="log-out-outline"></ion-icon>
-      Cerrar sesión
-    </button>
   </div>
 </ion-content>

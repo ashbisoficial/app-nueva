@@ -24,7 +24,7 @@ export class SelectorPersonaService {
       const alert = await this.alertCtrl.create({
         header: 'Agrega una persona primero',
         message: 'Necesitas tener al menos un perfil creado.',
-        buttons: ['Ok'],
+        buttons: ['Aceptar'],
       });
       await alert.present();
       return null;

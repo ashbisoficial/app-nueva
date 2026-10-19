@@ -20,6 +20,7 @@ import {
 import { generarPdfPerdida } from '../../core/pdf-carnet';
 import { generarQrDataUrl, urlFichaPerdida } from '../../core/qr';
 import { subirArchivo } from '../../core/storage';
+import { ValidacionFormulario, errorArchivo, reglas } from '../../core/validadores';
 import type { CampoFichaPerdida, Persona } from '../../models';
 import { PersonasService } from '../../services/personas.service';
 
@@ -64,6 +65,13 @@ export class FichaPerdidaConfigPage {
   persona = signal<Persona | null>(null);
   seleccionados = signal<CampoFichaPerdida[]>(['fotoUrl', 'nombre', 'condicionPerdida', 'contactoEmergencia', 'telefonoEmergencia']);
   condicionPerdida = '';
+  private fotoElegida: File | null = null;
+  private errorSubidaFoto: string | null = null;
+
+  readonly v = new ValidacionFormulario({
+    condicion: () => reglas.largoMaximo(this.condicionPerdida, 140),
+    foto: () => this.errorSubidaFoto ?? (this.fotoElegida ? errorArchivo(this.fotoElegida, { permitePdf: false }) : null),
+  });
   qrDataUrl = signal<string | null>(null);
   urlPublica = signal<string>('');
   cargando = signal(true);
@@ -107,9 +115,11 @@ export class FichaPerdidaConfigPage {
   }
 
   async guardar(): Promise<void> {
+    this.v.campo('condicion');
+    if (this.v.error('condicion')) return;
     await this.personasSvc.actualizar(this.personaId, {
       qrPerdidaCamposPublicos: this.seleccionados(),
-      condicionPerdida: this.condicionPerdida || undefined,
+      condicionPerdida: this.condicionPerdida.trim() || undefined,
     });
     const persona = this.persona();
     if (persona) {
@@ -121,6 +131,10 @@ export class FichaPerdidaConfigPage {
     const input = event.target as HTMLInputElement;
     const archivo = input.files?.[0];
     if (!archivo) return;
+    this.fotoElegida = archivo;
+    this.errorSubidaFoto = null;
+    this.v.campo('foto');
+    if (this.v.error('foto')) return;
 
     this.subiendoFoto.set(true);
     try {
@@ -129,6 +143,9 @@ export class FichaPerdidaConfigPage {
       await this.personasSvc.actualizar(this.personaId, { fotoUrl });
       const persona = this.persona();
       if (persona) this.persona.set({ ...persona, fotoUrl });
+    } catch {
+      this.errorSubidaFoto = 'No se pudo subir la foto. Revisa tu conexión e intenta de nuevo.';
+      this.v.campo('foto');
     } finally {
       this.subiendoFoto.set(false);
     }

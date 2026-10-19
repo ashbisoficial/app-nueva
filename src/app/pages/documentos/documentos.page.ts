@@ -24,6 +24,7 @@ import {
   IonToolbar,
 } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
+import { ValidacionFormulario, errorArchivo, primerError, reglas } from '../../core/validadores';
 import { CATEGORIAS_DOCUMENTO, type CategoriaDocumento } from '../../models';
 import { DocumentosService } from '../../services/documentos.service';
 import { EspecialidadesService } from '../../services/especialidades.service';
@@ -89,6 +90,14 @@ export class DocumentosPage {
   notas = '';
   archivo: File | null = null;
   subiendo = signal(false);
+  error = signal<string | null>(null);
+
+  readonly v = new ValidacionFormulario({
+    archivo: () => (this.archivo ? errorArchivo(this.archivo) : 'Elige la foto o el PDF del documento.'),
+    nombre: () => primerError(reglas.requerido(this.nombre), reglas.largoMaximo(this.nombre, 100)),
+    categoria: () => reglas.elegir(this.categoria),
+    notas: () => reglas.largoMaximo(this.notas, 500),
+  });
 
   constructor() {
     // Acceso directo desde el Home (sección 8): llega con ?subir=1 para abrir
@@ -99,6 +108,8 @@ export class DocumentosPage {
   }
 
   abrirForm(): void {
+    this.v.limpiar();
+    this.error.set(null);
     this.nombre = '';
     this.categoria = 'otro';
     this.especialidadId = '';
@@ -111,17 +122,21 @@ export class DocumentosPage {
     const input = event.target as HTMLInputElement;
     this.archivo = input.files?.[0] ?? null;
     if (this.archivo && !this.nombre) {
-      this.nombre = this.archivo.name;
+      // Nombre sugerido: el del archivo sin la extensión.
+      this.nombre = this.archivo.name.replace(/\.[^.]+$/, '');
     }
+    this.v.campo('archivo');
+    this.v.revalidar('nombre');
   }
 
   async guardar(): Promise<void> {
-    if (!this.archivo || !this.nombre) return;
+    this.error.set(null);
+    if (!this.v.todo() || !this.archivo) return;
     this.subiendo.set(true);
     try {
       const archivoUrl = await this.documentosSvc.subirArchivo(this.personaId, this.archivo, this.archivo.name);
       await this.documentosSvc.crear(this.personaId, {
-        nombre: this.nombre,
+        nombre: this.nombre.trim(),
         categoria: this.categoria,
         archivoUrl,
         subidoEn: new Date().toISOString(),
@@ -129,6 +144,8 @@ export class DocumentosPage {
         especialidadId: this.especialidadId || undefined,
       });
       this.mostrarForm.set(false);
+    } catch {
+      this.error.set('No se pudo subir el documento. Revisa tu conexión e intenta de nuevo.');
     } finally {
       this.subiendo.set(false);
     }

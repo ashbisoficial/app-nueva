@@ -5,7 +5,7 @@
     </ion-buttons>
     <ion-title>{{ (persona() ? nombreCompleto(persona()!) : '') || 'Persona' }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button [routerLink]="['/personas', personaId, 'editar']">
+      <ion-button [routerLink]="['/personas', personaId, 'datos']" aria-label="Datos personales">
         <ion-icon slot="icon-only" name="settings-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -24,14 +24,17 @@
               {{ inicialPersona(nombreCompleto(p)) }}
             }
           </span>
-          <p class="detalle-tarjeta__titulo">Resumen</p>
+          <div>
+            <p class="detalle-nombre">{{ nombreCompleto(p) }}</p>
+            <p class="detalle-sub">
+              @if (calcularEdad(p.fechaNacimiento); as edad) {
+                {{ edad }} {{ edad === 1 ? 'año' : 'años' }} ·
+              }
+              {{ etiquetaRelacion(p.relacion) }}
+            </p>
+          </div>
         </div>
-        <p class="detalle-nacimiento">
-          <strong>Nacimiento:</strong> {{ p.fechaNacimiento || '—' }}
-          @if (calcularEdad(p.fechaNacimiento); as edad) {
-            ({{ edad }} {{ edad === 1 ? 'año' : 'años' }})
-          }
-        </p>
+
         @if (p.grupoSanguineo || p.alergias?.length || p.enfermedadesCronicas?.length || p.dispositivosMedicos?.length || p.donanteOrganos) {
           <div class="detalle-chips">
             @if (p.grupoSanguineo) {
@@ -51,7 +54,39 @@
             }
           </div>
         }
+
+        @if (p.contactoEmergencia && p.telefonoEmergencia) {
+          <a class="detalle-emergencia" [href]="'tel:' + p.telefonoEmergencia">
+            <span class="detalle-emergencia__icono">
+              <ion-icon name="call-outline"></ion-icon>
+            </span>
+            <span>
+              <span class="detalle-emergencia__label">Emergencia</span>
+              <span class="detalle-emergencia__nombre">
+                {{ p.contactoEmergencia }}
+                @if (p.contactoEmergenciaParentesco) { ({{ p.contactoEmergenciaParentesco }}) }
+              </span>
+              <span class="detalle-emergencia__tel">{{ p.telefonoEmergencia }}</span>
+            </span>
+          </a>
+        }
+
+        <a class="detalle-ver-datos" [routerLink]="['/personas', personaId, 'datos']">
+          Ver todos los datos personales
+          <ion-icon name="chevron-forward-outline"></ion-icon>
+        </a>
       </section>
+
+      @if (faltantes().length) {
+        <a class="detalle-aviso" [routerLink]="['/personas', personaId, 'editar']">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <span>
+            Faltan {{ faltantes().length }} {{ faltantes().length === 1 ? 'dato esencial' : 'datos esenciales' }}
+            ({{ faltantes().join(', ') }}).
+            <strong>Completar ahora</strong>
+          </span>
+        </a>
+      }
     }
 
     <div class="detalle-modulos">
@@ -64,15 +99,5 @@
         </a>
       }
     </div>
-
-    <button class="detalle-compartir" (click)="compartirPorPin()">
-      <ion-icon name="key-outline"></ion-icon>
-      Compartir este perfil con un PIN
-    </button>
-
-    <button class="detalle-eliminar" (click)="confirmarEliminar()">
-      <ion-icon name="trash-outline"></ion-icon>
-      Eliminar persona
-    </button>
   </div>
 </ion-content>

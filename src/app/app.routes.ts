@@ -76,6 +76,10 @@ export const routes: Routes = [
           import('./pages/persona-detalle/persona-detalle.page').then((m) => m.PersonaDetallePage),
       },
       {
+        path: 'personas/:id/datos',
+        loadComponent: () => import('./pages/persona-datos/persona-datos.page').then((m) => m.PersonaDatosPage),
+      },
+      {
         path: 'personas/:id/editar',
         loadComponent: () => import('./pages/persona-form/persona-form.page').then((m) => m.PersonaFormPage),
       },

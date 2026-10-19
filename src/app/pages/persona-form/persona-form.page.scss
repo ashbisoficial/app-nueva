@@ -80,3 +80,22 @@
   font-weight: 600;
   padding: 4px;
 }
+
+.persona-foto-ayuda {
+  color: var(--ion-color-medium);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.persona-obligatorios {
+  margin: 0 4px;
+}
+
+.persona-bienvenida .persona-ayuda {
+  padding-bottom: 4px;
+}
+
+.persona-foto-error {
+  text-align: center;
+  margin-left: 0;
+}

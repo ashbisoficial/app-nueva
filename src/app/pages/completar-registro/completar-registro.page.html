@@ -5,28 +5,29 @@
       Para que cada persona tenga una sola cuenta en Serangelia, necesitamos tu RUT.
     </p>
 
-    <form (ngSubmit)="confirmar()">
+    <form (ngSubmit)="confirmar()" novalidate>
       <ion-list>
-        <ion-item>
+        <ion-item [class.campo-invalido]="v.error('rut')">
           <ion-input
-            label="RUT"
+            label="RUT *"
             labelPlacement="floating"
             placeholder="12.345.678-9"
             [ngModel]="rut"
             (ngModelChange)="onRutInput($event)"
             name="rut"
-            required
+            (ionBlur)="v.campo('rut')"
           ></ion-input>
         </ion-item>
+        @if (v.error('rut'); as e) { <p class="texto-error-campo">{{ e }}</p> }
       </ion-list>
 
       @if (error()) {
         <ion-text color="danger">
-          <p class="ion-padding-start">{{ error() }}</p>
+          <p class="ion-padding-start" role="alert">{{ error() }}</p>
         </ion-text>
       }
 
-      <ion-button expand="block" type="submit" class="form-boton-principal" [disabled]="cargando() || !rut">
+      <ion-button expand="block" type="submit" class="form-boton-principal" [disabled]="cargando()">
         @if (cargando()) {
           <ion-spinner name="dots"></ion-spinner>
         } @else {

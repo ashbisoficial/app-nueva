@@ -24,9 +24,18 @@ import { deleteField } from 'firebase/firestore';
 import { AuthService } from '../../core/auth.service';
 import { formatearRut, validarRut } from '../../core/rut';
 import { subirArchivo } from '../../core/storage';
-import { PATRON_NOMBRE, PATRON_TELEFONO, nombreValido, telefonoValido } from '../../core/validadores';
+import {
+  MENSAJES,
+  PATRON_NOMBRE,
+  PATRON_TELEFONO,
+  ValidacionFormulario,
+  errorArchivo,
+  primerError,
+  reglas,
+} from '../../core/validadores';
 import type { Persona, RelacionPersona } from '../../models';
 import { PersonasService } from '../../services/personas.service';
+import { PARENTESCOS, REGIONES_CHILE, etiquetaRelacion } from '../../shared/persona-datos';
 
 @Component({
   selector: 'app-persona-form',
@@ -57,8 +66,13 @@ export class PersonaFormPage implements OnInit {
   readonly patronNombre = PATRON_NOMBRE;
   readonly patronTelefono = PATRON_TELEFONO;
   readonly hoyISO = new Date().toISOString().slice(0, 10);
+  readonly regiones = REGIONES_CHILE;
+  readonly parentescos = PARENTESCOS;
+  readonly etiquetaRelacion = etiquetaRelacion;
 
   personaId: string | null = null;
+  /** Viene de completar-registro: primera vez que la cuenta carga sus propios datos. */
+  bienvenida = false;
   guardando = signal(false);
   error = signal<string | null>(null);
 
@@ -72,8 +86,15 @@ export class PersonaFormPage implements OnInit {
   apellidos = '';
   fechaNacimiento = '';
   sexo = '';
+  nacionalidad = '';
+
+  telefono = '';
+  email = '';
+
   direccion = '';
+  direccionDetalle = '';
   comuna = '';
+  region = '';
 
   grupoSanguineo = '';
   alergiasTexto = '';
@@ -90,6 +111,7 @@ export class PersonaFormPage implements OnInit {
   telefonoMedicoTratante = '';
 
   contactoEmergencia = '';
+  contactoEmergenciaParentesco = '';
   telefonoEmergencia = '';
 
   rutDependiente = '';
@@ -99,6 +121,46 @@ export class PersonaFormPage implements OnInit {
   fotoPreviewUrl = signal<string | null>(null);
   fotoExistenteUrl = signal<string | null>(null);
   quitarFotoExistente = false;
+
+  /** Reglas por campo (sección 8 del spec: un mensaje claro por campo, no un "dato inválido" genérico). */
+  readonly v = new ValidacionFormulario({
+    relacion: () => (this.personaId ? null : reglas.elegir(this.relacion)),
+    rutDependiente: () => {
+      if (this.personaId || !this.relacion || this.relacion === 'yo_mismo') return null;
+      return primerError(reglas.requerido(this.rutDependiente), this.rutDependienteInvalido ? MENSAJES.rut : null);
+    },
+    documentoRespaldo: () => {
+      if (this.personaId || !this.relacion || this.relacion === 'yo_mismo') return null;
+      if (!this.documentoRespaldo) return `Falta subir: ${this.etiquetaDocumento()}.`;
+      return errorArchivo(this.documentoRespaldo);
+    },
+    foto: () => (this.fotoArchivo ? errorArchivo(this.fotoArchivo, { permitePdf: false }) : null),
+    nombres: () => primerError(reglas.requerido(this.nombres), reglas.nombre(this.nombres)),
+    apellidos: () => primerError(reglas.requerido(this.apellidos), reglas.nombre(this.apellidos)),
+    fechaNacimiento: () => primerError(reglas.requerido(this.fechaNacimiento), reglas.noFutura(this.fechaNacimiento)),
+    sexo: () => reglas.elegir(this.sexo),
+    nacionalidad: () => reglas.nombre(this.nacionalidad),
+    telefono: () =>
+      primerError(this.telefonoObligatorio ? reglas.requerido(this.telefono) : null, reglas.telefono(this.telefono)),
+    email: () => reglas.correo(this.email),
+    direccion: () => reglas.requerido(this.direccion),
+    direccionDetalle: () => reglas.largoMaximo(this.direccionDetalle, 60),
+    comuna: () => primerError(reglas.requerido(this.comuna), reglas.nombre(this.comuna)),
+    region: () => reglas.elegir(this.region),
+    contactoEmergencia: () => primerError(reglas.requerido(this.contactoEmergencia), reglas.nombre(this.contactoEmergencia)),
+    contactoEmergenciaParentesco: () => reglas.elegir(this.contactoEmergenciaParentesco),
+    telefonoEmergencia: () => primerError(reglas.requerido(this.telefonoEmergencia), reglas.telefono(this.telefonoEmergencia)),
+    alergias: () => reglas.largoMaximo(this.alergiasTexto, 500),
+    enfermedades: () => reglas.largoMaximo(this.enfermedadesTexto, 500),
+    medicamentos: () => reglas.largoMaximo(this.medicamentosTexto, 500),
+    pesoKg: () => reglas.rango(this.pesoKg, 0.5, 300, 'kg'),
+    estaturaCm: () => reglas.rango(this.estaturaCm, 20, 250, 'cm'),
+    dispositivosMedicos: () => reglas.largoMaximo(this.dispositivosMedicosTexto, 500),
+    notasEmergencia: () => reglas.largoMaximo(this.notasEmergencia, 1000),
+    prevision: () => reglas.largoMaximo(this.prevision, 60),
+    medicoTratante: () => reglas.largoMaximo(this.medicoTratante, 80),
+    telefonoMedicoTratante: () => reglas.telefono(this.telefonoMedicoTratante),
+  });
 
   constructor(
     private route: ActivatedRoute,
@@ -110,6 +172,7 @@ export class PersonaFormPage implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.personaId = this.route.snapshot.paramMap.get('id');
+    this.bienvenida = this.route.snapshot.queryParamMap.has('bienvenida');
     if (this.personaId) {
       const persona = await this.personasSvc.obtener(this.personaId);
       if (!persona) return;
@@ -122,10 +185,16 @@ export class PersonaFormPage implements OnInit {
       this.apellidos = persona.apellidos ?? '';
       this.fechaNacimiento = persona.fechaNacimiento;
       this.sexo = persona.sexo;
+      this.nacionalidad = persona.nacionalidad ?? '';
+      this.telefono = persona.telefono ?? '';
+      this.email = persona.email ?? '';
       this.direccion = persona.direccion ?? '';
+      this.direccionDetalle = persona.direccionDetalle ?? '';
       this.comuna = persona.comuna ?? '';
+      this.region = persona.region ?? '';
       this.grupoSanguineo = persona.grupoSanguineo ?? '';
       this.contactoEmergencia = persona.contactoEmergencia ?? '';
+      this.contactoEmergenciaParentesco = persona.contactoEmergenciaParentesco ?? '';
       this.telefonoEmergencia = persona.telefonoEmergencia ?? '';
       this.alergiasTexto = (persona.alergias ?? []).join(', ');
       this.enfermedadesTexto = (persona.enfermedadesCronicas ?? []).join(', ');
@@ -142,17 +211,34 @@ export class PersonaFormPage implements OnInit {
       return;
     }
 
-    const uid = this.auth.usuario()?.uid;
-    if (!uid) return;
-    const tiene = await this.personasSvc.tieneYoMismo(uid);
+    const usuario = this.auth.usuario();
+    if (!usuario) return;
+    const tiene = await this.personasSvc.tieneYoMismo(usuario.uid);
     this.puedeElegirYoMismo.set(!tiene);
     this.relacion = tiene ? 'menor_a_cargo' : 'yo_mismo';
+    this.nacionalidad = 'Chilena';
+    if (!tiene) {
+      // Precarga lo que ya se sabe de la cuenta para "yo mismo/a"; se puede cambiar.
+      this.email = usuario.email ?? '';
+      const [nombres = '', ...resto] = (usuario.displayName ?? '').trim().split(/\s+/);
+      this.nombres = nombres;
+      this.apellidos = resto.join(' ');
+    }
+  }
+
+  /** Un menor muchas veces no tiene teléfono propio (ver datosFaltantes()). */
+  get telefonoObligatorio(): boolean {
+    const relacion = this.personaId ? this.relacionExistente : this.relacion;
+    return relacion !== 'menor_a_cargo';
   }
 
   onArchivoSeleccionado(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.documentoRespaldo = input.files?.[0] ?? null;
+    this.v.campo('documentoRespaldo');
   }
+
+
 
   onFotoSeleccionada(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -160,12 +246,14 @@ export class PersonaFormPage implements OnInit {
     this.fotoArchivo = archivo;
     this.quitarFotoExistente = false;
     this.fotoPreviewUrl.set(archivo ? URL.createObjectURL(archivo) : null);
+    this.v.campo('foto');
   }
 
   quitarFoto(): void {
     this.fotoArchivo = null;
     this.fotoPreviewUrl.set(null);
     this.quitarFotoExistente = true;
+    this.v.campo('foto');
   }
 
   etiquetaDocumento(): string {
@@ -177,13 +265,6 @@ export class PersonaFormPage implements OnInit {
   /** true solo cuando ya se escribió algo y ese algo no pasa el dígito verificador (no molesta mientras el campo está vacío). */
   get rutDependienteInvalido(): boolean {
     return this.rutDependiente.trim().length > 0 && !validarRut(this.rutDependiente);
-  }
-
-  etiquetaRelacion(relacion: RelacionPersona | null): string {
-    if (relacion === 'yo_mismo') return 'Yo mismo/a';
-    if (relacion === 'menor_a_cargo') return 'Menor de edad a cargo';
-    if (relacion === 'adulto_mayor_a_cargo') return 'Adulto mayor/convaleciente a cargo';
-    return '';
   }
 
   /** Sube la foto nueva (si se eligió una) o borra la existente (si se pidió quitarla). */
@@ -202,24 +283,6 @@ export class PersonaFormPage implements OnInit {
       .split(',')
       .map((s) => s.trim())
       .filter((s) => s.length > 0);
-  }
-
-  /** Validaciones que no dependen del servidor — se revisan antes de gastar una llamada de red. */
-  private validarCamposBasicos(): string | null {
-    if (!this.nombres.trim()) return 'El nombre es obligatorio.';
-    if (!nombreValido(this.nombres)) return 'El nombre solo puede tener letras y espacios.';
-    if (!this.apellidos.trim()) return 'El apellido es obligatorio.';
-    if (!nombreValido(this.apellidos)) return 'El apellido solo puede tener letras y espacios.';
-    if (!this.fechaNacimiento) return 'La fecha de nacimiento es obligatoria.';
-    if (this.fechaNacimiento > this.hoyISO) return 'La fecha de nacimiento no puede ser futura.';
-    if (!this.sexo) return 'Elige el sexo.';
-    if (this.telefonoEmergencia && !telefonoValido(this.telefonoEmergencia)) {
-      return 'El teléfono de emergencia no tiene un formato válido (solo números, espacios, guiones y un "+" inicial).';
-    }
-    if (this.telefonoMedicoTratante && !telefonoValido(this.telefonoMedicoTratante)) {
-      return 'El teléfono del médico no tiene un formato válido (solo números, espacios, guiones y un "+" inicial).';
-    }
-    return null;
   }
 
   /**
@@ -242,7 +305,7 @@ export class PersonaFormPage implements OnInit {
       const alert = await this.alertCtrl.create({
         header: 'Persona guardada',
         message:
-          'Se guardaron los datos, pero no se pudo subir la foto o el documento adjunto. Puedes volver a intentarlo desde "Editar persona".',
+          'Se guardaron los datos, pero no se pudo subir la foto o el documento adjunto. Puedes volver a intentarlo desde "Editar datos personales".',
         buttons: ['Entendido'],
       });
       await alert.present();
@@ -253,24 +316,9 @@ export class PersonaFormPage implements OnInit {
   async guardar(): Promise<void> {
     this.error.set(null);
 
-    const errorValidacion = this.validarCamposBasicos();
-    if (errorValidacion) {
-      this.error.set(errorValidacion);
+    if (!this.v.todo()) {
+      this.error.set('Revisa los campos marcados en rojo.');
       return;
-    }
-    if (!this.personaId && this.relacion !== 'yo_mismo') {
-      if (!this.rutDependiente.trim()) {
-        this.error.set('El RUT es obligatorio.');
-        return;
-      }
-      if (this.rutDependienteInvalido) {
-        this.error.set('Ese RUT no es válido. Revisa los números y el dígito verificador.');
-        return;
-      }
-      if (!this.documentoRespaldo) {
-        this.error.set(`Falta subir: ${this.etiquetaDocumento()}.`);
-        return;
-      }
     }
 
     this.guardando.set(true);
@@ -280,11 +328,17 @@ export class PersonaFormPage implements OnInit {
         apellidos: this.apellidos.trim(),
         fechaNacimiento: this.fechaNacimiento,
         sexo: this.sexo,
-        direccion: this.direccion || undefined,
-        comuna: this.comuna || undefined,
+        nacionalidad: this.nacionalidad.trim() || undefined,
+        telefono: this.telefono.trim() || undefined,
+        email: this.email.trim() || undefined,
+        direccion: this.direccion.trim(),
+        direccionDetalle: this.direccionDetalle.trim() || undefined,
+        comuna: this.comuna.trim(),
+        region: this.region,
         grupoSanguineo: this.grupoSanguineo || undefined,
-        contactoEmergencia: this.contactoEmergencia || undefined,
-        telefonoEmergencia: this.telefonoEmergencia || undefined,
+        contactoEmergencia: this.contactoEmergencia.trim(),
+        contactoEmergenciaParentesco: this.contactoEmergenciaParentesco,
+        telefonoEmergencia: this.telefonoEmergencia.trim(),
         alergias: this.aLista(this.alergiasTexto),
         enfermedadesCronicas: this.aLista(this.enfermedadesTexto),
         medicamentosPermanentes: this.aLista(this.medicamentosTexto),
@@ -301,7 +355,7 @@ export class PersonaFormPage implements OnInit {
       if (this.personaId) {
         await this.personasSvc.actualizar(this.personaId, datos);
         await this.guardarArchivos(this.personaId);
-        await this.router.navigateByUrl(`/personas/${this.personaId}`);
+        await this.router.navigateByUrl(`/personas/${this.personaId}/datos`);
         return;
       }
 
@@ -326,11 +380,11 @@ export class PersonaFormPage implements OnInit {
       }
 
       await this.guardarArchivos(id);
-      await this.router.navigateByUrl(`/personas/${id}`);
+      await this.router.navigateByUrl(`/personas/${id}`, { replaceUrl: this.bienvenida });
     } catch (e) {
       const codigo = (e as Error).message;
       if (codigo === 'rut-invalido') {
-        this.error.set('Ese RUT no es válido. Revisa los números y el dígito verificador.');
+        this.error.set(MENSAJES.rut);
       } else if (codigo === 'rut-duplicado') {
         this.error.set('Ese RUT ya está registrado (como cuenta o como otra persona a cargo).');
       } else {

@@ -1,14 +1,26 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/personas"></ion-back-button>
+      <ion-back-button [defaultHref]="personaId ? '/personas/' + personaId + '/datos' : '/personas'"></ion-back-button>
     </ion-buttons>
-    <ion-title>{{ personaId ? 'Editar persona' : 'Nueva persona' }}</ion-title>
+    <ion-title>{{ personaId ? 'Editar datos personales' : 'Nueva persona' }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
-  <form (ngSubmit)="guardar()" class="form-cuerpo">
+  <form (ngSubmit)="guardar()" class="form-cuerpo" novalidate>
+    @if (bienvenida) {
+      <section class="form-tarjeta persona-bienvenida">
+        <p class="form-tarjeta__titulo">Te damos la bienvenida a Serangelia</p>
+        <p class="texto-ayuda persona-ayuda">
+          Antes de empezar, completa tus datos personales. Son los que se usan en tu
+          carnet de emergencia y los que necesitaría alguien para ayudarte.
+        </p>
+      </section>
+    }
+
+    <p class="texto-ayuda persona-obligatorios">Los campos con * son obligatorios.</p>
+
     @if (personaId) {
       <section class="form-tarjeta">
         <p class="form-tarjeta__titulo">Relación</p>
@@ -21,8 +33,14 @@
       <section class="form-tarjeta">
         <p class="form-tarjeta__titulo">¿Quién es esta persona?</p>
         <ion-list lines="none">
-          <ion-item>
-            <ion-select label="Relación con tu cuenta" labelPlacement="floating" [(ngModel)]="relacion" name="relacion">
+          <ion-item [class.campo-invalido]="v.error('relacion')">
+            <ion-select
+              label="Relación con tu cuenta *"
+              labelPlacement="floating"
+              [(ngModel)]="relacion"
+              name="relacion"
+              (ngModelChange)="v.campo('relacion')"
+            >
               @if (puedeElegirYoMismo()) {
                 <ion-select-option value="yo_mismo">Yo mismo/a</ion-select-option>
               }
@@ -30,12 +48,13 @@
               <ion-select-option value="adulto_mayor_a_cargo">Adulto mayor/convaleciente a cargo</ion-select-option>
             </ion-select>
           </ion-item>
+          @if (v.error('relacion'); as e) { <p class="texto-error-campo">{{ e }}</p> }
         </ion-list>
         <p class="texto-ayuda persona-ayuda">
           @if (relacion === 'yo_mismo') {
             Tu propio perfil de salud, con el RUT de tu cuenta.
           } @else {
-            Un adulto independiente no se agrega acá — se vincula con su propia
+            Un adulto independiente no se agrega aquí: se vincula con su propia
             cuenta usando un PIN (ver "Compartir este perfil con un PIN").
           }
         </p>
@@ -45,23 +64,30 @@
         <section class="form-tarjeta">
           <p class="form-tarjeta__titulo">RUT y respaldo</p>
           <ion-list lines="inset">
-            <ion-item>
-              <ion-input label="RUT" labelPlacement="floating" placeholder="12.345.678-9" [(ngModel)]="rutDependiente" name="rutDependiente" required></ion-input>
+            <ion-item [class.campo-invalido]="v.error('rutDependiente')">
+              <ion-input
+                label="RUT *"
+                labelPlacement="floating"
+                placeholder="12.345.678-9"
+                [(ngModel)]="rutDependiente"
+                name="rutDependiente"
+                (ngModelChange)="v.revalidar('rutDependiente')"
+                (ionBlur)="v.campo('rutDependiente')"
+              ></ion-input>
             </ion-item>
-            @if (rutDependienteInvalido) {
-              <p class="texto-error-campo">Ese RUT no es válido. Revisa los números y el dígito verificador.</p>
-            }
+            @if (v.error('rutDependiente'); as e) { <p class="texto-error-campo">{{ e }}</p> }
             <ion-item lines="none" class="persona-archivo-item">
-              <p class="persona-archivo-label">{{ etiquetaDocumento() }} (obligatorio)</p>
-              <input type="file" accept="image/*,application/pdf" capture="environment" (change)="onArchivoSeleccionado($event)" />
+              <p class="persona-archivo-label">{{ etiquetaDocumento() }} *</p>
+              <input type="file" accept="image/*,application/pdf" capture="environment" [attr.aria-label]="etiquetaDocumento()" (change)="onArchivoSeleccionado($event)" />
             </ion-item>
+            @if (v.error('documentoRespaldo'); as e) { <p class="texto-error-campo">{{ e }}</p> }
           </ion-list>
         </section>
       }
     }
 
     <section class="form-tarjeta">
-      <p class="form-tarjeta__titulo">Datos básicos</p>
+      <p class="form-tarjeta__titulo">Identificación</p>
 
       <div class="persona-foto-selector">
         <label class="persona-foto-circulo">
@@ -70,73 +96,221 @@
           } @else {
             <ion-icon name="camera-outline"></ion-icon>
           }
-          <input type="file" accept="image/*" (change)="onFotoSeleccionada($event)" />
+          <input type="file" accept="image/*" aria-label="Foto de la persona" (change)="onFotoSeleccionada($event)" />
         </label>
         @if (fotoPreviewUrl() || (!quitarFotoExistente && fotoExistenteUrl())) {
           <button type="button" class="persona-foto-quitar" (click)="quitarFoto()">Quitar foto</button>
+        } @else {
+          <span class="persona-foto-ayuda">Foto (opcional)</span>
         }
       </div>
+      @if (v.error('foto'); as e) { <p class="texto-error-campo persona-foto-error">{{ e }}</p> }
 
       <ion-list lines="inset">
-        <ion-item>
+        <ion-item [class.campo-invalido]="v.error('nombres')">
           <ion-input
-            label="Nombres"
+            label="Nombres *"
             labelPlacement="floating"
             [(ngModel)]="nombres"
             name="nombres"
             [pattern]="patronNombre"
-            required
+            maxlength="80"
+            (ngModelChange)="v.revalidar('nombres')"
+            (ionBlur)="v.campo('nombres')"
           ></ion-input>
         </ion-item>
-        <ion-item>
+        @if (v.error('nombres'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        <ion-item [class.campo-invalido]="v.error('apellidos')">
           <ion-input
-            label="Apellidos"
+            label="Apellidos *"
             labelPlacement="floating"
             [(ngModel)]="apellidos"
             name="apellidos"
             [pattern]="patronNombre"
-            required
+            maxlength="80"
+            (ngModelChange)="v.revalidar('apellidos')"
+            (ionBlur)="v.campo('apellidos')"
           ></ion-input>
         </ion-item>
-        <p class="texto-ayuda persona-ayuda">Solo letras y espacios, sin números ni símbolos.</p>
-        <ion-item>
+        @if (v.error('apellidos'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        <ion-item [class.campo-invalido]="v.error('fechaNacimiento')">
           <ion-input
-            label="Fecha de nacimiento"
+            label="Fecha de nacimiento *"
             labelPlacement="floating"
             type="date"
             [max]="hoyISO"
             [(ngModel)]="fechaNacimiento"
             name="fechaNacimiento"
-            required
+            (ngModelChange)="v.revalidar('fechaNacimiento')"
+            (ionBlur)="v.campo('fechaNacimiento')"
           ></ion-input>
         </ion-item>
-        <ion-item lines="none">
-          <ion-select label="Sexo" labelPlacement="floating" [(ngModel)]="sexo" name="sexo">
+        @if (v.error('fechaNacimiento'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        <ion-item [class.campo-invalido]="v.error('sexo')">
+          <ion-select label="Sexo *" labelPlacement="floating" [(ngModel)]="sexo" name="sexo" (ngModelChange)="v.campo('sexo')">
             <ion-select-option value="femenino">Femenino</ion-select-option>
             <ion-select-option value="masculino">Masculino</ion-select-option>
             <ion-select-option value="otro">Otro</ion-select-option>
           </ion-select>
         </ion-item>
+        @if (v.error('sexo'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        <ion-item lines="none" [class.campo-invalido]="v.error('nacionalidad')">
+          <ion-input
+            label="Nacionalidad"
+            labelPlacement="floating"
+            [(ngModel)]="nacionalidad"
+            name="nacionalidad"
+            maxlength="40"
+            (ngModelChange)="v.revalidar('nacionalidad')"
+            (ionBlur)="v.campo('nacionalidad')"
+          ></ion-input>
+        </ion-item>
+        @if (v.error('nacionalidad'); as e) { <p class="texto-error-campo">{{ e }}</p> }
       </ion-list>
     </section>
 
     <section class="form-tarjeta">
-      <p class="form-tarjeta__titulo">Dirección</p>
-      <p class="texto-ayuda persona-ayuda">Opcional — útil si alguna vez hay que indicarle a una ambulancia dónde ir.</p>
+      <p class="form-tarjeta__titulo">Contacto</p>
       <ion-list lines="inset">
-        <ion-item>
-          <ion-input label="Dirección" labelPlacement="floating" [(ngModel)]="direccion" name="direccion"></ion-input>
+        <ion-item [class.campo-invalido]="v.error('telefono')">
+          <ion-input
+            [label]="telefonoObligatorio ? 'Teléfono *' : 'Teléfono'"
+            labelPlacement="floating"
+            type="tel"
+            inputmode="tel"
+            placeholder="+56 9 1234 5678"
+            [pattern]="patronTelefono"
+            [(ngModel)]="telefono"
+            name="telefono"
+            (ngModelChange)="v.revalidar('telefono')"
+            (ionBlur)="v.campo('telefono')"
+          ></ion-input>
         </ion-item>
-        <ion-item lines="none">
-          <ion-input label="Comuna" labelPlacement="floating" [(ngModel)]="comuna" name="comuna"></ion-input>
+        @if (v.error('telefono'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        @if (!telefonoObligatorio) {
+          <p class="texto-ayuda persona-ayuda">Opcional para un menor: se le ubica por su contacto de emergencia.</p>
+        }
+        <ion-item lines="none" [class.campo-invalido]="v.error('email')">
+          <ion-input
+            label="Correo electrónico"
+            labelPlacement="floating"
+            type="email"
+            inputmode="email"
+            placeholder="nombre@correo.com"
+            [(ngModel)]="email"
+            name="email"
+            (ngModelChange)="v.revalidar('email')"
+            (ionBlur)="v.campo('email')"
+          ></ion-input>
         </ion-item>
+        @if (v.error('email'); as e) { <p class="texto-error-campo">{{ e }}</p> }
       </ion-list>
     </section>
 
     <section class="form-tarjeta">
-      <p class="form-tarjeta__titulo">Salud crítica</p>
+      <p class="form-tarjeta__titulo">Vivienda</p>
+      <p class="texto-ayuda persona-ayuda">Para indicarle a una ambulancia dónde ir. Nunca se muestra en los QR públicos.</p>
+      <ion-list lines="inset">
+        <ion-item [class.campo-invalido]="v.error('direccion')">
+          <ion-input
+            label="Calle y número *"
+            labelPlacement="floating"
+            [(ngModel)]="direccion"
+            name="direccion"
+            maxlength="120"
+            (ngModelChange)="v.revalidar('direccion')"
+            (ionBlur)="v.campo('direccion')"
+          ></ion-input>
+        </ion-item>
+        @if (v.error('direccion'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        <ion-item [class.campo-invalido]="v.error('direccionDetalle')">
+          <ion-input
+            label="Depto., casa o block"
+            labelPlacement="floating"
+            [(ngModel)]="direccionDetalle"
+            name="direccionDetalle"
+            maxlength="60"
+            (ngModelChange)="v.revalidar('direccionDetalle')"
+            (ionBlur)="v.campo('direccionDetalle')"
+          ></ion-input>
+        </ion-item>
+        @if (v.error('direccionDetalle'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        <ion-item [class.campo-invalido]="v.error('comuna')">
+          <ion-input
+            label="Comuna *"
+            labelPlacement="floating"
+            [(ngModel)]="comuna"
+            name="comuna"
+            maxlength="60"
+            (ngModelChange)="v.revalidar('comuna')"
+            (ionBlur)="v.campo('comuna')"
+          ></ion-input>
+        </ion-item>
+        @if (v.error('comuna'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        <ion-item lines="none" [class.campo-invalido]="v.error('region')">
+          <ion-select label="Región *" labelPlacement="floating" [(ngModel)]="region" name="region" (ngModelChange)="v.campo('region')">
+            @for (r of regiones; track r) {
+              <ion-select-option [value]="r">{{ r }}</ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
+        @if (v.error('region'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      </ion-list>
+    </section>
+
+    <section class="form-tarjeta">
+      <p class="form-tarjeta__titulo">Contacto de emergencia</p>
+      <p class="texto-ayuda persona-ayuda">A quién llamar si a esta persona le pasa algo.</p>
+      <ion-list lines="inset">
+        <ion-item [class.campo-invalido]="v.error('contactoEmergencia')">
+          <ion-input
+            label="Nombre del contacto *"
+            labelPlacement="floating"
+            [(ngModel)]="contactoEmergencia"
+            name="contactoEmergencia"
+            [pattern]="patronNombre"
+            maxlength="80"
+            (ngModelChange)="v.revalidar('contactoEmergencia')"
+            (ionBlur)="v.campo('contactoEmergencia')"
+          ></ion-input>
+        </ion-item>
+        @if (v.error('contactoEmergencia'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        <ion-item [class.campo-invalido]="v.error('contactoEmergenciaParentesco')">
+          <ion-select
+            label="Parentesco *"
+            labelPlacement="floating"
+            [(ngModel)]="contactoEmergenciaParentesco"
+            name="contactoEmergenciaParentesco"
+            (ngModelChange)="v.campo('contactoEmergenciaParentesco')"
+          >
+            @for (p of parentescos; track p) {
+              <ion-select-option [value]="p">{{ p }}</ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
+        @if (v.error('contactoEmergenciaParentesco'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        <ion-item lines="none" [class.campo-invalido]="v.error('telefonoEmergencia')">
+          <ion-input
+            label="Teléfono del contacto *"
+            labelPlacement="floating"
+            type="tel"
+            inputmode="tel"
+            placeholder="+56 9 1234 5678"
+            [pattern]="patronTelefono"
+            [(ngModel)]="telefonoEmergencia"
+            name="telefonoEmergencia"
+            (ngModelChange)="v.revalidar('telefonoEmergencia')"
+            (ionBlur)="v.campo('telefonoEmergencia')"
+          ></ion-input>
+        </ion-item>
+        @if (v.error('telefonoEmergencia'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      </ion-list>
+    </section>
+
+    <section class="form-tarjeta">
+      <p class="form-tarjeta__titulo">Salud urgente</p>
       <p class="texto-ayuda persona-ayuda">
-        Todo lo que un médico o paramédico necesitaría saber de urgencia, sin tener que adivinarlo.
+        Lo que un médico o paramédico necesitaría saber de urgencia. Si no sabes algo, déjalo en blanco y complétalo después.
       </p>
       <ion-list lines="inset">
         <ion-item>
@@ -146,81 +320,152 @@
             }
           </ion-select>
         </ion-item>
-        <ion-item>
-          <ion-textarea label="Alergias (separadas por coma)" labelPlacement="floating" [(ngModel)]="alergiasTexto" name="alergias" autoGrow></ion-textarea>
+        <ion-item [class.campo-invalido]="v.error('alergias')">
+          <ion-textarea
+            label="Alergias (separadas por coma)"
+            labelPlacement="floating"
+            [(ngModel)]="alergiasTexto"
+            name="alergias"
+            autoGrow
+            (ngModelChange)="v.revalidar('alergias')"
+            (ionBlur)="v.campo('alergias')"
+          ></ion-textarea>
         </ion-item>
-        <ion-item>
-          <ion-textarea label="Enfermedades crónicas (separadas por coma)" labelPlacement="floating" [(ngModel)]="enfermedadesTexto" name="enfermedades" autoGrow></ion-textarea>
+        @if (v.error('alergias'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        <ion-item [class.campo-invalido]="v.error('enfermedades')">
+          <ion-textarea
+            label="Enfermedades crónicas (separadas por coma)"
+            labelPlacement="floating"
+            [(ngModel)]="enfermedadesTexto"
+            name="enfermedades"
+            autoGrow
+            (ngModelChange)="v.revalidar('enfermedades')"
+            (ionBlur)="v.campo('enfermedades')"
+          ></ion-textarea>
         </ion-item>
-        <ion-item>
-          <ion-textarea label="Medicamentos permanentes (separados por coma)" labelPlacement="floating" [(ngModel)]="medicamentosTexto" name="medicamentos" autoGrow></ion-textarea>
+        @if (v.error('enfermedades'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        <ion-item [class.campo-invalido]="v.error('medicamentos')">
+          <ion-textarea
+            label="Medicamentos permanentes (separados por coma)"
+            labelPlacement="floating"
+            [(ngModel)]="medicamentosTexto"
+            name="medicamentos"
+            autoGrow
+            (ngModelChange)="v.revalidar('medicamentos')"
+            (ionBlur)="v.campo('medicamentos')"
+          ></ion-textarea>
         </ion-item>
-        <ion-item>
-          <ion-input label="Peso (kg)" labelPlacement="floating" type="number" inputmode="decimal" min="0.5" max="300" [(ngModel)]="pesoKg" name="pesoKg"></ion-input>
+        @if (v.error('medicamentos'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        <ion-item [class.campo-invalido]="v.error('pesoKg')">
+          <ion-input
+            label="Peso (kg)"
+            labelPlacement="floating"
+            type="number"
+            inputmode="decimal"
+            min="0.5"
+            max="300"
+            [(ngModel)]="pesoKg"
+            name="pesoKg"
+            (ngModelChange)="v.revalidar('pesoKg')"
+            (ionBlur)="v.campo('pesoKg')"
+          ></ion-input>
         </ion-item>
-        <ion-item>
-          <ion-input label="Estatura (cm)" labelPlacement="floating" type="number" inputmode="numeric" min="20" max="250" [(ngModel)]="estaturaCm" name="estaturaCm"></ion-input>
+        @if (v.error('pesoKg'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        <ion-item [class.campo-invalido]="v.error('estaturaCm')">
+          <ion-input
+            label="Estatura (cm)"
+            labelPlacement="floating"
+            type="number"
+            inputmode="numeric"
+            min="20"
+            max="250"
+            [(ngModel)]="estaturaCm"
+            name="estaturaCm"
+            (ngModelChange)="v.revalidar('estaturaCm')"
+            (ionBlur)="v.campo('estaturaCm')"
+          ></ion-input>
         </ion-item>
-        <ion-item>
-          <ion-textarea label="Dispositivos médicos (marcapasos, prótesis, implantes...)" labelPlacement="floating" [(ngModel)]="dispositivosMedicosTexto" name="dispositivosMedicos" autoGrow></ion-textarea>
+        @if (v.error('estaturaCm'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        <ion-item [class.campo-invalido]="v.error('dispositivosMedicos')">
+          <ion-textarea
+            label="Dispositivos médicos (marcapasos, prótesis, implantes...)"
+            labelPlacement="floating"
+            [(ngModel)]="dispositivosMedicosTexto"
+            name="dispositivosMedicos"
+            autoGrow
+            (ngModelChange)="v.revalidar('dispositivosMedicos')"
+            (ionBlur)="v.campo('dispositivosMedicos')"
+          ></ion-textarea>
         </ion-item>
+        @if (v.error('dispositivosMedicos'); as e) { <p class="texto-error-campo">{{ e }}</p> }
         <ion-item>
           <ion-toggle labelPlacement="start" [(ngModel)]="donanteOrganos" name="donanteOrganos">Donante de órganos</ion-toggle>
         </ion-item>
-        <ion-item lines="none">
-          <ion-textarea label="Otras notas relevantes en una urgencia" labelPlacement="floating" [(ngModel)]="notasEmergencia" name="notasEmergencia" autoGrow></ion-textarea>
+        <ion-item lines="none" [class.campo-invalido]="v.error('notasEmergencia')">
+          <ion-textarea
+            label="Otras notas relevantes en una urgencia"
+            labelPlacement="floating"
+            [(ngModel)]="notasEmergencia"
+            name="notasEmergencia"
+            autoGrow
+            (ngModelChange)="v.revalidar('notasEmergencia')"
+            (ionBlur)="v.campo('notasEmergencia')"
+          ></ion-textarea>
         </ion-item>
+        @if (v.error('notasEmergencia'); as e) { <p class="texto-error-campo">{{ e }}</p> }
       </ion-list>
     </section>
 
     <section class="form-tarjeta">
       <p class="form-tarjeta__titulo">Previsión y médico tratante</p>
       <ion-list lines="inset">
-        <ion-item>
-          <ion-input label="Previsión de salud (ej. Fonasa, Isapre Banmédica)" labelPlacement="floating" [(ngModel)]="prevision" name="prevision"></ion-input>
+        <ion-item [class.campo-invalido]="v.error('prevision')">
+          <ion-input
+            label="Previsión de salud (ej. Fonasa, Isapre Banmédica)"
+            labelPlacement="floating"
+            [(ngModel)]="prevision"
+            name="prevision"
+            maxlength="60"
+            (ngModelChange)="v.revalidar('prevision')"
+            (ionBlur)="v.campo('prevision')"
+          ></ion-input>
         </ion-item>
-        <ion-item>
-          <ion-input label="Médico tratante" labelPlacement="floating" [(ngModel)]="medicoTratante" name="medicoTratante"></ion-input>
+        @if (v.error('prevision'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        <ion-item [class.campo-invalido]="v.error('medicoTratante')">
+          <ion-input
+            label="Médico tratante"
+            labelPlacement="floating"
+            [(ngModel)]="medicoTratante"
+            name="medicoTratante"
+            maxlength="80"
+            (ngModelChange)="v.revalidar('medicoTratante')"
+            (ionBlur)="v.campo('medicoTratante')"
+          ></ion-input>
         </ion-item>
-        <ion-item lines="none">
+        @if (v.error('medicoTratante'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        <ion-item lines="none" [class.campo-invalido]="v.error('telefonoMedicoTratante')">
           <ion-input
             label="Teléfono del médico tratante"
             labelPlacement="floating"
             type="tel"
+            inputmode="tel"
             placeholder="+56 9 1234 5678"
             [pattern]="patronTelefono"
             [(ngModel)]="telefonoMedicoTratante"
             name="telefonoMedicoTratante"
+            (ngModelChange)="v.revalidar('telefonoMedicoTratante')"
+            (ionBlur)="v.campo('telefonoMedicoTratante')"
           ></ion-input>
         </ion-item>
-      </ion-list>
-    </section>
-
-    <section class="form-tarjeta">
-      <p class="form-tarjeta__titulo">Contacto de emergencia</p>
-      <ion-list lines="inset">
-        <ion-item>
-          <ion-input label="Nombre del contacto" labelPlacement="floating" [(ngModel)]="contactoEmergencia" name="contactoEmergencia"></ion-input>
-        </ion-item>
-        <ion-item lines="none">
-          <ion-input
-            label="Teléfono"
-            labelPlacement="floating"
-            type="tel"
-            placeholder="+56 9 1234 5678"
-            [pattern]="patronTelefono"
-            [(ngModel)]="telefonoEmergencia"
-            name="telefonoEmergencia"
-          ></ion-input>
-        </ion-item>
+        @if (v.error('telefonoMedicoTratante'); as e) { <p class="texto-error-campo">{{ e }}</p> }
       </ion-list>
     </section>
 
     @if (error()) {
-      <p class="texto-error">{{ error() }}</p>
+      <p class="texto-error" role="alert">{{ error() }}</p>
     }
 
-    <ion-button expand="block" type="submit" class="form-boton-principal" [disabled]="guardando() || !nombres || (!personaId && !relacion)">
+    <ion-button expand="block" type="submit" class="form-boton-principal" [disabled]="guardando()">
       Guardar
     </ion-button>
   </form>

@@ -24,22 +24,27 @@
 
       <section class="form-tarjeta">
         <ion-list lines="inset">
-          <ion-item>
+          <ion-item [class.campo-invalido]="v.error('condicion')">
             <ion-input
               label="Condición relevante (una frase)"
               labelPlacement="floating"
               placeholder="Ej. Tiene Alzheimer, por favor llamar a su familiar"
+              maxlength="140"
+              [counter]="true"
               [(ngModel)]="condicionPerdida"
               name="condicion"
+              (ngModelChange)="v.revalidar('condicion')"
               (ionBlur)="guardar()"
             ></ion-input>
           </ion-item>
+          @if (v.error('condicion'); as e) { <p class="texto-error-campo">{{ e }}</p> }
           <ion-item lines="none">
-            <input type="file" accept="image/*" capture="environment" (change)="onFotoSeleccionada($event)" />
+            <input type="file" accept="image/*" capture="environment" aria-label="Foto para el QR de pérdida" (change)="onFotoSeleccionada($event)" />
             @if (subiendoFoto()) {
               <ion-spinner name="dots"></ion-spinner>
             }
           </ion-item>
+          @if (v.error('foto'); as e) { <p class="texto-error-campo">{{ e }}</p> }
         </ion-list>
         @if (persona()?.fotoUrl) {
           <img class="foto-preview" [src]="persona()?.fotoUrl" alt="" />

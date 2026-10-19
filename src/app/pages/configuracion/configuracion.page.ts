@@ -7,6 +7,7 @@ import { BiometriaService } from '../../core/biometria.service';
 import { BloqueoService } from '../../core/bloqueo.service';
 import { NotificacionesService } from '../../core/notificaciones.service';
 import { ThemeService, type ModoColor, type TamanoFuente } from '../../core/theme.service';
+import { PersonasService } from '../../services/personas.service';
 import { FlorIconoComponent } from '../../shared/flor-icono/flor-icono.component';
 import { PinPadComponent } from '../../shared/pin-pad/pin-pad.component';
 
@@ -37,6 +38,21 @@ export class ConfiguracionPage {
   biometriaSvc = inject(BiometriaService);
   private router = inject(Router);
   private alertCtrl = inject(AlertController);
+
+  private personasSvc = inject(PersonasService);
+
+  /** Persona "yo mismo/a" de la cuenta: undefined mientras carga, null si todavía no existe. */
+  readonly idYoMismo = signal<string | null | undefined>(undefined);
+
+  constructor() {
+    const uid = this.auth.uidActual;
+    if (uid) {
+      this.personasSvc
+        .idYoMismo(uid)
+        .then((id) => this.idYoMismo.set(id))
+        .catch(() => this.idYoMismo.set(null));
+    }
+  }
 
   readonly modalPinAbierto = signal(false);
   readonly pasoPin = signal<PasoPin>('crear');
