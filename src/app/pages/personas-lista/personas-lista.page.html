@@ -7,6 +7,15 @@
   </div>
 
   <div class="personas-cuerpo">
+    <a class="personas-pin" routerLink="/canjear-pin">
+      <ion-icon name="key-outline"></ion-icon>
+      <span>
+        <strong>¿Te compartieron un perfil?</strong>
+        <span>Ingresa el PIN que te enviaron para verlo aquí.</span>
+      </span>
+      <ion-icon name="chevron-forward-outline" class="personas-pin__flecha"></ion-icon>
+    </a>
+
     @if ((personas$ | async); as personas) {
       @if (personas.length === 0) {
         <p class="personas-vacio">Todavía no agregaste a nadie. Toca el botón "+" para empezar.</p>

@@ -13,6 +13,7 @@ import { doc, getDoc, serverTimestamp, setDoc, writeBatch } from 'firebase/fires
 import { auth, db } from './firebase';
 import { normalizarRut, validarRut } from './rut';
 import type { Usuario } from '../models';
+import { ULTIMA_ACTUALIZACION } from '../pages/legal/contenido-legal';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -31,6 +32,40 @@ export class AuthService {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(cred.user, { displayName: nombre });
     await this.crearUsuarioFirestoreSiNoExiste(cred.user.uid, email, nombre);
+    // El formulario de registro ya exigió marcar ambas casillas (login.page).
+    await this.registrarConsentimiento();
+  }
+
+  /**
+   * Consentimiento expreso a los Términos y a la Política de Privacidad
+   * (incluye el tratamiento de datos de salud, que la Ley 19.628 trata como
+   * datos sensibles). Se guarda la fecha y la versión de los textos aceptados,
+   * para poder demostrar qué aceptó cada cuenta y cuándo.
+   */
+  async registrarConsentimiento(): Promise<void> {
+    const user = auth.currentUser;
+    if (!user) throw new Error('sin-sesion');
+    await setDoc(
+      doc(db, 'usuarios', user.uid),
+      {
+        consentimientos: {
+          version: ULTIMA_ACTUALIZACION,
+          terminosAceptadosEn: serverTimestamp(),
+          privacidadAceptadaEn: serverTimestamp(),
+        },
+      },
+      { merge: true }
+    );
+  }
+
+  /** La cuenta aceptó la versión vigente de los textos legales. */
+  static consentimientoVigente(usuario: Usuario | undefined): boolean {
+    return usuario?.consentimientos?.version === ULTIMA_ACTUALIZACION;
+  }
+
+  /** Falta algún paso obligatorio del alta (RUT o consentimiento) → completar-registro. */
+  static registroIncompleto(usuario: Usuario | undefined): boolean {
+    return !usuario?.rut || !AuthService.consentimientoVigente(usuario);
   }
 
   async login(email: string, password: string): Promise<void> {

@@ -86,6 +86,7 @@
       }
     }
 
+    <div class="columnas-tarjetas">
     <section class="form-tarjeta">
       <p class="form-tarjeta__titulo">Identificación</p>
 
@@ -305,6 +306,65 @@
         </ion-item>
         @if (v.error('telefonoEmergencia'); as e) { <p class="texto-error-campo">{{ e }}</p> }
       </ion-list>
+
+      @for (c of contactosExtra; track $index; let i = $index) {
+        <div class="persona-contacto-extra">
+          <div class="persona-contacto-extra__encabezado">
+            <p class="form-tarjeta__titulo">Contacto {{ i + 2 }}</p>
+            <button type="button" class="persona-contacto-extra__quitar" (click)="quitarContacto(i)" [attr.aria-label]="'Quitar contacto ' + (i + 2)">
+              <ion-icon name="trash-outline"></ion-icon>
+              Quitar
+            </button>
+          </div>
+          <ion-list lines="inset">
+            <ion-item [class.campo-invalido]="v.error('contactosExtra') && errorContactoExtra(i)">
+              <ion-input
+                label="Nombre *"
+                labelPlacement="floating"
+                [pattern]="patronNombre"
+                maxlength="80"
+                [(ngModel)]="c.nombre"
+                [name]="'extra-nombre-' + i"
+                (ngModelChange)="v.revalidar('contactosExtra')"
+              ></ion-input>
+            </ion-item>
+            <ion-item [class.campo-invalido]="v.error('contactosExtra') && errorContactoExtra(i)">
+              <ion-select
+                label="Parentesco *"
+                labelPlacement="floating"
+                [(ngModel)]="c.parentesco"
+                [name]="'extra-parentesco-' + i"
+                (ngModelChange)="v.revalidar('contactosExtra')"
+              >
+                @for (p of parentescos; track p) {
+                  <ion-select-option [value]="p">{{ p }}</ion-select-option>
+                }
+              </ion-select>
+            </ion-item>
+            <ion-item lines="none" [class.campo-invalido]="v.error('contactosExtra') && errorContactoExtra(i)">
+              <ion-input
+                label="Teléfono *"
+                labelPlacement="floating"
+                type="tel"
+                inputmode="tel"
+                placeholder="+56 9 1234 5678"
+                [pattern]="patronTelefono"
+                [(ngModel)]="c.telefono"
+                [name]="'extra-telefono-' + i"
+                (ngModelChange)="v.revalidar('contactosExtra')"
+              ></ion-input>
+            </ion-item>
+            @if (v.error('contactosExtra') && errorContactoExtra(i); as e) { <p class="texto-error-campo">{{ e }}</p> }
+          </ion-list>
+        </div>
+      }
+
+      @if (contactosExtra.length < maxContactosExtra) {
+        <button type="button" class="persona-agregar-contacto" (click)="agregarContacto()">
+          <ion-icon name="add-outline"></ion-icon>
+          Agregar otro contacto de emergencia
+        </button>
+      }
     </section>
 
     <section class="form-tarjeta">
@@ -401,6 +461,14 @@
         <ion-item>
           <ion-toggle labelPlacement="start" [(ngModel)]="donanteOrganos" name="donanteOrganos">Donante de órganos</ion-toggle>
         </ion-item>
+        <ion-item>
+          <ion-toggle labelPlacement="start" [(ngModel)]="requiereQrPerdida" name="requiereQrPerdida">
+            <span class="persona-toggle-texto">
+              Necesita QR de pérdida
+              <span>Alzheimer, demencia u otra condición que pueda desorientarla o hacer que se pierda.</span>
+            </span>
+          </ion-toggle>
+        </ion-item>
         <ion-item lines="none" [class.campo-invalido]="v.error('notasEmergencia')">
           <ion-textarea
             label="Otras notas relevantes en una urgencia"
@@ -460,6 +528,7 @@
         @if (v.error('telefonoMedicoTratante'); as e) { <p class="texto-error-campo">{{ e }}</p> }
       </ion-list>
     </section>
+    </div>
 
     @if (error()) {
       <p class="texto-error" role="alert">{{ error() }}</p>

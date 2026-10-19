@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import {
   DocumentData,
   UpdateData,
+  Timestamp,
   collection,
   deleteDoc,
   doc,
@@ -11,6 +12,7 @@ import {
   or,
   query,
   serverTimestamp,
+  setDoc,
   updateDoc,
   where,
   writeBatch,
@@ -21,7 +23,7 @@ import { normalizarRut, validarRut } from '../core/rut';
 import { db, functions } from '../core/firebase';
 import { docData$ } from '../core/firestore-collection';
 import { generarPin6, generarToken } from '../core/random';
-import type { Persona, RelacionPersona } from '../models';
+import type { PinAcceso, Persona, RelacionPersona } from '../models';
 
 type DatosPersonaNueva = Omit<Persona, 'id' | 'uidTitular' | 'relacion' | 'rut'>;
 
@@ -143,7 +145,7 @@ export class PersonasService {
   }
 
   async buscarPorTokenFicha(token: string): Promise<Persona | undefined> {
-    return this.buscarPorToken('qrFichaToken', token);
+    return this.fichaPublica(token, 'emergencia');
   }
 
   /** Genera (o regenera) el token permanente usado por el QR de pérdida /ficha-perdida/:token (sección 4.6) */
@@ -152,7 +154,17 @@ export class PersonasService {
   }
 
   async buscarPorTokenPerdida(token: string): Promise<Persona | undefined> {
-    return this.buscarPorToken('qrPerdidaToken', token);
+    return this.fichaPublica(token, 'perdida');
+  }
+
+  /**
+   * Vista pública de un QR, sin login (Cloud Function fichaPublica): devuelve
+   * solo los campos marcados como públicos — nunca el documento completo.
+   */
+  private async fichaPublica(token: string, tipo: 'emergencia' | 'perdida'): Promise<Persona | undefined> {
+    const llamada = httpsCallable<{ token: string; tipo: string }, { persona: Persona | null }>(functions, 'fichaPublica');
+    const { data } = await llamada({ token, tipo });
+    return data.persona ?? undefined;
   }
 
   private async asegurarToken(personaId: string, campo: 'qrFichaToken' | 'qrPerdidaToken'): Promise<string> {
@@ -163,26 +175,70 @@ export class PersonasService {
     return token;
   }
 
-  private async buscarPorToken(
-    campo: 'qrFichaToken' | 'qrPerdidaToken',
-    token: string
-  ): Promise<Persona | undefined> {
-    const q = query(collection(db, 'personas'), where(campo, '==', token));
-    const snap = await getDocs(q);
-    if (snap.empty) return undefined;
-    const d = snap.docs[0];
-    return { id: d.id, ...d.data() } as Persona;
+  /** PIN vigente de una Persona (el titular solo tiene uno a la vez), o null. */
+  async pinVigente(personaId: string, uidTitular: string): Promise<PinAcceso | null> {
+    const snap = await getDocs(
+      query(collection(db, 'pinesAcceso'), where('personaId', '==', personaId), where('uidTitular', '==', uidTitular))
+    );
+    const ahora = Date.now();
+    const vigentes = snap.docs
+      .map((d) => this.aPin(d.id, d.data()))
+      .filter((p) => p.expiraEn.getTime() > ahora && p.usos < p.usosMax);
+    return vigentes[0] ?? null;
   }
 
-  /** Genera un PIN de 6 dígitos para compartir el perfil (sección 6 del spec). */
-  async generarPinCompartido(personaId: string, modo: 'lectura' | 'escritura' = 'lectura'): Promise<string> {
-    const pin = generarPin6();
-    await updateDoc(doc(db, 'personas', personaId), {
-      pinAccesoCompartido: pin,
-      pinGeneradoEn: serverTimestamp(),
-      modoAccesoCompartido: modo,
-    });
-    return pin;
+  /**
+   * Genera un PIN nuevo con vencimiento y límite de usos (pedido explícito,
+   * por seguridad) y revoca los anteriores de esa Persona. El id del doc es
+   * el PIN: si choca con uno vigente de otra cuenta, las reglas rechazan el
+   * create y se prueba con otro número.
+   */
+  async crearPin(
+    personaId: string,
+    uidTitular: string,
+    opciones: { modo: 'lectura' | 'escritura'; horas: number; usosMax: number }
+  ): Promise<PinAcceso> {
+    const anteriores = await getDocs(
+      query(collection(db, 'pinesAcceso'), where('personaId', '==', personaId), where('uidTitular', '==', uidTitular))
+    );
+    await Promise.all(anteriores.docs.map((d) => deleteDoc(d.ref)));
+
+    const expiraEn = new Date(Date.now() + opciones.horas * 60 * 60 * 1000);
+    for (let intento = 0; intento < 4; intento++) {
+      const pin = generarPin6();
+      try {
+        await setDoc(doc(db, 'pinesAcceso', pin), {
+          personaId,
+          uidTitular,
+          modo: opciones.modo,
+          usosMax: opciones.usosMax,
+          usos: 0,
+          expiraEn: Timestamp.fromDate(expiraEn),
+          creadoEn: serverTimestamp(),
+        });
+        return { pin, personaId, uidTitular, modo: opciones.modo, usosMax: opciones.usosMax, usos: 0, expiraEn };
+      } catch {
+        // PIN ya en uso por otra Persona: se intenta con otro.
+      }
+    }
+    throw new Error('pin-no-generado');
+  }
+
+  async revocarPin(pin: string): Promise<void> {
+    await deleteDoc(doc(db, 'pinesAcceso', pin));
+  }
+
+  private aPin(pin: string, d: DocumentData): PinAcceso {
+    const expira = d['expiraEn'];
+    return {
+      pin,
+      personaId: d['personaId'],
+      uidTitular: d['uidTitular'],
+      modo: d['modo'],
+      usosMax: d['usosMax'] ?? 1,
+      usos: d['usos'] ?? 0,
+      expiraEn: expira instanceof Timestamp ? expira.toDate() : new Date(0),
+    };
   }
 
   /**

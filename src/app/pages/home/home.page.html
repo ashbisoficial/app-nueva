@@ -9,6 +9,7 @@
   </div>
 
   <div class="home-cuerpo">
+    <div class="home-principal">
     @if ((sinDatosPropios$ | async) === true) {
       <a class="home-completar" routerLink="/personas/nueva">
         <span class="home-completar__icono">
@@ -49,11 +50,6 @@
       </button>
     </div>
 
-    <button class="home-enlace-pin" routerLink="/canjear-pin">
-      <ion-icon name="key-outline"></ion-icon>
-      Tengo un PIN de acceso compartido
-    </button>
-
     <section class="home-seccion">
       <p class="home-seccion__titulo">Próximos días</p>
       @if ((eventos$ | async); as eventos) {
@@ -68,7 +64,10 @@
                 </span>
                 <span class="home-evento__texto">
                   <span class="home-evento__titulo">{{ ev.titulo }}</span>
-                  <span class="home-evento__fecha">{{ ev.fecha | date: 'medium' }} @if (ev.personaNombre) { · {{ ev.personaNombre }} }</span>
+                  <span class="home-evento__fecha">
+                    {{ ev.fecha | date: (ev.tipo === 'cita' ? "EEE d 'de' MMM, HH:mm" : "EEE d 'de' MMM") }}
+                    @if (ev.personaNombre) { · {{ ev.personaNombre }} }
+                  </span>
                 </span>
                 <ion-icon name="chevron-forward-outline" class="home-evento__flecha"></ion-icon>
               </a>
@@ -77,8 +76,10 @@
         }
       }
     </section>
+    </div>
 
-    <section class="home-seccion">
+    <aside class="home-lateral">
+    <section class="home-seccion home-seccion--personas">
       <p class="home-seccion__titulo">Mis personas</p>
       @if ((personas$ | async); as personas) {
         @if (personas.length === 0) {
@@ -112,5 +113,11 @@
         }
       }
     </section>
+
+    <button class="home-enlace-pin" routerLink="/canjear-pin">
+      <ion-icon name="key-outline"></ion-icon>
+      Tengo un PIN de acceso compartido
+    </button>
+    </aside>
   </div>
 </ion-content>

@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { DomSanitizer, type SafeResourceUrl } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import {
@@ -89,6 +90,9 @@ export class FichaPerdidaConfigPage {
 
       if (persona.qrPerdidaCamposPublicos?.length) {
         this.seleccionados.set(persona.qrPerdidaCamposPublicos);
+      } else {
+        // Igual que en el carnet: persistir la selección por defecto para que el QR muestre algo desde el inicio.
+        await this.personasSvc.actualizar(this.personaId, { qrPerdidaCamposPublicos: this.seleccionados() });
       }
       this.condicionPerdida = persona.condicionPerdida ?? '';
 
@@ -125,6 +129,7 @@ export class FichaPerdidaConfigPage {
     if (persona) {
       this.persona.set({ ...persona, condicionPerdida: this.condicionPerdida });
     }
+    this.refrescarVista();
   }
 
   async onFotoSeleccionada(event: Event): Promise<void> {
@@ -143,6 +148,7 @@ export class FichaPerdidaConfigPage {
       await this.personasSvc.actualizar(this.personaId, { fotoUrl });
       const persona = this.persona();
       if (persona) this.persona.set({ ...persona, fotoUrl });
+      this.refrescarVista();
     } catch {
       this.errorSubidaFoto = 'No se pudo subir la foto. Revisa tu conexión e intenta de nuevo.';
       this.v.campo('foto');
@@ -159,7 +165,30 @@ export class FichaPerdidaConfigPage {
     await generarPdfPerdida(persona, qr);
   }
 
-  verComoExtrano(): void {
-    window.open(this.urlPublica(), '_blank');
+  private sanitizer = inject(DomSanitizer);
+  /** Se incrementa al guardar para recargar la vista previa con los datos nuevos. */
+  private versionVista = signal(0);
+  enlaceCopiado = signal(false);
+
+  /** La misma página pública que abre quien escanea el QR, embebida como vista previa. */
+  vistaPrevia = computed<SafeResourceUrl | null>(() => {
+    const url = this.urlPublica();
+    if (!url) return null;
+    const ruta = new URL(url).pathname;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(`${ruta}?vista=${this.versionVista()}`);
+  });
+
+  protected refrescarVista(): void {
+    this.versionVista.update((v) => v + 1);
+  }
+
+  async copiarEnlace(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(this.urlPublica());
+      this.enlaceCopiado.set(true);
+      setTimeout(() => this.enlaceCopiado.set(false), 2000);
+    } catch {
+      window.prompt('Copia este enlace:', this.urlPublica());
+    }
   }
 }

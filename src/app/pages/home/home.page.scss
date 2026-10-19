@@ -25,7 +25,9 @@
     margin: 4px 0 0;
     font-size: 1.55rem;
     font-weight: 700;
-    text-transform: capitalize;
+    &::first-letter {
+      text-transform: uppercase;
+    }
   }
 }
 
@@ -35,7 +37,9 @@
   font-weight: 700;
   color: var(--ion-color-primary);
   letter-spacing: 0.3px;
-  text-transform: capitalize;
+  &::first-letter {
+    text-transform: uppercase;
+  }
 }
 
 .home-cuerpo {
@@ -314,4 +318,89 @@
   align-items: center;
   justify-content: center;
   border: 2px solid var(--ion-background-color);
+}
+
+/* Columnas de Home: en celular se apilan (principal arriba, lateral abajo). */
+.home-principal,
+.home-lateral {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+
+@media (min-width: 600px) {
+  .home-accesos {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/*
+ * Escritorio: lo del día a día (accesos + próximos días) a la izquierda, y
+ * "Mis personas" como columna lateral fija a la derecha, en una tarjeta con
+ * una persona por fila (más fácil de leer que avatares en fila horizontal
+ * cuando hay espacio).
+ */
+@media (min-width: 900px) {
+  .home-encabezado h1 {
+    font-size: 2rem;
+  }
+}
+
+/* Dos columnas solo cuando el lateral no le quita espacio a los 4 accesos (≥1200px). */
+@media (min-width: 1200px) {
+  .home-cuerpo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 28px;
+    align-items: start;
+  }
+
+  .home-lateral {
+    position: sticky;
+    top: 24px;
+    gap: 14px;
+  }
+
+  .home-seccion--personas {
+    background: var(--ion-item-background);
+    border-radius: var(--radio-tarjeta);
+    box-shadow: var(--sombra-suave);
+    padding: 16px 16px 10px;
+  }
+
+  .home-personas {
+    flex-direction: column;
+    gap: 2px;
+    overflow: visible;
+  }
+
+  .home-persona {
+    flex-direction: row;
+    gap: 12px;
+    padding: 8px;
+    margin: 0 -8px;
+    border-radius: var(--radio-campo);
+
+    &:hover {
+      background: var(--ion-color-step-50);
+    }
+  }
+
+  .home-persona__avatar {
+    width: 44px;
+    height: 44px;
+    font-size: 0.95rem;
+  }
+
+  .home-persona__nombre {
+    font-size: 0.92rem;
+    font-weight: 700;
+    text-align: left;
+  }
+
+  .home-enlace-pin {
+    justify-content: flex-start;
+    padding: 4px 2px;
+  }
 }

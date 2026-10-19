@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonBackButton,
   IonButton,
@@ -40,7 +40,7 @@ export class CanjearPinPage {
   private personasSvc = inject(PersonasService);
   private router = inject(Router);
 
-  pin = '';
+  pin = (inject(ActivatedRoute).snapshot.queryParamMap.get('pin') ?? '').replace(/\D/g, '').slice(0, 6);
   cargando = signal(false);
   error = signal<string | null>(null);
 

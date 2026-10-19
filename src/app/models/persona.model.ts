@@ -64,6 +64,12 @@ export interface Persona {
   /** Qué es el contacto de emergencia de esta Persona (ej. "Hija", "Vecino"). */
   contactoEmergenciaParentesco?: string;
   telefonoEmergencia?: string;
+  /**
+   * Contactos de emergencia además del principal (pedido explícito). El
+   * principal sigue en los tres campos de arriba porque es el que muestran
+   * el carnet, el QR de pérdida y el PDF; estos se ven dentro de la app.
+   */
+  contactosEmergenciaAdicionales?: ContactoEmergencia[];
 
   // Carnet de emergencia (dato médico, para un médico)
   qrFichaToken?: string;
@@ -74,6 +80,13 @@ export interface Persona {
   qrPerdidaCamposPublicos?: CampoFichaPerdida[];
   /** Frase corta para quien encuentre a la persona, ej. "Tiene Alzheimer, por favor llamar a su familiar". */
   condicionPerdida?: string;
+  /**
+   * La Persona necesita QR de pérdida (Alzheimer, demencia u otra condición
+   * que pueda desorientarla). Pedido explícito: para alguien que no lo
+   * necesita el módulo no aporta nada, así que solo aparece si esto está
+   * activo (o si ya se había configurado antes, ver persona-detalle).
+   */
+  requiereQrPerdida?: boolean;
 
   pinAccesoCompartido?: string;
   pinGeneradoEn?: unknown;
@@ -106,5 +119,26 @@ export type CampoFichaPublica =
   | 'notasEmergencia'
   | 'contactoEmergencia'
   | 'telefonoEmergencia';
+
+/**
+ * pinesAcceso/{pin} — PIN de acceso compartido (sección 6). Solo lo lee el
+ * titular que lo generó; el canje lo hace la Cloud Function canjearPin.
+ */
+export interface PinAcceso {
+  pin: string;
+  personaId: string;
+  uidTitular: string;
+  modo: 'lectura' | 'escritura';
+  usosMax: number;
+  usos: number;
+  expiraEn: Date;
+  creadoEn?: unknown;
+}
+
+export interface ContactoEmergencia {
+  nombre: string;
+  parentesco: string;
+  telefono: string;
+}
 
 export type CampoFichaPerdida = 'nombre' | 'fotoUrl' | 'condicionPerdida' | 'contactoEmergencia' | 'telefonoEmergencia';

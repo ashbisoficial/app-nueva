@@ -11,7 +11,9 @@ import {
   IonIcon,
   IonTitle,
   IonToolbar,
+  ModalController,
 } from '@ionic/angular';
+import { CompartirPinComponent } from '../../shared/compartir-pin/compartir-pin.component';
 import { switchMap } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { calcularEdad } from '../../core/edad';
@@ -55,6 +57,7 @@ export class PersonaDatosPage {
   private auth = inject(AuthService);
   private personasSvc = inject(PersonasService);
   private alertCtrl = inject(AlertController);
+  private modalCtrl = inject(ModalController);
 
   personaId = this.route.snapshot.paramMap.get('id') ?? '';
 
@@ -122,6 +125,11 @@ export class PersonaDatosPage {
           { etiqueta: 'Nombre', valor: p.contactoEmergencia ?? '' },
           { etiqueta: 'Parentesco', valor: p.contactoEmergenciaParentesco ?? '' },
           { etiqueta: 'Teléfono', valor: p.telefonoEmergencia ?? '', tel: p.telefonoEmergencia },
+          ...(p.contactosEmergenciaAdicionales ?? []).map((c, i) => ({
+            etiqueta: `Contacto ${i + 2}`,
+            valor: `${c.nombre}${c.parentesco ? ` (${c.parentesco})` : ''} · ${c.telefono}`,
+            tel: c.telefono,
+          })),
         ],
       },
       {
@@ -152,13 +160,12 @@ export class PersonaDatosPage {
   }
 
   async compartirPorPin(): Promise<void> {
-    const pin = await this.personasSvc.generarPinCompartido(this.personaId);
-    const alert = await this.alertCtrl.create({
-      header: 'PIN de acceso compartido',
-      message: `Comparte este código con la persona de confianza: <strong>${pin}</strong>. Lo puede canjear desde "Tengo un PIN" en el inicio. Es de un solo uso por generación: si generas uno nuevo, el anterior deja de servir.`,
-      buttons: ['Listo'],
+    const p = this.persona();
+    const modal = await this.modalCtrl.create({
+      component: CompartirPinComponent,
+      componentProps: { personaId: this.personaId, personaNombre: p ? nombreCompleto(p) : '' },
     });
-    await alert.present();
+    await modal.present();
   }
 
   async confirmarEliminar(): Promise<void> {

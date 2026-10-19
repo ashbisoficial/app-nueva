@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import {
   IonButton,
+  IonCheckbox,
   IonContent,
   IonIcon,
   IonInput,
@@ -30,6 +31,7 @@ import { MENSAJES, ValidacionFormulario, primerError, reglas } from '../../core/
     IonItem,
     IonInput,
     IonButton,
+    IonCheckbox,
     IonIcon,
     IonLabel,
     IonSegment,
@@ -45,6 +47,8 @@ export class LoginPage {
   email = '';
   password = '';
   nombre = '';
+  aceptaTerminos = false;
+  aceptaPrivacidad = false;
   cargando = signal(false);
   error = signal<string | null>(null);
 
@@ -58,6 +62,12 @@ export class LoginPage {
         // Al ingresar no se exige el largo: solo importa al crear la contraseña.
         this.modo() === 'registro' && this.password.length < 6 ? MENSAJES.contrasena : null
       ),
+    terminos: () =>
+      this.modo() === 'registro' && !this.aceptaTerminos ? 'Para crear la cuenta debes aceptar los Términos de Uso.' : null,
+    privacidad: () =>
+      this.modo() === 'registro' && !this.aceptaPrivacidad
+        ? 'Para crear la cuenta debes aceptar la Política de Privacidad y el tratamiento de tus datos.'
+        : null,
   });
 
   constructor(
@@ -106,7 +116,7 @@ export class LoginPage {
   private async navegarSegunRut(): Promise<void> {
     const uid = this.auth.uidActual;
     const usuario = uid ? await this.auth.obtenerUsuario(uid) : undefined;
-    await this.router.navigateByUrl(usuario?.rut ? '/' : '/completar-registro');
+    await this.router.navigateByUrl(AuthService.registroIncompleto(usuario) ? '/completar-registro' : '/');
   }
 
   private mensajeError(e: unknown): string {

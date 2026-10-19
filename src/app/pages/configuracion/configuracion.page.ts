@@ -8,6 +8,9 @@ import { BloqueoService } from '../../core/bloqueo.service';
 import { NotificacionesService } from '../../core/notificaciones.service';
 import { ThemeService, type ModoColor, type TamanoFuente } from '../../core/theme.service';
 import { PersonasService } from '../../services/personas.service';
+import { Capacitor } from '@capacitor/core';
+import { CalendarioService } from '../../core/calendario.service';
+import { PushService } from '../../core/push.service';
 import { FlorIconoComponent } from '../../shared/flor-icono/flor-icono.component';
 import { PinPadComponent } from '../../shared/pin-pad/pin-pad.component';
 
@@ -40,13 +43,27 @@ export class ConfiguracionPage {
   private alertCtrl = inject(AlertController);
 
   private personasSvc = inject(PersonasService);
+  pushSvc = inject(PushService);
+  calendarioSvc = inject(CalendarioService);
+
+  /** Los recordatorios locales solo funcionan en la app instalada; en la web se usan avisos push. */
+  readonly esNativo = Capacitor.isNativePlatform();
+  readonly procesandoPush = signal(false);
+  readonly mensajePush = signal<string | null>(null);
+  readonly calendarioToken = signal<string | null>(null);
+  readonly mensajeCalendario = signal<string | null>(null);
 
   /** Persona "yo mismo/a" de la cuenta: undefined mientras carga, null si todavía no existe. */
   readonly idYoMismo = signal<string | null | undefined>(undefined);
 
   constructor() {
+    void this.pushSvc.inicializar();
     const uid = this.auth.uidActual;
     if (uid) {
+      this.calendarioSvc
+        .tokenActual(uid)
+        .then((t) => this.calendarioToken.set(t))
+        .catch(() => this.calendarioToken.set(null));
       this.personasSvc
         .idYoMismo(uid)
         .then((id) => this.idYoMismo.set(id))
@@ -85,6 +102,89 @@ export class ConfiguracionPage {
 
   async elegirNotificacionesLocales(activas: boolean): Promise<void> {
     await this.notificacionesSvc.elegirLocalesActivas(activas, this.auth.uidActual);
+  }
+
+  async elegirPush(activar: boolean): Promise<void> {
+    const uid = this.auth.uidActual;
+    if (!uid || activar === (this.pushSvc.estado() === 'activo')) return;
+    this.mensajePush.set(null);
+    this.procesandoPush.set(true);
+    try {
+      if (activar) {
+        await this.pushSvc.activar(uid);
+        this.mensajePush.set('Listo: este dispositivo va a recibir los avisos. Puedes enviar una prueba.');
+      } else {
+        await this.pushSvc.desactivar(uid);
+      }
+    } catch (e) {
+      const codigo = (e as Error).message;
+      if (codigo === 'permiso-no-otorgado') {
+        this.mensajePush.set('No se activaron: hay que tocar "Permitir" cuando el navegador lo pregunte.');
+      } else if (codigo !== 'permiso-bloqueado') {
+        this.mensajePush.set('No se pudieron activar las notificaciones en este dispositivo. Intenta de nuevo.');
+      }
+    } finally {
+      this.procesandoPush.set(false);
+    }
+  }
+
+  async probarPush(): Promise<void> {
+    this.mensajePush.set(null);
+    try {
+      await this.pushSvc.enviarPrueba();
+      this.mensajePush.set('Notificación de prueba enviada. Debería llegarte en unos segundos.');
+    } catch {
+      this.mensajePush.set('No se pudo enviar la prueba. Desactiva y vuelve a activar los avisos.');
+    }
+  }
+
+  async conectarCalendario(): Promise<void> {
+    const uid = this.auth.uidActual;
+    if (!uid) return;
+    // La pestaña se abre antes de esperar a la red: si se abre después de un
+    // await, el navegador la puede bloquear por no venir directo de un toque.
+    const ventana = window.open('', '_blank');
+    try {
+      const token = await this.calendarioSvc.obtenerOCrearToken(uid);
+      this.calendarioToken.set(token);
+      if (ventana) ventana.location.href = this.calendarioSvc.urlGoogle(token);
+      this.mensajeCalendario.set('En Google Calendar, confirma con "Agregar" para terminar de conectarlo.');
+    } catch {
+      ventana?.close();
+      this.mensajeCalendario.set('No se pudo conectar el calendario. Revisa tu conexión e intenta de nuevo.');
+    }
+  }
+
+  async copiarEnlaceCalendario(token: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(this.calendarioSvc.urlFeed(token));
+      this.mensajeCalendario.set('Enlace copiado. En tu app de calendario, busca "Suscribirse a calendario" o "Agregar desde URL".');
+    } catch {
+      this.mensajeCalendario.set(this.calendarioSvc.urlFeed(token));
+    }
+  }
+
+  async desconectarCalendario(): Promise<void> {
+    const alert = await this.alertCtrl.create({
+      header: 'Desconectar calendario',
+      message:
+        'El enlace dejará de funcionar y los eventos de Serangelia se dejarán de actualizar. En Google Calendar puedes borrar después el calendario "Serangelia".',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Desconectar',
+          role: 'destructive',
+          handler: async () => {
+            const uid = this.auth.uidActual;
+            if (!uid) return;
+            await this.calendarioSvc.desconectar(uid);
+            this.calendarioToken.set(null);
+            this.mensajeCalendario.set(null);
+          },
+        },
+      ],
+    });
+    await alert.present();
   }
 
   async elegirBiometria(activar: boolean): Promise<void> {

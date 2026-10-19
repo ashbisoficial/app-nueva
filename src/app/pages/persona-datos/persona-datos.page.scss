@@ -7,8 +7,6 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-width: 720px;
-  margin: 0 auto;
 }
 
 .datos-encabezado {
@@ -175,5 +173,16 @@
 
   &--peligro {
     color: var(--ion-color-danger, #c0392b);
+  }
+}
+
+.datos-cuerpo .columnas-tarjetas > .datos-tarjeta {
+  margin-bottom: 16px;
+}
+
+@media (min-width: 600px) {
+  .datos-editar {
+    align-self: flex-start;
+    padding: 11px 24px;
   }
 }

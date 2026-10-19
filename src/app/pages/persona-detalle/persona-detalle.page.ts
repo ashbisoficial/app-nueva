@@ -11,7 +11,10 @@ import {
   IonIcon,
   IonTitle,
   IonToolbar,
+  ModalController,
 } from '@ionic/angular';
+import { AuthService } from '../../core/auth.service';
+import { CompartirPinComponent } from '../../shared/compartir-pin/compartir-pin.component';
 import { switchMap } from 'rxjs';
 import { calcularEdad } from '../../core/edad';
 import { PersonasService } from '../../services/personas.service';
@@ -46,12 +49,33 @@ import { nombreCompleto } from '../../shared/persona-nombre';
 export class PersonaDetallePage {
   private route = inject(ActivatedRoute);
   private personasSvc = inject(PersonasService);
+  private auth = inject(AuthService);
+  private modalCtrl = inject(ModalController);
 
   personaId = this.route.snapshot.paramMap.get('id') ?? '';
 
   persona = toSignal(
     this.route.paramMap.pipe(switchMap((params) => this.personasSvc.persona$(params.get('id') ?? '')))
   );
+
+  /** Solo el titular genera PIN (firestore.rules → pinesAcceso). */
+  esTitular = computed(() => this.persona()?.uidTitular === this.auth.usuario()?.uid);
+
+  /** QR de pérdida solo si la Persona lo necesita (o si ya se había configurado antes de pedirlo). */
+  modulosVisibles = computed(() => {
+    const p = this.persona();
+    const conPerdida = !!p?.requiereQrPerdida || !!p?.qrPerdidaToken;
+    return this.modulos.filter((m) => m.ruta !== 'ficha-perdida' || conPerdida);
+  });
+
+  async compartir(): Promise<void> {
+    const p = this.persona();
+    const modal = await this.modalCtrl.create({
+      component: CompartirPinComponent,
+      componentProps: { personaId: this.personaId, personaNombre: p ? nombreCompleto(p) : '' },
+    });
+    await modal.present();
+  }
 
   faltantes = computed(() => {
     const p = this.persona();

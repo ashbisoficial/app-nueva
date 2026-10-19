@@ -1,0 +1,105 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Compartir perfil</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">Cerrar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding compartir-content">
+  @if (cargando()) {
+    <div class="compartir-cargando"><ion-spinner name="dots"></ion-spinner></div>
+  } @else {
+  @if (pin(); as p) {
+    <p class="compartir-intro">
+      Comparte este código con un familiar o cuidador. Lo ingresa en su propia cuenta de Serangelia
+      y desde ese momento ve el perfil de <strong>{{ personaNombre || 'esta persona' }}</strong>.
+    </p>
+
+    <div class="compartir-pin" aria-label="PIN de acceso">
+      @for (g of grupos(p.pin); track $index) {
+        <span>{{ g }}</span>
+      }
+    </div>
+
+    <ul class="compartir-detalles">
+      <li>
+        <ion-icon name="time-outline"></ion-icon>
+        Vence el {{ p.expiraEn | date: "d 'de' MMMM, HH:mm" }}
+      </li>
+      <li>
+        <ion-icon name="people-outline"></ion-icon>
+        Le quedan {{ p.usosMax - p.usos }} de {{ p.usosMax }} {{ p.usosMax === 1 ? 'uso' : 'usos' }}
+      </li>
+      <li>
+        <ion-icon name="key-outline"></ion-icon>
+        {{ p.modo === 'escritura' ? 'Podrá ver y agregar datos' : 'Solo podrá ver los datos' }}
+      </li>
+    </ul>
+
+    <div class="compartir-acciones">
+      <button type="button" class="compartir-boton compartir-boton--whatsapp" (click)="compartirWhatsApp(p)">
+        <ion-icon name="logo-whatsapp"></ion-icon>
+        Enviar por WhatsApp
+      </button>
+      @if (puedeCompartirNativo) {
+        <button type="button" class="compartir-boton" (click)="compartirNativo(p)">
+          <ion-icon name="share-social-outline"></ion-icon>
+          Más opciones para compartir
+        </button>
+      }
+      <button type="button" class="compartir-boton" (click)="copiar(p)">
+        <ion-icon name="copy-outline"></ion-icon>
+        Copiar mensaje
+      </button>
+    </div>
+
+    <div class="compartir-secundarias">
+      <button type="button" (click)="nuevoPin()">Generar otro PIN</button>
+      <button type="button" class="peligro" (click)="revocar()">Anular este PIN</button>
+    </div>
+  } @else {
+    <p class="compartir-intro">
+      Genera un código de 6 números para que un familiar o cuidador vea el perfil de
+      <strong>{{ personaNombre || 'esta persona' }}</strong> desde su propia cuenta, sin compartir tu contraseña.
+      Por seguridad, el código vence y tiene un número máximo de usos.
+    </p>
+
+    <p class="compartir-titulo">¿Qué podrá hacer?</p>
+    <div class="compartir-opciones" role="radiogroup" aria-label="Permiso">
+      @for (o of permisos; track o.valor) {
+        <button type="button" role="radio" [attr.aria-checked]="modo() === o.valor" [class.activa]="modo() === o.valor" (click)="modo.set(o.valor)">
+          {{ o.etiqueta }}
+        </button>
+      }
+    </div>
+
+    <p class="compartir-titulo">¿Cuánto dura el código?</p>
+    <div class="compartir-opciones" role="radiogroup" aria-label="Vigencia">
+      @for (o of vigencias; track o.valor) {
+        <button type="button" role="radio" [attr.aria-checked]="horas() === o.valor" [class.activa]="horas() === o.valor" (click)="horas.set(o.valor)">
+          {{ o.etiqueta }}
+        </button>
+      }
+    </div>
+
+    <p class="compartir-titulo">¿Cuántas personas lo pueden usar?</p>
+    <div class="compartir-opciones" role="radiogroup" aria-label="Usos">
+      @for (o of usos; track o.valor) {
+        <button type="button" role="radio" [attr.aria-checked]="usosMax() === o.valor" [class.activa]="usosMax() === o.valor" (click)="usosMax.set(o.valor)">
+          {{ o.etiqueta }}
+        </button>
+      }
+    </div>
+
+    @if (error()) {
+      <p class="texto-error" role="alert">{{ error() }}</p>
+    }
+
+    <ion-button expand="block" class="form-boton-principal compartir-generar" [disabled]="generando()" (click)="generar()">
+      {{ generando() ? 'Generando...' : 'Generar PIN' }}
+    </ion-button>
+  }
+  }
+</ion-content>

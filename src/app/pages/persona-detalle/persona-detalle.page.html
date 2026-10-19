@@ -14,6 +14,7 @@
 
 <ion-content class="detalle-content">
   <div class="detalle-cuerpo">
+    <div class="detalle-lateral">
     @if (persona(); as p) {
       <section class="detalle-tarjeta">
         <div class="detalle-encabezado">
@@ -69,6 +70,19 @@
               <span class="detalle-emergencia__tel">{{ p.telefonoEmergencia }}</span>
             </span>
           </a>
+          @if (p.contactosEmergenciaAdicionales?.length) {
+            <ul class="detalle-otros-contactos">
+              @for (c of p.contactosEmergenciaAdicionales; track $index) {
+                <li>
+                  <a [href]="'tel:' + c.telefono">
+                    <ion-icon name="call-outline"></ion-icon>
+                    <span>{{ c.nombre }} @if (c.parentesco) { ({{ c.parentesco }}) }</span>
+                    <span class="detalle-otros-contactos__tel">{{ c.telefono }}</span>
+                  </a>
+                </li>
+              }
+            </ul>
+          }
         }
 
         <a class="detalle-ver-datos" [routerLink]="['/personas', personaId, 'datos']">
@@ -76,6 +90,19 @@
           <ion-icon name="chevron-forward-outline"></ion-icon>
         </a>
       </section>
+
+      @if (esTitular()) {
+        <button type="button" class="detalle-compartir" (click)="compartir()">
+          <span class="detalle-compartir__icono">
+            <ion-icon name="share-social-outline"></ion-icon>
+          </span>
+          <span class="detalle-compartir__texto">
+            <strong>Compartir perfil con un familiar</strong>
+            <span>Genera un PIN para que lo vea desde su propia cuenta</span>
+          </span>
+          <ion-icon name="chevron-forward-outline" class="detalle-compartir__flecha"></ion-icon>
+        </button>
+      }
 
       @if (faltantes().length) {
         <a class="detalle-aviso" [routerLink]="['/personas', personaId, 'editar']">
@@ -89,8 +116,10 @@
       }
     }
 
+    </div>
+
     <div class="detalle-modulos">
-      @for (m of modulos; track m.ruta) {
+      @for (m of modulosVisibles(); track m.ruta) {
         <a class="detalle-modulo" [routerLink]="['/personas', personaId, m.ruta]">
           <span class="detalle-modulo__icono">
             <ion-icon [name]="m.icono"></ion-icon>

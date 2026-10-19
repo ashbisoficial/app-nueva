@@ -33,7 +33,7 @@ import {
   primerError,
   reglas,
 } from '../../core/validadores';
-import type { Persona, RelacionPersona } from '../../models';
+import type { ContactoEmergencia, Persona, RelacionPersona } from '../../models';
 import { PersonasService } from '../../services/personas.service';
 import { PARENTESCOS, REGIONES_CHILE, etiquetaRelacion } from '../../shared/persona-datos';
 
@@ -104,6 +104,8 @@ export class PersonaFormPage implements OnInit {
   estaturaCm: number | null = null;
   dispositivosMedicosTexto = '';
   donanteOrganos = false;
+  /** Habilita el módulo "QR de pérdida" en el detalle (pedido explícito: solo si la persona lo necesita). */
+  requiereQrPerdida = false;
   notasEmergencia = '';
 
   prevision = '';
@@ -113,6 +115,9 @@ export class PersonaFormPage implements OnInit {
   contactoEmergencia = '';
   contactoEmergenciaParentesco = '';
   telefonoEmergencia = '';
+  /** Contactos de emergencia además del principal (hasta maxContactosExtra). */
+  contactosExtra: ContactoEmergencia[] = [];
+  readonly maxContactosExtra = 4;
 
   rutDependiente = '';
   documentoRespaldo: File | null = null;
@@ -150,6 +155,10 @@ export class PersonaFormPage implements OnInit {
     contactoEmergencia: () => primerError(reglas.requerido(this.contactoEmergencia), reglas.nombre(this.contactoEmergencia)),
     contactoEmergenciaParentesco: () => reglas.elegir(this.contactoEmergenciaParentesco),
     telefonoEmergencia: () => primerError(reglas.requerido(this.telefonoEmergencia), reglas.telefono(this.telefonoEmergencia)),
+    contactosExtra: () =>
+      this.contactosExtra.some((_, i) => this.errorContactoExtra(i))
+        ? 'Revisa los contactos de emergencia adicionales.'
+        : null,
     alergias: () => reglas.largoMaximo(this.alergiasTexto, 500),
     enfermedades: () => reglas.largoMaximo(this.enfermedadesTexto, 500),
     medicamentos: () => reglas.largoMaximo(this.medicamentosTexto, 500),
@@ -196,6 +205,7 @@ export class PersonaFormPage implements OnInit {
       this.contactoEmergencia = persona.contactoEmergencia ?? '';
       this.contactoEmergenciaParentesco = persona.contactoEmergenciaParentesco ?? '';
       this.telefonoEmergencia = persona.telefonoEmergencia ?? '';
+      this.contactosExtra = (persona.contactosEmergenciaAdicionales ?? []).map((c) => ({ ...c }));
       this.alergiasTexto = (persona.alergias ?? []).join(', ');
       this.enfermedadesTexto = (persona.enfermedadesCronicas ?? []).join(', ');
       this.medicamentosTexto = (persona.medicamentosPermanentes ?? []).join(', ');
@@ -203,6 +213,7 @@ export class PersonaFormPage implements OnInit {
       this.estaturaCm = persona.estaturaCm ?? null;
       this.dispositivosMedicosTexto = (persona.dispositivosMedicos ?? []).join(', ');
       this.donanteOrganos = persona.donanteOrganos ?? false;
+      this.requiereQrPerdida = persona.requiereQrPerdida ?? false;
       this.notasEmergencia = persona.notasEmergencia ?? '';
       this.prevision = persona.prevision ?? '';
       this.medicoTratante = persona.medicoTratante ?? '';
@@ -224,6 +235,30 @@ export class PersonaFormPage implements OnInit {
       this.nombres = nombres;
       this.apellidos = resto.join(' ');
     }
+  }
+
+  agregarContacto(): void {
+    if (this.contactosExtra.length < this.maxContactosExtra) {
+      this.contactosExtra.push({ nombre: '', parentesco: '', telefono: '' });
+    }
+  }
+
+  quitarContacto(i: number): void {
+    this.contactosExtra.splice(i, 1);
+    this.v.revalidar('contactosExtra');
+  }
+
+  /** Mismo criterio que el contacto principal: los tres datos, con formato. */
+  errorContactoExtra(i: number): string | null {
+    const c = this.contactosExtra[i];
+    if (!c) return null;
+    return primerError(
+      reglas.requerido(c.nombre, 'Falta el nombre de este contacto.'),
+      reglas.nombre(c.nombre),
+      reglas.requerido(c.parentesco, 'Elige el parentesco de este contacto.'),
+      reglas.requerido(c.telefono, 'Falta el teléfono de este contacto.'),
+      reglas.telefono(c.telefono)
+    );
   }
 
   /** Un menor muchas veces no tiene teléfono propio (ver datosFaltantes()). */
@@ -339,6 +374,11 @@ export class PersonaFormPage implements OnInit {
         contactoEmergencia: this.contactoEmergencia.trim(),
         contactoEmergenciaParentesco: this.contactoEmergenciaParentesco,
         telefonoEmergencia: this.telefonoEmergencia.trim(),
+        contactosEmergenciaAdicionales: this.contactosExtra.map((c) => ({
+          nombre: c.nombre.trim(),
+          parentesco: c.parentesco,
+          telefono: c.telefono.trim(),
+        })),
         alergias: this.aLista(this.alergiasTexto),
         enfermedadesCronicas: this.aLista(this.enfermedadesTexto),
         medicamentosPermanentes: this.aLista(this.medicamentosTexto),
@@ -346,6 +386,7 @@ export class PersonaFormPage implements OnInit {
         estaturaCm: this.estaturaCm ?? undefined,
         dispositivosMedicos: this.aLista(this.dispositivosMedicosTexto),
         donanteOrganos: this.donanteOrganos,
+        requiereQrPerdida: this.requiereQrPerdida,
         notasEmergencia: this.notasEmergencia || undefined,
         prevision: this.prevision || undefined,
         medicoTratante: this.medicoTratante || undefined,

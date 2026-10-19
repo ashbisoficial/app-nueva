@@ -1,10 +1,7 @@
 <ion-content [fullscreen]="true" class="agenda-content">
   <div class="agenda-encabezado">
     <h1>Agenda</h1>
-  </div>
-
-  <div class="agenda-layout">
-    <div class="columna-grilla">
+    <div class="agenda-barra">
       <div class="encabezado-mes">
         <button type="button" class="nav-mes" (click)="mesAnterior()" aria-label="Mes anterior">
           <ion-icon name="chevron-back-outline"></ion-icon>
@@ -14,38 +11,70 @@
           <ion-icon name="chevron-forward-outline"></ion-icon>
         </button>
       </div>
+      <button type="button" class="agenda-hoy" (click)="irAHoy()">Hoy</button>
+      <button type="button" class="agenda-nueva-cita agenda-nueva-cita--barra" (click)="nuevaCita()">
+        <ion-icon name="add-outline"></ion-icon>
+        Nueva cita
+      </button>
+    </div>
+  </div>
 
-      <div class="grilla-dias-semana">
-        @for (d of ['L', 'M', 'M', 'J', 'V', 'S', 'D']; track $index) {
-          <div class="dia-semana">{{ d }}</div>
-        }
+  <div class="agenda-layout">
+    <div class="columna-grilla">
+      <div class="calendario">
+        <div class="grilla-dias-semana">
+          @for (d of diasSemana; track $index) {
+            <div class="dia-semana">
+              <span class="dia-semana__corto">{{ d.corto }}</span>
+              <span class="dia-semana__largo">{{ d.largo }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="grilla-mes">
+          @for (celda of celdas(); track $index) {
+            <button
+              type="button"
+              class="celda"
+              [class.vacia]="!celda.iso"
+              [class.hoy]="celda.esHoy"
+              [class.seleccionada]="celda.iso === diaSeleccionado()"
+              [class.con-eventos]="eventosDe(celda.iso).length > 0"
+              [disabled]="!celda.iso"
+              [attr.aria-label]="celda.iso ? (celda.iso | date: 'fullDate') + (eventosDe(celda.iso).length ? ', ' + eventosDe(celda.iso).length + ' eventos' : '') : null"
+              (click)="seleccionarDia(celda.iso)"
+            >
+              @if (celda.numero) {
+                <span class="numero">{{ celda.numero }}</span>
+                <!-- Celular: puntos de color. Escritorio: el título de cada evento. -->
+                <span class="puntos">
+                  @for (ev of eventosDe(celda.iso).slice(0, 3); track $index) {
+                    <span class="punto" [style.background]="ev.color"></span>
+                  }
+                </span>
+                <span class="chips">
+                  @for (ev of eventosDe(celda.iso).slice(0, 2); track $index) {
+                    <span class="chip" [style.--color-evento]="ev.color">{{ ev.titulo }}</span>
+                  }
+                  @if (eventosDe(celda.iso).length > 2) {
+                    <span class="chip-mas">+{{ eventosDe(celda.iso).length - 2 }} más</span>
+                  }
+                </span>
+              }
+            </button>
+          }
+        </div>
       </div>
 
-      <div class="grilla-mes">
-        @for (celda of celdas(); track $index) {
-          <button
-            type="button"
-            class="celda"
-            [class.vacia]="!celda.iso"
-            [class.hoy]="celda.esHoy"
-            [class.seleccionada]="celda.iso === diaSeleccionado()"
-            (click)="seleccionarDia(celda.iso)"
-          >
-            @if (celda.numero) {
-              <span class="numero">{{ celda.numero }}</span>
-              <span class="puntos">
-                @for (ev of eventosDe(celda.iso).slice(0, 3); track $index) {
-                  <span class="punto" [style.background]="ev.color"></span>
-                }
-              </span>
-            }
-          </button>
-        }
+      <div class="leyenda" aria-label="Colores de la agenda">
+        <span><span class="punto punto--cita"></span>Citas</span>
+        <span><span class="punto punto--vacuna"></span>Vacunas</span>
+        <span><span class="punto punto--fin"></span>Fin de tratamiento</span>
       </div>
     </div>
 
     <div class="panel-dia">
-      <h3>{{ diaSeleccionado() | date: 'fullDate' }}</h3>
+      <h3>{{ diaSeleccionado() | date: "EEEE d 'de' MMMM" }}</h3>
       @if (eventosDelDiaSeleccionado().length === 0) {
         <p class="agenda-vacio">No hay nada agendado este día.</p>
       } @else {
@@ -59,12 +88,13 @@
                   <span class="agenda-evento__persona">{{ ev.personaNombre }}</span>
                 }
               </span>
+              <ion-icon name="chevron-forward-outline" class="agenda-evento__flecha"></ion-icon>
             </a>
           }
         </div>
       }
 
-      <button type="button" class="agenda-nueva-cita" (click)="nuevaCita()">
+      <button type="button" class="agenda-nueva-cita agenda-nueva-cita--panel" (click)="nuevaCita()">
         <ion-icon name="add-outline"></ion-icon>
         Nueva cita
       </button>

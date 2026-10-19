@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { DomSanitizer, type SafeResourceUrl } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import {
@@ -87,6 +88,10 @@ export class FichaEmergenciaPage {
 
       if (persona.qrFichaCamposPublicos?.length) {
         this.seleccionados.set(persona.qrFichaCamposPublicos);
+      } else {
+        // Sin esto, la selección por defecto solo existía en pantalla: hasta que
+        // alguien tocara una casilla, el QR público no mostraba ningún dato.
+        await this.personasSvc.actualizar(this.personaId, { qrFichaCamposPublicos: this.seleccionados() });
       }
       const token = await this.personasSvc.asegurarTokenFicha(this.personaId);
       const url = urlFichaPublica(token);
@@ -112,6 +117,7 @@ export class FichaEmergenciaPage {
 
   async guardarSeleccion(): Promise<void> {
     await this.personasSvc.actualizar(this.personaId, { qrFichaCamposPublicos: this.seleccionados() });
+    this.refrescarVista();
   }
 
   async generarPdf(): Promise<void> {
@@ -122,7 +128,30 @@ export class FichaEmergenciaPage {
     generarPdfCarnet(persona, this.seleccionados(), qr);
   }
 
-  verComoExtrano(): void {
-    window.open(this.urlPublica(), '_blank');
+  private sanitizer = inject(DomSanitizer);
+  /** Se incrementa al guardar para recargar la vista previa con los datos nuevos. */
+  private versionVista = signal(0);
+  enlaceCopiado = signal(false);
+
+  /** La misma página pública que abre quien escanea el QR, embebida como vista previa. */
+  vistaPrevia = computed<SafeResourceUrl | null>(() => {
+    const url = this.urlPublica();
+    if (!url) return null;
+    const ruta = new URL(url).pathname;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(`${ruta}?vista=${this.versionVista()}`);
+  });
+
+  protected refrescarVista(): void {
+    this.versionVista.update((v) => v + 1);
+  }
+
+  async copiarEnlace(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(this.urlPublica());
+      this.enlaceCopiado.set(true);
+      setTimeout(() => this.enlaceCopiado.set(false), 2000);
+    } catch {
+      window.prompt('Copia este enlace:', this.urlPublica());
+    }
   }
 }

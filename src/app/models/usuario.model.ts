@@ -21,4 +21,18 @@ export interface Usuario {
    * segunda — ver la regla de creación de `personas/{personaId}`.
    */
   personaYoMismoId?: string;
+  /** Un token FCM por dispositivo/navegador con notificaciones push activas (core/push.service.ts). */
+  fcmTokens?: string[];
+  /** Token secreto del feed de calendario /calendario/{token}.ics (suscripción desde Google Calendar). */
+  calendarioToken?: string;
+  /**
+   * Consentimiento expreso al crear la cuenta (Ley 19.628 / 21.719: los datos
+   * de salud son datos sensibles). `version` es la fecha de "Última
+   * actualización" de los textos legales aceptados (ULTIMA_ACTUALIZACION).
+   */
+  consentimientos?: {
+    version: string;
+    terminosAceptadosEn: unknown;
+    privacidadAceptadaEn: unknown;
+  };
 }

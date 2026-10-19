@@ -71,6 +71,36 @@
           ></ion-input>
         </ion-item>
         @if (v.error('password'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+
+        @if (modo() === 'registro') {
+          <div class="login-consentimiento">
+            <ion-checkbox
+              labelPlacement="end"
+              justify="start"
+              [checked]="aceptaTerminos"
+              (ionChange)="aceptaTerminos = $event.detail.checked; v.revalidar('terminos')"
+            >
+              <span class="login-consentimiento__texto">
+                Leí y acepto los <a routerLink="/terminos" target="_blank" (click)="$event.stopPropagation()">Términos de Uso</a>.
+              </span>
+            </ion-checkbox>
+            @if (v.error('terminos'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+
+            <ion-checkbox
+              labelPlacement="end"
+              justify="start"
+              [checked]="aceptaPrivacidad"
+              (ionChange)="aceptaPrivacidad = $event.detail.checked; v.revalidar('privacidad')"
+            >
+              <span class="login-consentimiento__texto">
+                Leí la <a routerLink="/privacidad" target="_blank" (click)="$event.stopPropagation()">Política de Privacidad</a>
+                y autorizo de forma expresa el tratamiento de mis datos personales y de salud, y los de
+                las personas a mi cargo que registre, para los fines descritos en ella.
+              </span>
+            </ion-checkbox>
+            @if (v.error('privacidad'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+          </div>
+        }
       </ion-list>
 
       @if (error()) {
@@ -96,9 +126,8 @@
 
       <p class="login-aviso">
         Tus datos de salud están cifrados y nunca se comparten sin tu permiso.
-        Al continuar, aceptas los
-        <a routerLink="/terminos">Términos de Uso</a> y la
-        <a routerLink="/privacidad">Política de Privacidad</a>.
+        <a routerLink="/terminos">Términos de Uso</a> ·
+        <a routerLink="/privacidad">Política de Privacidad</a>
       </p>
     </form>
   </div>

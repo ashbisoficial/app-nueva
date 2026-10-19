@@ -58,8 +58,18 @@ export class AgendaPage {
     { initialValue: [] }
   );
 
+  readonly diasSemana = [
+    { corto: 'L', largo: 'Lun' },
+    { corto: 'M', largo: 'Mar' },
+    { corto: 'M', largo: 'Mié' },
+    { corto: 'J', largo: 'Jue' },
+    { corto: 'V', largo: 'Vie' },
+    { corto: 'S', largo: 'Sáb' },
+    { corto: 'D', largo: 'Dom' },
+  ];
+
   mesActual = signal(this.inicioDeMes(new Date()));
-  diaSeleccionado = signal(new Date().toISOString().slice(0, 10));
+  diaSeleccionado = signal(this.hoyLocalISO());
 
   tituloMes = computed(() =>
     this.mesActual().toLocaleDateString('es', { month: 'long', year: 'numeric' })
@@ -113,7 +123,7 @@ export class AgendaPage {
     const month = mes.getMonth();
     const primerDiaSemana = (new Date(year, month, 1).getDay() + 6) % 7; // 0 = lunes
     const diasEnMes = new Date(year, month + 1, 0).getDate();
-    const hoyISO = new Date().toISOString().slice(0, 10);
+    const hoyISO = this.hoyLocalISO();
 
     const celdas: CeldaMes[] = [];
     for (let i = 0; i < primerDiaSemana; i++) {
@@ -148,6 +158,17 @@ export class AgendaPage {
 
   seleccionarDia(iso: string | null): void {
     if (iso) this.diaSeleccionado.set(iso);
+  }
+
+  irAHoy(): void {
+    this.mesActual.set(this.inicioDeMes(new Date()));
+    this.diaSeleccionado.set(this.hoyLocalISO());
+  }
+
+  /** Fecha de hoy en hora local: toISOString() es UTC, y en Chile de noche ya marca el día siguiente. */
+  private hoyLocalISO(): string {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
 
   private inicioDeMes(d: Date): Date {
