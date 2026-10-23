@@ -140,6 +140,25 @@
   font-size: 0.88rem;
 }
 
+.persona-buscador-direccion {
+  display: none;
+  padding: 10px 16px 0;
+
+  &--visible {
+    display: block;
+  }
+
+  gmp-place-autocomplete {
+    width: 100%;
+    --gmpx-color-surface: var(--ion-item-background);
+    --gmpx-color-on-surface: var(--ion-text-color);
+    --gmpx-color-on-surface-variant: var(--ion-color-medium);
+    --gmpx-color-primary: var(--ion-color-primary);
+    --gmpx-font-family-base: inherit;
+    --gmpx-border-radius: var(--radio-campo, 10px);
+  }
+}
+
 .persona-toggle-texto {
   display: flex;
   flex-direction: column;

@@ -211,6 +211,14 @@
     <section class="form-tarjeta">
       <p class="form-tarjeta__titulo">Vivienda</p>
       <p class="texto-ayuda persona-ayuda">Para indicarle a una ambulancia dónde ir. Nunca se muestra en los QR públicos.</p>
+      <div
+        #buscadorDireccion
+        class="persona-buscador-direccion"
+        [class.persona-buscador-direccion--visible]="buscadorDireccionDisponible()"
+      ></div>
+      @if (buscadorDireccionDisponible()) {
+        <p class="texto-ayuda persona-ayuda">Buscá la dirección arriba y completamos calle, comuna y región — después podés editarlo.</p>
+      }
       <ion-list lines="inset">
         <ion-item [class.campo-invalido]="v.error('direccion')">
           <ion-input

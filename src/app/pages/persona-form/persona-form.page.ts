@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -22,6 +22,7 @@ import {
 } from '@ionic/angular';
 import { deleteField } from 'firebase/firestore';
 import { AuthService } from '../../core/auth.service';
+import { cargarLibreriaPlaces } from '../../core/google-maps-loader';
 import { formatearRut, validarRut } from '../../core/rut';
 import { subirArchivo } from '../../core/storage';
 import {
@@ -62,7 +63,11 @@ import { PARENTESCOS, REGIONES_CHILE, etiquetaRelacion } from '../../shared/pers
   templateUrl: './persona-form.page.html',
   styleUrl: './persona-form.page.scss',
 })
-export class PersonaFormPage implements OnInit {
+export class PersonaFormPage implements OnInit, AfterViewInit {
+  @ViewChild('buscadorDireccion') private buscadorDireccionRef?: ElementRef<HTMLDivElement>;
+  /** Se muestra solo si el widget de Google logró montarse (sin internet/bloqueado, el formulario sigue 100% editable a mano). */
+  buscadorDireccionDisponible = signal(false);
+
   readonly patronNombre = PATRON_NOMBRE;
   readonly patronTelefono = PATRON_TELEFONO;
   readonly hoyISO = new Date().toISOString().slice(0, 10);
@@ -235,6 +240,82 @@ export class PersonaFormPage implements OnInit {
       this.nombres = nombres;
       this.apellidos = resto.join(' ');
     }
+  }
+
+  ngAfterViewInit(): void {
+    void this.montarBuscadorDireccion();
+  }
+
+  /**
+   * Buscador de dirección (sección 4.1): un widget de Google Places sobre el
+   * campo "Calle y número" que autocompleta calle, comuna y región al elegir
+   * una sugerencia. Es puramente un atajo — si el script de Google no carga
+   * (sin internet, bloqueador de anuncios, etc.) esto simplemente no
+   * aparece y los tres campos se siguen llenando a mano como siempre.
+   */
+  private async montarBuscadorDireccion(): Promise<void> {
+    const contenedor = this.buscadorDireccionRef?.nativeElement;
+    if (!contenedor) return;
+    try {
+      const { PlaceAutocompleteElement } = await cargarLibreriaPlaces();
+      const buscador = new PlaceAutocompleteElement({ includedRegionCodes: ['cl'] });
+      contenedor.appendChild(buscador);
+      buscador.addEventListener('gmp-select', (evento: Event) => {
+        void this.onLugarElegido(evento as unknown as { placePrediction: google.maps.places.PlacePrediction });
+      });
+      this.buscadorDireccionDisponible.set(true);
+    } catch {
+      // Sin Maps disponible: no se muestra nada, el resto del formulario no depende de esto.
+    }
+  }
+
+  private async onLugarElegido(evento: { placePrediction: google.maps.places.PlacePrediction }): Promise<void> {
+    try {
+      const lugar = evento.placePrediction.toPlace();
+      await lugar.fetchFields({ fields: ['addressComponents'] });
+      this.aplicarComponentesDireccion(lugar.addressComponents ?? []);
+    } catch {
+      // Detalle no disponible: el usuario completa esos campos a mano, como siempre.
+    }
+  }
+
+  private aplicarComponentesDireccion(componentes: google.maps.places.AddressComponent[]): void {
+    const buscar = (tipos: string[]) =>
+      componentes.find((c) => tipos.some((t) => c.types.includes(t)))?.longText ?? '';
+
+    const calle = buscar(['route']);
+    const numero = buscar(['street_number']);
+    const comuna = buscar(['locality', 'administrative_area_level_3', 'sublocality_level_1']);
+    const regionGoogle = buscar(['administrative_area_level_1']);
+
+    if (calle || numero) {
+      this.direccion = [calle, numero].filter(Boolean).join(' ');
+      this.v.revalidar('direccion');
+    }
+    if (comuna) {
+      this.comuna = comuna;
+      this.v.revalidar('comuna');
+    }
+    const regionEncontrada = this.emparejarRegion(regionGoogle);
+    if (regionEncontrada) {
+      this.region = regionEncontrada;
+      this.v.campo('region');
+    }
+  }
+
+  /** Google devuelve nombres de región con formato propio ("Región Metropolitana de Santiago") — se empareja con REGIONES_CHILE por coincidencia parcial, sin acentos ni mayúsculas. Si no encuentra nada, se deja para que el usuario elija a mano. */
+  private emparejarRegion(nombreGoogle: string): string {
+    if (!nombreGoogle) return '';
+    const limpiar = (s: string) =>
+      s
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '')
+        .replace(/\bregion\b(\s+(de|del))?/g, '')
+        .trim();
+    const objetivo = limpiar(nombreGoogle);
+    if (!objetivo) return '';
+    return this.regiones.find((r) => limpiar(r).includes(objetivo) || objetivo.includes(limpiar(r))) ?? '';
   }
 
   agregarContacto(): void {
