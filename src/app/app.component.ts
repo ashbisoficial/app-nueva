@@ -21,7 +21,13 @@ export class AppComponent {
   private biometriaSvc = inject(BiometriaService);
 
   readonly mostrarBloqueo = computed(
-    () => !!this.auth.usuario() && this.bloqueoSvc.pinConfigurado() && !this.bloqueoSvc.desbloqueado()
+    () =>
+      !!this.auth.usuario() &&
+      this.bloqueoSvc.pinConfigurado() &&
+      !this.bloqueoSvc.desbloqueado() &&
+      // Las fichas públicas de los QR no muestran nada privado: no se bloquean
+      // (además se ven como vista previa dentro de la app, en un iframe).
+      !/^\/ficha-(publica|perdida)\//.test(window.location.pathname)
   );
 
   constructor() {

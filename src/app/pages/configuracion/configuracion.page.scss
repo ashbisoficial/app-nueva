@@ -313,3 +313,13 @@
     font-size: 15px;
   }
 }
+
+.config-aviso {
+  margin: 8px 2px 4px;
+  padding: 10px 12px;
+  border-radius: var(--radio-campo);
+  background: color-mix(in srgb, var(--ion-color-primary) 10%, var(--ion-item-background));
+  font-size: 0.82rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}

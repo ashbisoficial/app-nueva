@@ -16,9 +16,11 @@
     } @else if (error()) {
       <p class="texto-error">No se pudo cargar la ficha. Revisa tu conexión e intenta de nuevo.</p>
     } @else {
+      <div class="ficha-layout">
+      <div class="ficha-config">
       <p class="texto-ayuda">
-        Elige qué datos se van a ver si alguien escanea el código QR sin iniciar sesión.
-        Nunca se muestra el historial clínico completo.
+        Para un médico o paramédico: elige qué datos se ven si alguien escanea el código QR sin
+        iniciar sesión. Nunca se muestra el historial clínico, los documentos ni la dirección.
       </p>
 
       <section class="form-tarjeta">
@@ -36,22 +38,32 @@
           }
         </ion-list>
       </section>
+      </div>
 
-      @if (qrDataUrl(); as qr) {
-        <div class="qr-preview">
-          <img [src]="qr" alt="Código QR de la ficha de emergencia" width="200" height="200" />
-        </div>
-      }
-
-      <div class="ficha-botones">
-        <ion-button expand="block" class="form-boton-principal" (click)="generarPdf()">
-          <ion-icon slot="start" name="print-outline"></ion-icon>
-          Descargar PDF del carnet
-        </ion-button>
-        <ion-button expand="block" fill="outline" (click)="verComoExtrano()">
-          <ion-icon slot="start" name="qr-code-outline"></ion-icon>
-          Ver cómo la ve un extraño
-        </ion-button>
+        <aside class="ficha-vista">
+          <p class="form-tarjeta__titulo">Así se ve al escanearlo</p>
+          @if (vistaPrevia(); as url) {
+            <div class="ficha-telefono">
+              <iframe [src]="url" title="Vista previa: ficha de emergencia" loading="lazy"></iframe>
+            </div>
+          }
+          @if (qrDataUrl(); as qr) {
+            <div class="ficha-qr">
+              <img [src]="qr" alt="Código QR de la ficha de emergencia" width="132" height="132" />
+              <p>Pruébalo escaneando este código con la cámara de otro teléfono.</p>
+            </div>
+          }
+          <div class="ficha-botones">
+            <ion-button expand="block" class="form-boton-principal" (click)="generarPdf()">
+              <ion-icon slot="start" name="print-outline"></ion-icon>
+              Descargar PDF del carnet
+            </ion-button>
+            <ion-button expand="block" fill="outline" (click)="copiarEnlace()">
+              <ion-icon slot="start" name="link-outline"></ion-icon>
+              {{ enlaceCopiado() ? 'Enlace copiado' : 'Copiar enlace' }}
+            </ion-button>
+          </div>
+        </aside>
       </div>
     }
   </div>

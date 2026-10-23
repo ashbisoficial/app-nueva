@@ -4,12 +4,14 @@ import { toObservable } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import type { User } from 'firebase/auth';
 import { IonContent, IonIcon } from '@ionic/angular';
-import { filter, switchMap } from 'rxjs';
+import { filter, map, switchMap } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { SelectorPersonaService } from '../../core/selector-persona.service';
 import { HomeService } from '../../services/home.service';
 import { PersonasService } from '../../services/personas.service';
+import type { Persona } from '../../models';
 import { colorPersona, inicialPersona } from '../../shared/avatar';
+import { datosFaltantes } from '../../shared/persona-datos';
 import { nombreCompleto } from '../../shared/persona-nombre';
 
 @Component({
@@ -39,8 +41,16 @@ export class HomePage {
     switchMap((u) => this.homeSvc.proximosEventos$(u.uid))
   );
 
-  async logout(): Promise<void> {
-    await this.auth.logout();
+  /** La cuenta todavía no creó su Persona "yo mismo/a" (ej. recién registrada). */
+  sinDatosPropios$ = this.personas$.pipe(
+    map((personas) => {
+      const uid = this.auth.usuario()?.uid;
+      return !personas.some((p) => p.relacion === 'yo_mismo' && p.uidTitular === uid);
+    })
+  );
+
+  faltanDatos(p: Persona): boolean {
+    return datosFaltantes(p).length > 0;
   }
 
   /** Acceso directo: subir un documento en el menor número de toques posible (sección 8 del spec). */

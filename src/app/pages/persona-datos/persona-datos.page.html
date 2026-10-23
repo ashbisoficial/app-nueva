@@ -1,0 +1,87 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="'/personas/' + personaId"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Datos personales</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="datos-content">
+  <div class="datos-cuerpo">
+    @if (persona(); as p) {
+      <section class="datos-encabezado">
+        <span class="datos-avatar">
+          @if (p.fotoUrl) {
+            <img [src]="p.fotoUrl" alt="" />
+          } @else {
+            {{ inicialPersona(nombreCompleto(p)) }}
+          }
+        </span>
+        <div>
+          <p class="datos-nombre">{{ nombreCompleto(p) }}</p>
+          <p class="datos-relacion">{{ etiquetaRelacion(p.relacion) }}</p>
+        </div>
+      </section>
+
+      @if (faltantes().length) {
+        <a class="datos-aviso" [routerLink]="['/personas', personaId, 'editar']">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <span>
+            <strong>Faltan datos esenciales:</strong> {{ faltantes().join(', ') }}.
+            <span class="datos-aviso__accion">Completar ahora</span>
+          </span>
+        </a>
+      }
+
+      <a class="datos-editar" [routerLink]="['/personas', personaId, 'editar']">
+        <ion-icon name="create-outline"></ion-icon>
+        Editar datos personales
+      </a>
+
+      <div class="columnas-tarjetas">
+      @for (s of secciones(); track s.titulo) {
+        <section class="datos-tarjeta">
+          <p class="datos-tarjeta__titulo">
+            <ion-icon [name]="s.icono"></ion-icon>
+            {{ s.titulo }}
+          </p>
+          <dl class="datos-lista">
+            @for (d of s.datos; track d.etiqueta) {
+              <div class="datos-fila">
+                <dt>{{ d.etiqueta }}</dt>
+                <dd>
+                  @if (!d.valor) {
+                    <span class="datos-vacio">Sin registrar</span>
+                  } @else if (d.tel) {
+                    <a [href]="'tel:' + d.tel">{{ d.valor }}</a>
+                  } @else {
+                    {{ d.valor }}
+                  }
+                </dd>
+              </div>
+            }
+          </dl>
+        </section>
+      }
+
+      @if (esTitular()) {
+        <section class="datos-tarjeta">
+          <p class="datos-tarjeta__titulo">
+            <ion-icon name="settings-outline"></ion-icon>
+            Administrar perfil
+          </p>
+          <button class="datos-accion" (click)="compartirPorPin()">
+            <ion-icon name="key-outline"></ion-icon>
+            Compartir este perfil con un PIN
+          </button>
+          <button class="datos-accion datos-accion--peligro" (click)="confirmarEliminar()">
+            <ion-icon name="trash-outline"></ion-icon>
+            Eliminar persona
+          </button>
+        </section>
+      }
+      </div>
+    }
+  </div>
+</ion-content>

@@ -69,6 +69,27 @@ service cloud.firestore {
       );
     }
 
+    // PIN de acceso compartido (sección 6): el id del doc ES el PIN, así que dos
+    // PIN iguales vigentes son imposibles (un segundo "create" sería un update,
+    // bloqueado). Solo el titular de la Persona puede crearlo, verlo o
+    // revocarlo — quien tiene acceso compartido nunca lo lee, así no puede
+    // reenviarlo. Vencimiento máximo 7 días y 1–5 usos; el canje y el conteo
+    // de usos los hace la Cloud Function canjearPin con el Admin SDK.
+    match /pinesAcceso/{pin} {
+      allow read, delete: if estaAutenticado() && resource.data.uidTitular == request.auth.uid;
+      allow create: if estaAutenticado() &&
+        pin.matches('^[0-9]{6}$') &&
+        request.resource.data.uidTitular == request.auth.uid &&
+        esTitular(request.resource.data.personaId) &&
+        request.resource.data.usos == 0 &&
+        request.resource.data.usosMax is int &&
+        request.resource.data.usosMax >= 1 && request.resource.data.usosMax <= 5 &&
+        request.resource.data.modo in ['lectura', 'escritura'] &&
+        request.resource.data.expiraEn is timestamp &&
+        request.resource.data.expiraEn <= request.time + duration.value(7, 'd') + duration.value(5, 'm');
+      allow update: if false;
+    }
+
     match /personas/{personaId} {
       allow read: if estaAutenticado() &&
         (resource.data.uidTitular == request.auth.uid ||
@@ -86,8 +107,7 @@ service cloud.firestore {
       allow update: if esTitular(personaId) ||
         (puedeEscribirCompartido(personaId) &&
          request.resource.data.uidTitular == resource.data.uidTitular &&
-         request.resource.data.get('uidsConAcceso', []) == resource.data.get('uidsConAcceso', []) &&
-         request.resource.data.get('pinAccesoCompartido', null) == resource.data.get('pinAccesoCompartido', null));
+         request.resource.data.get('uidsConAcceso', []) == resource.data.get('uidsConAcceso', []));
       allow delete: if esTitular(personaId);
 
       // Historial clínico: append-only, sin excepciones (sección 3.3 y 7 del spec).

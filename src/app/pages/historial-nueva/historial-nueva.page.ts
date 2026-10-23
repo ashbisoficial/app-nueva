@@ -23,6 +23,7 @@ import {
 } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
 import { subirArchivo } from '../../core/storage';
+import { ValidacionFormulario, errorArchivo, primerError, reglas } from '../../core/validadores';
 import { EXAMENES_COMUNES, TIPOS_ENTRADA, type MedicamentoOrden, type TipoEntrada } from '../../models';
 import { EspecialidadesService } from '../../services/especialidades.service';
 import { HistorialService } from '../../services/historial.service';
@@ -78,6 +79,39 @@ export class HistorialNuevaPage {
 
   guardando = signal(false);
   error = signal<string | null>(null);
+  readonly hoyISO = new Date().toISOString().slice(0, 10);
+
+  readonly v = new ValidacionFormulario({
+    tipo: () => reglas.elegir(this.tipo),
+    fecha: () => primerError(reglas.requerido(this.fecha), reglas.noFutura(this.fecha)),
+    motivo: () => reglas.largoMaximo(this.motivo, 200),
+    diagnostico: () => reglas.largoMaximo(this.diagnostico, 200),
+    tratamientoIndicado: () => reglas.largoMaximo(this.tratamientoIndicado, 300),
+    texto: () => reglas.largoMaximo(this.texto, 2000),
+    // Mismo mínimo que exigen las reglas de Firestore (sección 3.3): una entrada nunca va vacía.
+    contenido: () =>
+      [this.motivo, this.diagnostico, this.tratamientoIndicado, this.texto].some((t) => t.trim()) ||
+      this.medicamentosAGuardar().length ||
+      this.examenesAGuardar().length
+        ? null
+        : 'La entrada está vacía: completa al menos el motivo, el diagnóstico, el tratamiento o las notas.',
+    medicamentos: () =>
+      this.muestraMedicamentos &&
+      this.medicamentos.some((m) => [m.nombre, m.dosis, m.frecuencia].some((c) => !c?.trim()))
+        ? 'Completa nombre, dosis y frecuencia de cada medicamento, o quita las filas vacías.'
+        : null,
+    examenes: () =>
+      this.muestraExamenes && !this.examenesSeleccionados.length ? 'Marca al menos un examen solicitado.' : null,
+    archivo: () => (this.archivo ? errorArchivo(this.archivo) : null),
+  });
+
+  private medicamentosAGuardar(): MedicamentoOrden[] {
+    return this.muestraMedicamentos ? this.medicamentos : [];
+  }
+
+  private examenesAGuardar(): string[] {
+    return this.muestraExamenes ? this.examenesSeleccionados : [];
+  }
 
   get muestraMedicamentos(): boolean {
     return this.tipo === 'receta' || this.tipo === 'indicaciones_alta';
@@ -93,6 +127,7 @@ export class HistorialNuevaPage {
 
   quitarMedicamento(i: number): void {
     this.medicamentos.splice(i, 1);
+    this.v.revalidar('medicamentos');
   }
 
   toggleExamen(nombre: string, marcado: boolean): void {
@@ -101,40 +136,22 @@ export class HistorialNuevaPage {
     } else {
       this.examenesSeleccionados = this.examenesSeleccionados.filter((e) => e !== nombre);
     }
+    this.v.revalidar('examenes');
+    this.v.revalidar('contenido');
   }
 
   onArchivoSeleccionado(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.archivo = input.files?.[0] ?? null;
-  }
-
-  /** Descarta filas de medicamento que quedaron en blanco (solo se tocó "Agregar medicamento" sin llenar nada). */
-  private get medicamentosCompletos(): MedicamentoOrden[] {
-    return this.medicamentos.filter((m) => m.nombre.trim() && m.dosis.trim() && m.frecuencia.trim());
-  }
-
-  /** Mismo mínimo que exige firestore.rules para esta colección (sección 3.3 del spec). */
-  private get entradaVacia(): boolean {
-    return (
-      !this.motivo.trim() &&
-      !this.diagnostico.trim() &&
-      !this.tratamientoIndicado.trim() &&
-      !this.texto.trim() &&
-      !(this.muestraMedicamentos && this.medicamentosCompletos.length) &&
-      !(this.muestraExamenes && this.examenesSeleccionados.length)
-    );
+    this.v.campo('archivo');
   }
 
   async guardar(): Promise<void> {
     this.error.set(null);
     const usuario = this.auth.usuario();
     if (!usuario) return;
-    if (this.muestraMedicamentos && this.medicamentos.length && !this.medicamentosCompletos.length) {
-      this.error.set('Completa nombre, dosis y frecuencia de cada medicamento (o quítalo si no corresponde).');
-      return;
-    }
-    if (this.entradaVacia) {
-      this.error.set('Completa al menos un campo (motivo, diagnóstico, tratamiento, notas, medicamentos o exámenes).');
+    if (!this.v.todo()) {
+      this.error.set('Revisa los campos marcados en rojo.');
       return;
     }
 
@@ -149,13 +166,12 @@ export class HistorialNuevaPage {
       await this.historialSvc.crear(this.personaId, {
         tipo: this.tipo,
         fecha: this.fecha,
-        motivo: this.motivo || undefined,
-        diagnostico: this.diagnostico || undefined,
-        tratamientoIndicado: this.tratamientoIndicado || undefined,
-        texto: this.texto || undefined,
-        medicamentos: this.muestraMedicamentos && this.medicamentosCompletos.length ? this.medicamentosCompletos : undefined,
-        examenesSeleccionados:
-          this.muestraExamenes && this.examenesSeleccionados.length ? this.examenesSeleccionados : undefined,
+        motivo: this.motivo.trim() || undefined,
+        diagnostico: this.diagnostico.trim() || undefined,
+        tratamientoIndicado: this.tratamientoIndicado.trim() || undefined,
+        texto: this.texto.trim() || undefined,
+        medicamentos: this.medicamentosAGuardar().length ? this.medicamentosAGuardar() : undefined,
+        examenesSeleccionados: this.examenesAGuardar().length ? this.examenesAGuardar() : undefined,
         archivoUrl,
         especialidadId: this.especialidadId || undefined,
         autorUid: usuario.uid,
@@ -163,8 +179,9 @@ export class HistorialNuevaPage {
       });
 
       await this.router.navigateByUrl(`/personas/${this.personaId}/historial`);
-    } catch (e) {
-      this.error.set((e as Error).message ?? 'No se pudo guardar la entrada.');
+    } catch {
+      // No se muestra el mensaje técnico de Firebase (viene en inglés y no le sirve al usuario).
+      this.error.set('No se pudo guardar la entrada. Revisa tu conexión e intenta de nuevo.');
     } finally {
       this.guardando.set(false);
     }

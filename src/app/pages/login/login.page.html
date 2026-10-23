@@ -24,34 +24,40 @@
       </ion-segment-button>
     </ion-segment>
 
-    <form (ngSubmit)="enviar()" class="login-form">
+    <form (ngSubmit)="enviar()" class="login-form" novalidate>
       <ion-list lines="none" class="login-campos">
         @if (modo() === 'registro') {
-          <ion-item>
+          <ion-item [class.campo-invalido]="v.error('nombre')">
             <ion-input
               label="Nombre"
               labelPlacement="stacked"
               fill="outline"
               name="nombre"
-              placeholder="Como quieres que te llamemos"
+              placeholder="Cómo quieres que te llamemos"
+              maxlength="80"
               [(ngModel)]="nombre"
-              required
+              (ngModelChange)="v.revalidar('nombre')"
+              (ionBlur)="v.campo('nombre')"
             ></ion-input>
           </ion-item>
+          @if (v.error('nombre'); as e) { <p class="texto-error-campo">{{ e }}</p> }
         }
-        <ion-item>
+        <ion-item [class.campo-invalido]="v.error('email')">
           <ion-input
-            label="Email"
+            label="Correo electrónico"
             labelPlacement="stacked"
             fill="outline"
             type="email"
+            inputmode="email"
             name="email"
-            placeholder="tu@email.com"
+            placeholder="nombre@correo.com"
             [(ngModel)]="email"
-            required
+            (ngModelChange)="v.revalidar('email')"
+            (ionBlur)="v.campo('email')"
           ></ion-input>
         </ion-item>
-        <ion-item>
+        @if (v.error('email'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        <ion-item [class.campo-invalido]="v.error('password')">
           <ion-input
             label="Contraseña"
             labelPlacement="stacked"
@@ -60,14 +66,46 @@
             name="password"
             placeholder="••••••••"
             [(ngModel)]="password"
-            required
+            (ngModelChange)="v.revalidar('password')"
+            (ionBlur)="v.campo('password')"
           ></ion-input>
         </ion-item>
+        @if (v.error('password'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+
+        @if (modo() === 'registro') {
+          <div class="login-consentimiento">
+            <ion-checkbox
+              labelPlacement="end"
+              justify="start"
+              [checked]="aceptaTerminos"
+              (ionChange)="aceptaTerminos = $event.detail.checked; v.revalidar('terminos')"
+            >
+              <span class="login-consentimiento__texto">
+                Leí y acepto los <a routerLink="/terminos" target="_blank" (click)="$event.stopPropagation()">Términos de Uso</a>.
+              </span>
+            </ion-checkbox>
+            @if (v.error('terminos'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+
+            <ion-checkbox
+              labelPlacement="end"
+              justify="start"
+              [checked]="aceptaPrivacidad"
+              (ionChange)="aceptaPrivacidad = $event.detail.checked; v.revalidar('privacidad')"
+            >
+              <span class="login-consentimiento__texto">
+                Leí la <a routerLink="/privacidad" target="_blank" (click)="$event.stopPropagation()">Política de Privacidad</a>
+                y autorizo de forma expresa el tratamiento de mis datos personales y de salud, y los de
+                las personas a mi cargo que registre, para los fines descritos en ella.
+              </span>
+            </ion-checkbox>
+            @if (v.error('privacidad'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+          </div>
+        }
       </ion-list>
 
       @if (error()) {
         <ion-text color="danger">
-          <p class="login-error">{{ error() }}</p>
+          <p class="login-error" role="alert">{{ error() }}</p>
         </ion-text>
       }
 
@@ -88,9 +126,8 @@
 
       <p class="login-aviso">
         Tus datos de salud están cifrados y nunca se comparten sin tu permiso.
-        Al continuar, aceptas los
-        <a routerLink="/terminos">Términos de Uso</a> y la
-        <a routerLink="/privacidad">Política de Privacidad</a>.
+        <a routerLink="/terminos">Términos de Uso</a> ·
+        <a routerLink="/privacidad">Política de Privacidad</a>
       </p>
     </form>
   </div>

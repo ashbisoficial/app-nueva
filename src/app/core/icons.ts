@@ -14,6 +14,7 @@ import {
   chevronBackOutline,
   chevronForwardOutline,
   closeOutline,
+  createOutline,
   cloudUploadOutline,
   documentTextOutline,
   downloadOutline,
@@ -45,11 +46,19 @@ import {
   sunnyOutline,
   timeOutline,
   trashOutline,
+  logoWhatsapp,
+  copyOutline,
+  notificationsOutline,
+  linkOutline,
 } from 'ionicons/icons';
 
 /** Se llama una sola vez en el bootstrap (main.ts) para que <ion-icon name="..."> funcione sin red. */
 export function registrarIconos(): void {
   addIcons({
+    'link-outline': linkOutline,
+    'notifications-outline': notificationsOutline,
+    'copy-outline': copyOutline,
+    'logo-whatsapp': logoWhatsapp,
     'add-outline': addOutline,
     'alert-circle-outline': alertCircleOutline,
     'arrow-back-outline': arrowBackOutline,
@@ -64,6 +73,7 @@ export function registrarIconos(): void {
     'chevron-back-outline': chevronBackOutline,
     'chevron-forward-outline': chevronForwardOutline,
     'close-outline': closeOutline,
+    'create-outline': createOutline,
     'cloud-upload-outline': cloudUploadOutline,
     'document-text-outline': documentTextOutline,
     'download-outline': downloadOutline,

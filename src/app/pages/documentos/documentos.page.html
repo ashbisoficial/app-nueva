@@ -51,19 +51,32 @@
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
-      <ion-item lines="none">
-        <input type="file" accept="image/*,application/pdf" capture="environment" (change)="onArchivoSeleccionado($event)" />
+      <p class="texto-ayuda">Los campos con * son obligatorios.</p>
+      <ion-item lines="none" class="documento-archivo">
+        <p class="texto-ayuda">Archivo * (foto o PDF)</p>
+        <input type="file" accept="image/*,application/pdf" capture="environment" aria-label="Archivo del documento" (change)="onArchivoSeleccionado($event)" />
       </ion-item>
-      <ion-item>
-        <ion-input label="Nombre" labelPlacement="floating" [(ngModel)]="nombre" name="nombre" required></ion-input>
+      @if (v.error('archivo'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      <ion-item [class.campo-invalido]="v.error('nombre')">
+        <ion-input
+          label="Nombre *"
+          labelPlacement="floating"
+          maxlength="100"
+          [(ngModel)]="nombre"
+          name="nombre"
+          (ngModelChange)="v.revalidar('nombre')"
+          (ionBlur)="v.campo('nombre')"
+        ></ion-input>
       </ion-item>
-      <ion-item>
-        <ion-select label="Categoría" labelPlacement="floating" [(ngModel)]="categoria" name="categoria">
+      @if (v.error('nombre'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      <ion-item [class.campo-invalido]="v.error('categoria')">
+        <ion-select label="Categoría *" labelPlacement="floating" [(ngModel)]="categoria" name="categoria" (ngModelChange)="v.campo('categoria')">
           @for (c of categorias; track c.value) {
             <ion-select-option [value]="c.value">{{ c.label }}</ion-select-option>
           }
         </ion-select>
       </ion-item>
+      @if (v.error('categoria'); as e) { <p class="texto-error-campo">{{ e }}</p> }
       @if (especialidades().length) {
         <ion-item>
           <ion-select label="Especialidad (opcional)" labelPlacement="floating" [(ngModel)]="especialidadId" name="especialidad">
@@ -74,13 +87,22 @@
           </ion-select>
         </ion-item>
       }
-      <ion-item>
-        <ion-input label="Notas" labelPlacement="floating" [(ngModel)]="notas" name="notas"></ion-input>
+      <ion-item [class.campo-invalido]="v.error('notas')">
+        <ion-input
+          label="Notas"
+          labelPlacement="floating"
+          maxlength="500"
+          [(ngModel)]="notas"
+          name="notas"
+          (ngModelChange)="v.revalidar('notas')"
+          (ionBlur)="v.campo('notas')"
+        ></ion-input>
       </ion-item>
+      @if (v.error('notas'); as e) { <p class="texto-error-campo">{{ e }}</p> }
       @if (error()) {
-        <p class="texto-error">{{ error() }}</p>
+        <p class="texto-error ion-margin-top" role="alert">{{ error() }}</p>
       }
-      <ion-button expand="block" class="ion-margin-top" [disabled]="!archivo || !nombre || subiendo()" (click)="guardar()">
+      <ion-button expand="block" class="ion-margin-top" [disabled]="subiendo()" (click)="guardar()">
         {{ subiendo() ? 'Subiendo...' : 'Guardar' }}
       </ion-button>
     </ion-content>

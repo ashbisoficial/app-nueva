@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterOutlet } from '@angular/router';
+import { AuthService } from '../core/auth.service';
 import { NavPrincipalComponent } from '../shared/nav-principal/nav-principal.component';
 
 /**
@@ -16,4 +17,19 @@ import { NavPrincipalComponent } from '../shared/nav-principal/nav-principal.com
   templateUrl: './app-shell.component.html',
   styleUrl: './app-shell.component.scss',
 })
-export class AppShellComponent {}
+export class AppShellComponent {
+  private auth = inject(AuthService);
+  private router = inject(Router);
+
+  constructor() {
+    // Una sesión que ya estaba abierta no pasa por el login: si a la cuenta le
+    // falta el RUT o aceptar la versión vigente de los textos legales, se la
+    // manda a completar-registro antes de usar la app.
+    const uid = this.auth.uidActual;
+    if (uid) {
+      void this.auth.obtenerUsuario(uid).then((u) => {
+        if (AuthService.registroIncompleto(u)) void this.router.navigateByUrl('/completar-registro');
+      });
+    }
+  }
+}

@@ -63,26 +63,66 @@
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
-      <ion-item>
-        <ion-select label="Tipo de examen" labelPlacement="floating" [(ngModel)]="tipo" name="tipo" interface="action-sheet">
+      <p class="texto-ayuda">Los campos con * son obligatorios.</p>
+      <ion-item [class.campo-invalido]="v.error('tipo')">
+        <ion-select label="Tipo de examen *" labelPlacement="floating" [(ngModel)]="tipo" name="tipo" interface="action-sheet" (ngModelChange)="v.campo('tipo')">
           @for (ex of examenesComunes; track ex) {
             <ion-select-option [value]="ex">{{ ex }}</ion-select-option>
           }
         </ion-select>
       </ion-item>
-      <ion-item>
-        <ion-input label="O escribe otro tipo" labelPlacement="floating" [(ngModel)]="tipo" name="tipoLibre"></ion-input>
+      <ion-item [class.campo-invalido]="v.error('tipo')">
+        <ion-input
+          label="O escribe otro tipo"
+          labelPlacement="floating"
+          maxlength="80"
+          [(ngModel)]="tipo"
+          name="tipoLibre"
+          (ngModelChange)="v.revalidar('tipo')"
+          (ionBlur)="v.campo('tipo')"
+        ></ion-input>
       </ion-item>
-      <ion-item>
-        <ion-input label="Fecha programada" labelPlacement="floating" type="date" [(ngModel)]="fechaProgramada" name="fechaProgramada"></ion-input>
+      @if (v.error('tipo'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      <ion-item [class.campo-invalido]="v.error('fechaProgramada')">
+        <ion-input
+          label="Fecha programada"
+          labelPlacement="floating"
+          type="date"
+          [(ngModel)]="fechaProgramada"
+          name="fechaProgramada"
+          (ngModelChange)="v.revalidar('fechaProgramada')"
+          (ionBlur)="v.campo('fechaProgramada')"
+        ></ion-input>
       </ion-item>
-      <ion-item>
-        <ion-input label="Lugar" labelPlacement="floating" [(ngModel)]="lugar" name="lugar"></ion-input>
+      @if (v.error('fechaProgramada'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      <ion-item [class.campo-invalido]="v.error('lugar')">
+        <ion-input
+          label="Lugar"
+          labelPlacement="floating"
+          maxlength="120"
+          [(ngModel)]="lugar"
+          name="lugar"
+          (ngModelChange)="v.revalidar('lugar')"
+          (ionBlur)="v.campo('lugar')"
+        ></ion-input>
       </ion-item>
-      <ion-item>
-        <ion-input label="Notas" labelPlacement="floating" [(ngModel)]="notas" name="notas"></ion-input>
+      @if (v.error('lugar'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      <ion-item [class.campo-invalido]="v.error('notas')">
+        <ion-input
+          label="Notas"
+          labelPlacement="floating"
+          maxlength="500"
+          [(ngModel)]="notas"
+          name="notas"
+          (ngModelChange)="v.revalidar('notas')"
+          (ionBlur)="v.campo('notas')"
+        ></ion-input>
       </ion-item>
-      <ion-button expand="block" class="ion-margin-top" [disabled]="!tipo" (click)="guardar()">Guardar</ion-button>
+      @if (v.error('notas'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      @if (error()) {
+        <p class="texto-error ion-margin-top" role="alert">{{ error() }}</p>
+      }
+      <ion-button expand="block" class="ion-margin-top" [disabled]="guardando()" (click)="guardar()">Guardar</ion-button>
     </ion-content>
   </ng-template>
 </ion-modal>
@@ -98,13 +138,30 @@
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
-      <ion-item>
-        <ion-input label="Fecha" labelPlacement="floating" type="date" [(ngModel)]="fechaRealizado" name="fechaRealizado"></ion-input>
+      <ion-item [class.campo-invalido]="vRealizado.error('fechaRealizado')">
+        <ion-input
+          label="Fecha en que se hizo *"
+          labelPlacement="floating"
+          type="date"
+          [max]="hoyISO"
+          [(ngModel)]="fechaRealizado"
+          name="fechaRealizado"
+          (ngModelChange)="vRealizado.revalidar('fechaRealizado')"
+          (ionBlur)="vRealizado.campo('fechaRealizado')"
+        ></ion-input>
       </ion-item>
-      <ion-item lines="none">
-        <input type="file" accept="image/*,application/pdf" (change)="onArchivoSeleccionado($event)" />
+      @if (vRealizado.error('fechaRealizado'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      <ion-item lines="none" class="examen-archivo">
+        <p class="texto-ayuda">Resultado o informe (opcional): foto o PDF.</p>
+        <input type="file" accept="image/*,application/pdf" aria-label="Resultado del examen" (change)="onArchivoSeleccionado($event)" />
       </ion-item>
-      <ion-button expand="block" class="ion-margin-top" (click)="confirmarRealizado()">Confirmar</ion-button>
+      @if (vRealizado.error('archivoResultado'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      @if (error()) {
+        <p class="texto-error ion-margin-top" role="alert">{{ error() }}</p>
+      }
+      <ion-button expand="block" class="ion-margin-top" [disabled]="guardando()" (click)="confirmarRealizado()">
+        {{ guardando() ? 'Guardando...' : 'Confirmar' }}
+      </ion-button>
     </ion-content>
   </ng-template>
 </ion-modal>

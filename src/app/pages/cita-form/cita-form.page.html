@@ -8,28 +8,67 @@
 </ion-header>
 
 <ion-content>
-  <form (ngSubmit)="guardar()" class="form-cuerpo">
+  <form (ngSubmit)="guardar()" class="form-cuerpo" novalidate>
+    <p class="texto-ayuda">Los campos con * son obligatorios.</p>
     <section class="form-tarjeta">
     <ion-list lines="inset">
-      <ion-item>
-        <ion-input label="Título" labelPlacement="floating" [(ngModel)]="titulo" name="titulo" required></ion-input>
+      <ion-item [class.campo-invalido]="v.error('titulo')">
+        <ion-input
+          label="Título *"
+          labelPlacement="floating"
+          [(ngModel)]="titulo"
+          name="titulo"
+          maxlength="100"
+          (ngModelChange)="v.revalidar('titulo')"
+          (ionBlur)="v.campo('titulo')"
+        ></ion-input>
       </ion-item>
-      <ion-item>
-        <ion-select label="Tipo" labelPlacement="floating" [(ngModel)]="tipo" name="tipo">
+      @if (v.error('titulo'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      <ion-item [class.campo-invalido]="v.error('tipo')">
+        <ion-select label="Tipo *" labelPlacement="floating" [(ngModel)]="tipo" name="tipo" (ngModelChange)="v.campo('tipo')">
           @for (t of tipos; track t.value) {
             <ion-select-option [value]="t.value">{{ t.label }}</ion-select-option>
           }
         </ion-select>
       </ion-item>
-      <ion-item>
-        <ion-input label="Fecha y hora" labelPlacement="floating" type="datetime-local" [(ngModel)]="fechaInicio" name="fechaInicio" required></ion-input>
+      @if (v.error('tipo'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      <ion-item [class.campo-invalido]="v.error('fechaInicio')">
+        <ion-input
+          label="Fecha y hora *"
+          labelPlacement="floating"
+          type="datetime-local"
+          [(ngModel)]="fechaInicio"
+          name="fechaInicio"
+          (ngModelChange)="v.revalidar('fechaInicio')"
+          (ionBlur)="v.campo('fechaInicio')"
+        ></ion-input>
       </ion-item>
-      <ion-item>
-        <ion-input label="Hasta (opcional)" labelPlacement="floating" type="datetime-local" [(ngModel)]="fechaFin" name="fechaFin"></ion-input>
+      @if (v.error('fechaInicio'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      <ion-item [class.campo-invalido]="v.error('fechaFin')">
+        <ion-input
+          label="Hasta (opcional)"
+          labelPlacement="floating"
+          type="datetime-local"
+          [min]="fechaInicio"
+          [(ngModel)]="fechaFin"
+          name="fechaFin"
+          (ngModelChange)="v.revalidar('fechaFin')"
+          (ionBlur)="v.campo('fechaFin')"
+        ></ion-input>
       </ion-item>
-      <ion-item>
-        <ion-input label="Lugar" labelPlacement="floating" [(ngModel)]="lugar" name="lugar"></ion-input>
+      @if (v.error('fechaFin'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      <ion-item [class.campo-invalido]="v.error('lugar')">
+        <ion-input
+          label="Lugar"
+          labelPlacement="floating"
+          [(ngModel)]="lugar"
+          name="lugar"
+          maxlength="120"
+          (ngModelChange)="v.revalidar('lugar')"
+          (ionBlur)="v.campo('lugar')"
+        ></ion-input>
       </ion-item>
+      @if (v.error('lugar'); as e) { <p class="texto-error-campo">{{ e }}</p> }
       @if (especialidades().length) {
         <ion-item>
           <ion-select label="Especialidad (opcional)" labelPlacement="floating" [(ngModel)]="especialidadId" name="especialidad">
@@ -40,17 +79,26 @@
           </ion-select>
         </ion-item>
       }
-      <ion-item lines="none">
-        <ion-textarea label="Notas" labelPlacement="floating" [(ngModel)]="notas" name="notas" autoGrow></ion-textarea>
+      <ion-item lines="none" [class.campo-invalido]="v.error('notas')">
+        <ion-textarea
+          label="Notas"
+          labelPlacement="floating"
+          [(ngModel)]="notas"
+          name="notas"
+          autoGrow
+          (ngModelChange)="v.revalidar('notas')"
+          (ionBlur)="v.campo('notas')"
+        ></ion-textarea>
       </ion-item>
+      @if (v.error('notas'); as e) { <p class="texto-error-campo">{{ e }}</p> }
     </ion-list>
     </section>
 
     @if (error()) {
-      <p class="texto-error">{{ error() }}</p>
+      <p class="texto-error" role="alert">{{ error() }}</p>
     }
 
-    <ion-button expand="block" type="submit" class="form-boton-principal" [disabled]="guardando() || !titulo || !fechaInicio">
+    <ion-button expand="block" type="submit" class="form-boton-principal" [disabled]="guardando()">
       Guardar
     </ion-button>
     <ion-button expand="block" fill="outline" type="button" (click)="exportarIcs()">

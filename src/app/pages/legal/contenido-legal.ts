@@ -14,7 +14,7 @@ export interface SeccionLegal {
   items?: string[];
 }
 
-export const ULTIMA_ACTUALIZACION = '15 de octubre de 2026';
+export const ULTIMA_ACTUALIZACION = '19 de octubre de 2026';
 export const EMAIL_CONTACTO = 'serangelia.oficial@gmail.com';
 export const RESPONSABLE_NOMBRE = 'Ana Rayen Castillo Painenao';
 export const RESPONSABLE_RUT = '21.393.050-8';
@@ -39,13 +39,16 @@ export const POLITICA_PRIVACIDAD: SeccionLegal[] = [
       'Datos de contacto de emergencia de cada Persona.',
       'Documentos que subas: fotos o PDFs de exámenes, recetas, certificados, carnets, etc.',
       'Datos técnicos mínimos para que la app funcione: identificador de tu cuenta, fecha de registro, y las preferencias que elijas (tema de color, tamaño de letra) guardadas en tu dispositivo y en tu cuenta.',
+      'Si activas las notificaciones: un identificador técnico por dispositivo (token de Firebase Cloud Messaging) que permite enviarte los avisos. Se borra al desactivarlas.',
+      'Si conectas tu calendario: un enlace secreto propio de tu cuenta que entrega tus citas, próximas vacunas y fin de tratamientos a la app de calendario que elijas (por ejemplo, Google Calendar). Puedes desconectarlo cuando quieras y el enlace deja de funcionar.',
+      'El registro de tu consentimiento: la fecha en que aceptaste estos textos y la versión aceptada.',
     ],
   },
   {
     titulo: '3. Datos sensibles y tu consentimiento',
     parrafos: [
       'Según la Ley N° 19.628 sobre Protección de la Vida Privada (y la Ley N° 21.719, que la moderniza y crea la Agencia de Protección de Datos Personales), los datos de salud son "datos sensibles": una categoría que solo se puede tratar con tu consentimiento expreso, precisamente porque revelan información especialmente delicada.',
-      'Al crear tu cuenta y registrar datos de salud propios o de una Persona a tu cargo, das tu consentimiento expreso para que Serangelia trate esos datos sensibles, exclusivamente con las finalidades descritas en la sección 4. Puedes retirar este consentimiento en cualquier momento solicitando la eliminación de tu cuenta (sección 8) — al hacerlo, dejamos de tratar tus datos, sin que esto afecte el tratamiento ya realizado mientras tu consentimiento estuvo vigente.',
+      'Al crear tu cuenta marcas, por separado, la aceptación de los Términos de Uso y de esta Política, y con ello das tu consentimiento expreso para que Serangelia trate tus datos sensibles y los de las Personas a tu cargo que registres, exclusivamente con las finalidades descritas en la sección 4. Guardamos la fecha y la versión de lo que aceptaste; si esta política cambia de forma relevante, te pediremos aceptarla de nuevo antes de seguir usando la app. Puedes retirar este consentimiento en cualquier momento solicitando la eliminación de tu cuenta (sección 8) — al hacerlo, dejamos de tratar tus datos, sin que esto afecte el tratamiento ya realizado mientras tu consentimiento estuvo vigente.',
     ],
   },
   {
@@ -55,7 +58,8 @@ export const POLITICA_PRIVACIDAD: SeccionLegal[] = [
       'Guardar y mostrarte tu historial médico y el de las Personas a tu cargo.',
       'Generar recordatorios de vacunas, citas médicas y tomas de medicamentos.',
       'Generar el carnet de emergencia y el QR de pérdida que tú decides compartir, con los campos que tú elijas mostrar.',
-      'Permitir que compartas el perfil de una Persona con alguien de confianza mediante un PIN, si tú lo generas.',
+      'Permitir que compartas el perfil de una Persona con alguien de confianza mediante un PIN, si tú lo generas. El PIN vence en el plazo que elijas (máximo 7 días), sirve para un número limitado de personas y lo puedes anular cuando quieras.',
+      'Enviarte avisos (notificaciones) y mantener actualizado tu calendario externo, solo si tú los activas.',
       'Validar que tu RUT (o el de una Persona dependiente) no esté duplicado, para que no se pueda usar dos veces dentro de la app.',
       'En el futuro (todavía no implementado, ver sección 6): verificar tu identidad al crear la cuenta mediante un proveedor externo que compara una selfie con tu cédula.',
     ],
@@ -79,7 +83,8 @@ export const POLITICA_PRIVACIDAD: SeccionLegal[] = [
   {
     titulo: '7. Con quién se comparten tus datos',
     parrafos: [
-      'Serangelia funciona sobre Firebase (Google Cloud Platform), que aloja la base de datos, los archivos que subes y la autenticación. Google actúa como encargado del tratamiento: procesa los datos por instrucción del Responsable, bajo sus propias medidas de seguridad, y no los usa para fines propios. Esto implica una transferencia internacional de datos, ya que los servidores de Firebase pueden estar ubicados fuera de Chile.',
+      'Serangelia funciona sobre Firebase (Google Cloud Platform), que aloja la base de datos, los archivos que subes, la autenticación y el envío de notificaciones. Google actúa como encargado del tratamiento: procesa los datos por instrucción del Responsable, bajo sus propias medidas de seguridad, y no los usa para fines propios. Esto implica una transferencia internacional de datos, ya que los servidores de Firebase pueden estar ubicados fuera de Chile.',
+      'Si conectas tu calendario, la app de calendario que elijas (por ejemplo, Google Calendar) recibe los títulos, fechas y lugares de tus citas, vacunas y fin de tratamientos; esa información queda sujeta también a la política de privacidad de ese servicio. El contenido del historial médico, los diagnósticos y los documentos nunca se envían al calendario.',
       'No compartimos tus datos con ningún otro tercero, salvo que la ley chilena nos obligue a hacerlo (ej. un requerimiento judicial).',
     ],
   },

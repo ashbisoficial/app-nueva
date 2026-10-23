@@ -176,8 +176,20 @@ interface Persona {
   // un solo lugar para subirla/guardarla.
   fotoUrl?: string;
 
-  direccion?: string;        // opcional, ej. para indicarle a una ambulancia dónde ir
-  comuna?: string;
+  nacionalidad?: string;
+
+  // Datos personales esenciales (pedido explícito: toda Persona que se crea
+  // o se une tiene identificación, contacto, vivienda y contacto de
+  // emergencia). persona-form los exige al guardar; quedan opcionales en el
+  // tipo porque las Personas creadas antes no los tienen — para esas,
+  // datosFaltantes() (shared/persona-datos.ts) avisa en Home, en el detalle
+  // y en "Datos personales" qué falta completar.
+  telefono?: string;         // obligatorio salvo para un menor a cargo (se le ubica por su contacto de emergencia)
+  email?: string;
+  direccion?: string;        // obligatorio: calle y número — para indicarle a una ambulancia dónde ir
+  direccionDetalle?: string; // depto., casa, block
+  comuna?: string;           // obligatorio
+  region?: string;           // obligatorio, una de REGIONES_CHILE
 
   relacion: RelacionPersona;
   // Para 'yo_mismo': copia de usuarios/{uid}.rut (no se puede editar distinto acá).
@@ -207,8 +219,15 @@ interface Persona {
   notasEmergencia?: string;          // texto libre, cualquier otra cosa relevante en una urgencia
 
   // Contacto de emergencia
-  contactoEmergencia?: string;
-  telefonoEmergencia?: string;
+  contactoEmergencia?: string;            // obligatorio
+  contactoEmergenciaParentesco?: string;  // obligatorio, una de PARENTESCOS (se muestra también en el QR de pérdida)
+  telefonoEmergencia?: string;            // obligatorio
+  // Contactos de emergencia adicionales (hasta 4, pedido explícito), cada uno
+  // con nombre/parentesco/teléfono obligatorios y el mismo formato que el
+  // principal. Se ven en el detalle (con un toque para llamar) y en "Datos
+  // personales"; el carnet, el QR de pérdida y el PDF siguen mostrando solo
+  // el principal (los tres campos de arriba).
+  contactosEmergenciaAdicionales?: { nombre: string; parentesco: string; telefono: string }[];
 
   // QR del carnet de emergencia — datos médicos para mostrarle a un médico.
   // qrFichaCamposPublicos deliberadamente NO puede incluir direccion/comuna:
@@ -224,8 +243,7 @@ interface Persona {
   qrPerdidaToken?: string;
   qrPerdidaCamposPublicos?: string[]; // típicamente: nombre, foto, contacto de emergencia, condición relevante (ej. "tiene Alzheimer")
 
-  pinAccesoCompartido?: string;    // opcional, ver sección 6 (familiares / compartir con persona de confianza)
-  pinGeneradoEn?: any;
+  modoAccesoCompartido?: 'lectura' | 'escritura'; // permiso vigente del último PIN canjeado (sección 6; el PIN mismo vive en pinesAcceso, no acá)
 }
 ```
 
@@ -425,12 +443,18 @@ especialidad), sin que eso sea obligatorio para usar el resto de la app.
 - Pantalla de detalle de cita (ver/editar/eliminar), con botón de "agregar a
   mi calendario" (ICS) como paso intermedio antes de encarar una integración
   real con Google Calendar más adelante.
-- Configuración tiene una tarjeta "Calendario" que deja esto explícito al
-  usuario (no solo implícito en el código): hoy se usa `.ics` por cita, la
-  sincronización real con Google Calendar (OAuth) sigue pendiente — igual
-  que con el proveedor de KYC (6.1) y las notificaciones push (4.5), requiere
-  que el usuario cree primero credenciales OAuth en su propia consola de
-  Google Cloud antes de poder integrarlo.
+- **Conexión con Google Calendar (implementada, por suscripción .ics, sin
+  OAuth):** Ajustes → Calendario → "Conectar con Google Calendar" genera un
+  token secreto en `usuarios/{uid}.calendarioToken` y abre
+  `calendar.google.com/calendar/render?cid=webcal://…/calendario/{token}.ics`
+  para que el usuario confirme "Agregar". Ese feed lo sirve la Cloud Function
+  `calendarioIcs` (rewrite de Hosting `/calendario/**`) con las citas,
+  próximas vacunas y fin de tratamientos de todas las personas que ve la
+  cuenta (propias y compartidas). Google lo vuelve a leer solo cada algunas
+  horas (no es instantáneo). "Copiar enlace" sirve para Apple Calendar /
+  Outlook; "Desconectar" borra el token y el enlace deja de funcionar. Se
+  descartó OAuth porque el permiso de Calendar es "sensible" y exige que
+  Google verifique la app antes de que usuarios reales lo puedan usar.
 
 ### 4.4 Medicamentos
 
@@ -481,14 +505,27 @@ volverse lento ni caro a medida que crece la base de usuarios.
   recordatorio nuevo. Apagarlo no cancela retroactivamente lo que ya estaba
   programado, solo evita programar recordatorios nuevos — a la UI se lo deja
   así de claro para no prometer de más.
-- Capa 2 (push): la Cloud Function `recordatoriosDiarios` ya existe y
-  funciona, pero **todavía no hay ningún cliente que registre
-  `usuarios/{uid}.fcmToken`** — falta integrar Firebase Cloud Messaging del
-  lado web/Capacitor (service worker + VAPID key, que se genera en la
-  consola de Firebase — mismo tipo de bloqueo que el proveedor de KYC de la
-  sección 6.1: requiere un paso del usuario en su consola antes de poder
-  integrarlo). Por eso en Configuración el interruptor de "Notificaciones
-  push" aparece deshabilitado con la leyenda "Próximamente".
+- **Por qué "no se activaban" (corregido):** en la web la capa 1 no sirve
+  — el plugin de Capacitor en navegador solo usa un `setTimeout` mientras
+  la pestaña está abierta — y la capa 2 estaba deshabilitada porque ningún
+  cliente registraba su token. Ahora: la capa 1 (interruptor "Recordatorios
+  en este dispositivo") solo se muestra en la app nativa
+  (`Capacitor.isNativePlatform()`), y en la web el interruptor "Avisos en
+  este dispositivo" activa push real con FCM (`core/push.service.ts`):
+  pide permiso, registra `public/firebase-messaging-sw.js` (service worker
+  propio, sin cargar el SDK desde un CDN: solo muestra la notificación y
+  abre la app al tocarla), y agrega el token a `usuarios/{uid}.fcmTokens`
+  (uno por dispositivo). `recordatoriosDiarios` envía a todos los tokens
+  con `sendEachForMulticast` y borra los que FCM reporta como inválidos.
+  Botón "Enviar una notificación de prueba" → Cloud Function
+  `enviarPushPrueba`. Sin `environment.vapidKey` se usa la clave VAPID por
+  defecto de Firebase (funciona); se puede generar una propia en Firebase
+  Console → Cloud Messaging → Certificados push web. En iPhone el push web
+  solo funciona con la app agregada a la pantalla de inicio (hay
+  `manifest.webmanifest` + íconos en `public/assets/icon/`). Los
+  recordatorios de cada toma de medicamento siguen siendo solo locales
+  (app nativa); el push avisa el día anterior a citas, vacunas y fin de
+  tratamiento.
 
 ### 4.6 Carnet / fichas QR (emergencia y pérdida)
 
@@ -501,6 +538,24 @@ QR, bajo ningún escenario.
 
 **Carnet de emergencia** (dato médico, para un médico):
 - Cada Persona tiene un `qrFichaToken` único y permanente.
+- **La vista pública pasa por la Cloud Function `fichaPublica`** (corregido:
+  antes la página leía el documento de la Persona desde el cliente, lo que
+  fallaba para cualquiera sin sesión — o sea, el QR no le funcionaba a un
+  desconocido — y de haberse permitido habría expuesto el documento
+  completo). La función busca por token y devuelve solo los campos
+  marcados como públicos para ese QR. La selección por defecto se guarda
+  al abrir la configuración por primera vez (antes solo existía en
+  pantalla y el QR salía vacío hasta tocar una casilla).
+- Las páginas de configuración de cada QR muestran al lado (abajo en
+  celular) una **vista previa en vivo** — un iframe de la misma página
+  pública, que se recarga al guardar — en vez del botón "Ver cómo la ve
+  un extraño". Las rutas públicas no muestran la pantalla de bloqueo por
+  PIN, y Hosting manda `frame-ancestors 'self'` para que ningún otro sitio
+  pueda incrustar la app.
+- **QR de pérdida solo si la persona lo necesita** (pedido explícito):
+  `Persona.requiereQrPerdida` (interruptor en "Salud urgente" del
+  formulario). El módulo aparece en el detalle solo si está activo, o si ya
+  se había configurado antes (tiene `qrPerdidaToken`).
 - Vista pública (sin login) en `/ficha-publica/{token}`: muestra solo lo que
   el titular marcó como público en `qrFichaCamposPublicos` (opt-in explícito,
   nunca el historial clínico completo) — típicamente: nombre, grupo
@@ -576,11 +631,25 @@ perfil **y además** los perfiles de sus dos padres en su mismo listado de
 de ellos, sin que eso le dé a Gabriel la contraseña ni el control total de la
 cuenta de sus padres.
 
-**Esto ya está resuelto por el mecanismo de PIN** (sección 3.2): un
-`pinAccesoCompartido` de 6 dígitos por Persona, generado por el titular.
-Quien canjea el PIN (mediante invitación: el titular comparte el código, la
-otra persona lo ingresa estando logueada en su propia cuenta) queda agregado
-a `uidsConAcceso` de esa Persona, con acceso de solo lectura o
+**PIN con vencimiento y límite de usos (implementado, reemplaza al campo
+`pinAccesoCompartido` de la Persona):** cada PIN es un doc
+`pinesAcceso/{pin}` (`personaId`, `uidTitular`, `modo`, `usosMax` 1–5,
+`usos`, `expiraEn` máx. 7 días — validado en firestore.rules). Solo el
+titular lo puede leer o anular: antes el PIN vivía en el doc de la Persona y
+cualquiera con acceso compartido lo podía leer y reenviar. `canjearPin`
+valida y suma el uso en una transacción, y borra el PIN al agotarse;
+canjear de nuevo un perfil al que ya se tiene acceso no gasta un uso. El
+modal `shared/compartir-pin` (botón "Compartir perfil con un familiar" en
+el detalle de la Persona, más en "Datos personales") permite elegir permiso,
+vigencia (1 h / 24 h / 7 días) y usos (1 / 3 / 5), y comparte por WhatsApp
+(`wa.me`), por el menú nativo (`navigator.share`) o copiando un mensaje con
+instrucciones y el enlace `/canjear-pin?pin=…`, que deja el PIN ya escrito.
+"¿Te compartieron un perfil?" aparece arriba en Personas (además de Home).
+
+**Esto se resuelve con el mecanismo de PIN de arriba**: quien lo canjea
+(mediante invitación: el titular comparte el código, la otra persona lo
+ingresa estando logueada en su propia cuenta) queda agregado a
+`uidsConAcceso` de esa Persona, con acceso de solo lectura o
 lectura+escritura según lo que eligió el titular — y esa Persona pasa a
 aparecer también en el listado de "Mis personas" de quien canjeó el PIN. No
 hace falta compartir la cuenta completa ni la contraseña.
@@ -807,6 +876,16 @@ Protección de Datos Personales) que entra en vigencia en diciembre de 2026.
   secciones título+párrafos+lista, para no tener un bloque de HTML gigante
   por página) y dos componentes de página (`politica-privacidad`,
   `terminos-uso`) que solo iteran ese contenido.
+- **Consentimiento expreso al crear la cuenta (implementado):** dos
+  casillas obligatorias en el registro (Términos; Política de Privacidad +
+  tratamiento de datos personales y de salud propios y de las personas a
+  cargo), con mensaje de error si no se marcan. Se guarda
+  `usuarios/{uid}.consentimientos` = { version: ULTIMA_ACTUALIZACION,
+  fechas }. Si la cuenta no tiene la versión vigente (cuentas de Google
+  nuevas, cuentas anteriores a esto, o cuando cambian los textos y se
+  actualiza ULTIMA_ACTUALIZACION) se la manda a completar-registro a
+  aceptar antes de usar la app (`AuthService.registroIncompleto`, revisado
+  en el login y al abrir el shell).
 - Enlazados desde el pie del formulario de Login/registro y desde una
   tarjeta "Legal" en Configuración.
 - La Política cubre: qué datos se recopilan (incluyendo que los datos de
@@ -826,12 +905,27 @@ Protección de Datos Personales) que entra en vigencia en diciembre de 2026.
 ## 8. Pantallas principales
 
 - Login/registro
-- Home: accesos rápidos (agregar persona, subir documento, ver agenda, ver
-  medicamentos activos) + próximos eventos (vacunas/citas/medicamentos de los
-  próximos días, de todas las personas)
+- Completar registro (RUT) → lleva directo a crear la Persona "yo mismo/a"
+  con sus datos personales (`/personas/nueva?bienvenida=1`), así ninguna
+  cuenta nueva queda sin sus datos esenciales.
+- Home: aviso "Completa tus datos personales" si la cuenta todavía no tiene
+  su "yo mismo/a"; accesos rápidos (agregar persona, subir documento, ver
+  agenda, ver medicamentos activos) + próximos eventos (vacunas/citas/
+  medicamentos de los próximos días, de todas las personas); "Mis personas"
+  marca con "!" a quien le faltan datos esenciales. Sin "Cerrar sesión" ni
+  engranaje propio (Ajustes ya está en la navegación principal).
 - Listar personas (perfiles bajo la cuenta)
-- Detalle de persona: datos básicos, accesos a Historial clínico /
-  Calendario / Vacunas / Medicamentos / Documentos / Especialidades / Ficha QR
+- Detalle de persona: arriba solo lo urgente (edad, relación, grupo
+  sanguíneo/alergias/crónicas como chips, contacto de emergencia con un toque
+  para llamar, aviso de datos faltantes); abajo los módulos Historial
+  clínico / Vacunas / Medicamentos / Exámenes / Documentos / Especialidades /
+  Carnet / QR de pérdida. El engranaje lleva a "Datos personales".
+- Datos personales de una persona (`/personas/:id/datos`): todos sus datos
+  en secciones de solo lectura (identificación, contacto, vivienda, contacto
+  de emergencia, salud urgente, previsión) + "Editar datos personales"
+  (persona-form) + administración del perfil (compartir con PIN, eliminar),
+  esto último solo visible para el titular. Para "yo mismo/a" también se
+  llega desde Ajustes → Cuenta → "Mis datos personales".
 - Historial clínico: timeline de entradas, botón "Nueva entrada" con
   selector de tipo (consulta/receta/vacunación/examen/cirugía/indicaciones de
   alta/solicitud de examen) que cambia los campos del formulario
@@ -844,13 +938,42 @@ Protección de Datos Personales) que entra en vigencia en diciembre de 2026.
   médico/tratamiento con sus documentos, entradas, citas y exámenes)
 - Ficha de emergencia / QR (configurar qué se muestra + generar PDF + ver
   cómo la ve un extraño)
-- Configuración de cuenta: cuenta, color/tamaño de letra, notificaciones
+- Configuración de cuenta: cuenta (+ acceso a "Mis datos personales"), color/tamaño de letra, notificaciones
   (4.5), seguridad (PIN de reingreso rápido, sección 6.1), calendario (4.3),
   legal (7.1). "Cerrar sesión" es deliberadamente
   poco vistoso — un link de texto simple al final de todo, no un botón
   destacado — con una confirmación antes de ejecutar (pedido explícito del
-  usuario: que no sea lo primero que salta a la vista en Ajustes).
+  usuario: que no sea lo primero que salta a la vista en Ajustes). Es el
+  único lugar de la app con "Cerrar sesión" (pedido explícito), salvo dos
+  salidas de emergencia que no se pueden quitar: "Completar registro" (antes
+  de tener RUT no se llega a Ajustes) y "¿Olvidaste tu PIN?" en la pantalla
+  de bloqueo.
 - Política de Privacidad / Términos de Uso (sección 7.1, públicas sin login)
+
+**Layout responsivo** (pedido explícito: escritorio bien distribuido y
+responsive). Tokens en `src/styles.scss`: `--ancho-contenido` (1120px en
+escritorio, 760px en tablet) y `--margen-lateral` (20/28/40px). Todos los
+"cuerpos" de pantalla (`.home-cuerpo`, `.form-cuerpo`, `.lista-cuerpo`,
+etc.) comparten ese ancho y quedan alineados entre pantallas, y el título
+de la barra superior (`ion-toolbar`) empieza en el mismo borde. Esas
+reglas globales van prefijadas con `.shell__contenido ion-content` porque
+los estilos de componente (`.x[_ngcontent-…]`) tienen más especificidad
+que una clase global sola. Rangos: celular < 600px (una columna); tablet
+600–899px (barra inferior, grillas de 2–4 columnas: accesos de Home en 4,
+módulos de persona en auto-fill, Personas como grilla de tarjetas);
+escritorio ≥ 900px (panel lateral); pantalla ancha ≥ 1200px (Home con
+"Mis personas" como columna lateral fija, detalle de persona con el
+resumen urgente fijo a la izquierda y los módulos a la derecha). La clase
+global `.columnas-tarjetas` reparte tarjetas en dos columnas tipo masonry
+(column-count) desde 1100px — usada en el formulario de persona, "Datos
+personales" y Ajustes. Verificado con capturas en 1440/1280/1024/768/390px
+sin scroll horizontal.
+
+**Probar con emuladores** (no toca el proyecto real): `firebase emulators:start
+--only auth,firestore,storage` (requiere Java 21+) + `ng serve`, y en el
+navegador `localStorage.setItem('serangelia.emuladores', '1')` antes de
+recargar — `core/firebase.ts` conecta los emuladores solo si
+`environment.production` es false y esa clave está puesta.
 
 **Validaciones de formulario** (pedido explícito del usuario: mensajes
 claros, no solo bloquear en silencio): `core/validadores.ts` centraliza los
@@ -860,13 +983,28 @@ opcional) — se usan tanto como atributo `pattern` nativo en el `ion-input`
 (feedback inmediato del teclado/navegador) como validados de nuevo en
 TypeScript antes de enviar (mensaje en español específico por campo, ej.
 "El nombre solo puede tener letras y espacios", no un genérico "dato
-inválido"). Implementado primero en `persona-form` (nombres/apellidos
-obligatorios con ese patrón, fecha de nacimiento obligatoria y no futura,
-sexo obligatorio, RUT del dependiente validado con dígito verificador antes
-de llamar al servidor, teléfonos opcionales pero con formato si se llenan,
-peso/estatura con rango razonable) — pendiente extender el mismo criterio al
-resto de formularios (cita, nueva entrada de historial, etc.) cuando se
-toquen. Nota técnica: el atributo HTML `pattern` se interpreta con el flag
+inválido").
+
+**Implementado en todos los formularios** (login, completar registro,
+canjear PIN, persona, cita, vacuna, medicamento, examen, documento,
+especialidad, nueva entrada de historial, QR de pérdida) con
+`ValidacionFormulario` (`core/validadores.ts`): cada campo declara su regla
+(`reglas.requerido`, `reglas.correo`, `reglas.telefono`, `reglas.nombre`,
+`reglas.noFutura`, `reglas.rango`, `reglas.largoMaximo`, `errorArchivo`
+para tipo/tamaño de archivo, encadenables con `primerError`) y los mensajes
+salen de `MENSAJES` ("Este campo es obligatorio.", "Ingresa un correo
+válido, por ejemplo nombre@correo.com.", etc.) para que digan lo mismo en
+toda la app. Patrón en la plantilla: `[class.campo-invalido]` en el
+`ion-item` (borde rojo), `(ionBlur)="v.campo('x')"` valida al salir del
+campo, `(ngModelChange)="v.revalidar('x')"` borra el error apenas se
+corrige (sin marcar errores mientras se escribe por primera vez), y el
+mensaje va debajo en `<p class="texto-error-campo">`. Al enviar,
+`v.todo()` marca todos los campos de una vez; el botón de guardar nunca se
+deshabilita por datos faltantes (si no, el usuario no sabría qué le falta).
+Los obligatorios llevan "*" en la etiqueta. Los errores de guardado nunca
+muestran el mensaje técnico de Firebase (viene en inglés): siempre un texto
+en español ("No se pudo guardar… Revisa tu conexión e intenta de nuevo.").
+Nota técnica: el atributo HTML `pattern` se interpreta con el flag
 `v` (unicode sets) de `RegExp`, que es más estricto que el modo normal de
 JS — un rango manual de acentos (`À-ÖØ-öø-ÿ`) o un `-` suelto al final de
 una clase mezclado con un escape (`\s`, `\p{L}`) tira

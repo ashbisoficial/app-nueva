@@ -198,3 +198,27 @@
     text-decoration: none;
   }
 }
+
+.login-consentimiento {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 6px 4px 2px;
+
+  ion-checkbox {
+    --size: 20px;
+    align-items: flex-start;
+  }
+}
+
+.login-consentimiento__texto {
+  white-space: normal;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--ion-text-color);
+
+  a {
+    color: var(--ion-color-primary);
+    font-weight: 700;
+  }
+}

@@ -16,30 +16,36 @@
     } @else if (error()) {
       <p class="texto-error">No se pudo cargar. Revisa tu conexión e intenta de nuevo.</p>
     } @else {
+      <div class="ficha-layout">
+      <div class="ficha-config">
       <p class="texto-ayuda">
-        Pensado para personas que se pueden desorientar o perderse (demencia,
-        Alzheimer, etc.). Si alguien la encuentra y escanea el QR, ve solo lo
-        que marques aquí abajo — nunca el historial clínico.
+        Para quien encuentre a esta persona si se desorienta o se pierde: muestra a quién llamar,
+        no datos médicos. Se ve solo lo que marques aquí abajo, nunca el historial clínico.
       </p>
 
       <section class="form-tarjeta">
         <ion-list lines="inset">
-          <ion-item>
+          <ion-item [class.campo-invalido]="v.error('condicion')">
             <ion-input
               label="Condición relevante (una frase)"
               labelPlacement="floating"
               placeholder="Ej. Tiene Alzheimer, por favor llamar a su familiar"
+              maxlength="140"
+              [counter]="true"
               [(ngModel)]="condicionPerdida"
               name="condicion"
+              (ngModelChange)="v.revalidar('condicion')"
               (ionBlur)="guardar()"
             ></ion-input>
           </ion-item>
+          @if (v.error('condicion'); as e) { <p class="texto-error-campo">{{ e }}</p> }
           <ion-item lines="none">
-            <input type="file" accept="image/*" capture="environment" (change)="onFotoSeleccionada($event)" />
+            <input type="file" accept="image/*" capture="environment" aria-label="Foto para el QR de pérdida" (change)="onFotoSeleccionada($event)" />
             @if (subiendoFoto()) {
               <ion-spinner name="dots"></ion-spinner>
             }
           </ion-item>
+          @if (v.error('foto'); as e) { <p class="texto-error-campo">{{ e }}</p> }
         </ion-list>
         @if (persona()?.fotoUrl) {
           <img class="foto-preview" [src]="persona()?.fotoUrl" alt="" />
@@ -61,22 +67,32 @@
           }
         </ion-list>
       </section>
+      </div>
 
-      @if (qrDataUrl(); as qr) {
-        <div class="qr-preview">
-          <img [src]="qr" alt="Código QR de pérdida" width="200" height="200" />
-        </div>
-      }
-
-      <div class="ficha-botones">
-        <ion-button expand="block" class="form-boton-principal" (click)="generarPdf()">
-          <ion-icon slot="start" name="print-outline"></ion-icon>
-          Descargar PDF
-        </ion-button>
-        <ion-button expand="block" fill="outline" (click)="verComoExtrano()">
-          <ion-icon slot="start" name="qr-code-outline"></ion-icon>
-          Ver cómo lo ve quien la encuentre
-        </ion-button>
+        <aside class="ficha-vista">
+          <p class="form-tarjeta__titulo">Así se ve al escanearlo</p>
+          @if (vistaPrevia(); as url) {
+            <div class="ficha-telefono">
+              <iframe [src]="url" title="Vista previa: QR de pérdida" loading="lazy"></iframe>
+            </div>
+          }
+          @if (qrDataUrl(); as qr) {
+            <div class="ficha-qr">
+              <img [src]="qr" alt="Código QR de pérdida" width="132" height="132" />
+              <p>Pruébalo escaneando este código con la cámara de otro teléfono.</p>
+            </div>
+          }
+          <div class="ficha-botones">
+            <ion-button expand="block" class="form-boton-principal" (click)="generarPdf()">
+              <ion-icon slot="start" name="print-outline"></ion-icon>
+              Descargar PDF
+            </ion-button>
+            <ion-button expand="block" fill="outline" (click)="copiarEnlace()">
+              <ion-icon slot="start" name="link-outline"></ion-icon>
+              {{ enlaceCopiado() ? 'Enlace copiado' : 'Copiar enlace' }}
+            </ion-button>
+          </div>
+        </aside>
       </div>
     }
   </div>

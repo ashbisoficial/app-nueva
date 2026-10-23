@@ -210,26 +210,211 @@ body {
 }
 
 /*
- * Pantallas de contenido (no la grilla de Agenda, que ya tiene su propio
- * layout de 2 columnas en escritorio): centradas con un ancho máximo
- * cómodo de leer en vez de estirarse a lo ancho de toda la pantalla.
+ * Layout responsivo (pedido explícito: escritorio bien distribuido, sin una
+ * columna angosta perdida en medio de la pantalla). Tres rangos:
+ *   - celular (< 600px): una columna, márgenes de 20px — el diseño base.
+ *   - tablet (600–899px): sigue la barra inferior, contenido hasta 760px
+ *     centrado, y las grillas pasan a 2–4 columnas.
+ *   - escritorio (≥ 900px): panel lateral (nav-principal) + contenido de
+ *     hasta --ancho-contenido, con 40px de margen. Cada pantalla reparte ese
+ *     ancho en columnas (ver los SCSS de home, persona-detalle, etc.).
+ * Todos los "cuerpos" de pantalla comparten el mismo ancho máximo para que
+ * el contenido de una pantalla a otra quede alineado en el mismo lugar, y
+ * la barra superior (ion-toolbar) alinea su título con ese mismo borde.
  */
+:root {
+  --ancho-contenido: 1120px;
+  --margen-lateral: 20px;
+}
+
+@media (min-width: 600px) {
+  :root {
+    --ancho-contenido: 760px;
+    --margen-lateral: 28px;
+  }
+}
+
 @media (min-width: 900px) {
-  .home-cuerpo,
-  .personas-cuerpo,
-  .config-cuerpo,
-  .lista-cuerpo,
-  .form-cuerpo,
-  .detalle-cuerpo,
-  .carpeta-cuerpo,
-  .home-encabezado,
-  .personas-encabezado,
-  .config-encabezado,
-  .agenda-encabezado {
-    max-width: 640px;
+  :root {
+    --ancho-contenido: 1120px;
+    --margen-lateral: 40px;
+  }
+}
+
+@media (min-width: 600px) {
+  .shell__contenido ion-content .home-cuerpo,
+  .shell__contenido ion-content .personas-cuerpo,
+  .shell__contenido ion-content .config-cuerpo,
+  .shell__contenido ion-content .lista-cuerpo,
+  .shell__contenido ion-content .form-cuerpo,
+  .shell__contenido ion-content .detalle-cuerpo,
+  .shell__contenido ion-content .datos-cuerpo,
+  .shell__contenido ion-content .carpeta-cuerpo,
+  .shell__contenido ion-content .agenda-layout,
+  .shell__contenido ion-content .home-encabezado,
+  .shell__contenido ion-content .personas-encabezado,
+  .shell__contenido ion-content .config-encabezado,
+  .shell__contenido ion-content .agenda-encabezado {
+    max-width: calc(var(--ancho-contenido) + 2 * var(--margen-lateral));
     margin-left: auto;
     margin-right: auto;
     width: 100%;
+    padding-left: var(--margen-lateral);
+    padding-right: var(--margen-lateral);
     box-sizing: border-box;
+  }
+
+  /* El título de la barra superior empieza donde empieza el contenido. */
+  .shell__contenido ion-header ion-toolbar {
+    --padding-start: max(8px, calc((100% - var(--ancho-contenido)) / 2 - 8px));
+    --padding-end: max(8px, calc((100% - var(--ancho-contenido)) / 2 - 8px));
+  }
+}
+
+@media (min-width: 900px) {
+  .shell__contenido ion-content .home-cuerpo,
+  .shell__contenido ion-content .personas-cuerpo,
+  .shell__contenido ion-content .config-cuerpo,
+  .shell__contenido ion-content .lista-cuerpo,
+  .shell__contenido ion-content .form-cuerpo,
+  .shell__contenido ion-content .detalle-cuerpo,
+  .shell__contenido ion-content .datos-cuerpo,
+  .shell__contenido ion-content .carpeta-cuerpo,
+  .shell__contenido ion-content .agenda-layout {
+    padding-top: 24px;
+    padding-bottom: 40px;
+  }
+
+  .shell__contenido ion-content .home-encabezado,
+  .shell__contenido ion-content .personas-encabezado,
+  .shell__contenido ion-content .config-encabezado,
+  .shell__contenido ion-content .agenda-encabezado {
+    padding-top: 36px;
+  }
+}
+
+/*
+ * Tarjetas en dos columnas tipo "masonry" en escritorio (formulario de
+ * persona, datos personales, Ajustes): column-count reparte las tarjetas
+ * balanceando la altura de ambas columnas, sin dejar huecos como una grilla
+ * de filas fijas. El orden de lectura/tabulación sigue siendo el del DOM
+ * (primero la columna izquierda completa, después la derecha).
+ */
+.columnas-tarjetas > * {
+  margin-bottom: 16px;
+}
+
+@media (min-width: 1100px) {
+  .columnas-tarjetas {
+    column-count: 2;
+    column-gap: 20px;
+  }
+
+  .columnas-tarjetas > * {
+    break-inside: avoid;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+/* Botón principal de un formulario: a lo ancho en celular, alineado a la derecha en pantallas grandes. */
+@media (min-width: 900px) {
+  .shell__contenido .form-cuerpo > .form-boton-principal {
+    align-self: flex-end;
+    min-width: 280px;
+  }
+}
+
+/* Campo con error de validación (ver ValidacionFormulario en core/validadores.ts). */
+ion-item.campo-invalido {
+  --border-color: var(--ion-color-danger, #c0392b);
+  --highlight-color-focused: var(--ion-color-danger, #c0392b);
+  --highlight-color-valid: var(--ion-color-danger, #c0392b);
+}
+
+/*
+ * Páginas de QR (carnet de emergencia / QR de pérdida): configuración y, al
+ * lado, la vista previa en vivo de la página pública que ve quien escanea
+ * el código (iframe de /ficha-publica o /ficha-perdida). En celular la vista
+ * previa va debajo de la configuración.
+ */
+.ficha-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ficha-config {
+  min-width: 0;
+}
+
+.ficha-vista {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  .form-tarjeta__titulo {
+    margin-left: 4px;
+  }
+}
+
+.ficha-telefono {
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+  border-radius: 28px;
+  border: 8px solid color-mix(in srgb, var(--ion-text-color) 85%, transparent);
+  overflow: hidden;
+  box-shadow: var(--sombra-suave);
+  background: var(--ion-background-color);
+
+  iframe {
+    display: block;
+    width: 100%;
+    height: 560px;
+    border: 0;
+  }
+}
+
+.ficha-qr {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px;
+  border-radius: var(--radio-tarjeta);
+  background: var(--ion-item-background);
+  box-shadow: var(--sombra-suave);
+
+  img {
+    border-radius: 8px;
+    background: #fff;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--ion-color-medium);
+    line-height: 1.4;
+  }
+}
+
+.ficha-botones {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@media (min-width: 1000px) {
+  .ficha-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 400px;
+    gap: 28px;
+    align-items: start;
+  }
+
+  .ficha-vista {
+    position: sticky;
+    top: 16px;
   }
 }

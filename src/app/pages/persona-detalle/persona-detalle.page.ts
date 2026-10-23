@@ -1,9 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
-  AlertController,
   IonBackButton,
   IonButton,
   IonButtons,
@@ -12,13 +11,23 @@ import {
   IonIcon,
   IonTitle,
   IonToolbar,
+  ModalController,
 } from '@ionic/angular';
+import { AuthService } from '../../core/auth.service';
+import { CompartirPinComponent } from '../../shared/compartir-pin/compartir-pin.component';
 import { switchMap } from 'rxjs';
 import { calcularEdad } from '../../core/edad';
 import { PersonasService } from '../../services/personas.service';
 import { inicialPersona } from '../../shared/avatar';
+import { datosFaltantes, etiquetaRelacion } from '../../shared/persona-datos';
 import { nombreCompleto } from '../../shared/persona-nombre';
 
+/**
+ * Detalle de una Persona: arriba solo lo que importa en una urgencia (datos
+ * de salud críticos + contacto de emergencia a un toque de llamar), y abajo
+ * los módulos. Todos los datos personales y la administración del perfil
+ * (compartir por PIN, eliminar) viven en persona-datos, detrás del engranaje.
+ */
 @Component({
   selector: 'app-persona-detalle',
   standalone: true,
@@ -39,15 +48,39 @@ import { nombreCompleto } from '../../shared/persona-nombre';
 })
 export class PersonaDetallePage {
   private route = inject(ActivatedRoute);
-  private router = inject(Router);
   private personasSvc = inject(PersonasService);
-  private alertCtrl = inject(AlertController);
+  private auth = inject(AuthService);
+  private modalCtrl = inject(ModalController);
 
   personaId = this.route.snapshot.paramMap.get('id') ?? '';
 
   persona = toSignal(
     this.route.paramMap.pipe(switchMap((params) => this.personasSvc.persona$(params.get('id') ?? '')))
   );
+
+  /** Solo el titular genera PIN (firestore.rules → pinesAcceso). */
+  esTitular = computed(() => this.persona()?.uidTitular === this.auth.usuario()?.uid);
+
+  /** QR de pérdida solo si la Persona lo necesita (o si ya se había configurado antes de pedirlo). */
+  modulosVisibles = computed(() => {
+    const p = this.persona();
+    const conPerdida = !!p?.requiereQrPerdida || !!p?.qrPerdidaToken;
+    return this.modulos.filter((m) => m.ruta !== 'ficha-perdida' || conPerdida);
+  });
+
+  async compartir(): Promise<void> {
+    const p = this.persona();
+    const modal = await this.modalCtrl.create({
+      component: CompartirPinComponent,
+      componentProps: { personaId: this.personaId, personaNombre: p ? nombreCompleto(p) : '' },
+    });
+    await modal.present();
+  }
+
+  faltantes = computed(() => {
+    const p = this.persona();
+    return p ? datosFaltantes(p) : [];
+  });
 
   readonly modulos = [
     { label: 'Historial clínico', ruta: 'historial', icono: 'document-text-outline' },
@@ -63,33 +96,5 @@ export class PersonaDetallePage {
   readonly nombreCompleto = nombreCompleto;
   readonly calcularEdad = calcularEdad;
   readonly inicialPersona = inicialPersona;
-
-  async compartirPorPin(): Promise<void> {
-    const pin = await this.personasSvc.generarPinCompartido(this.personaId);
-    const alert = await this.alertCtrl.create({
-      header: 'PIN de acceso compartido',
-      message: `Comparte este código con la persona de confianza: <strong>${pin}</strong>. Lo puede canjear desde "Tengo un PIN" en el inicio. Es de un solo uso por generación: si generas uno nuevo, el anterior deja de servir.`,
-      buttons: ['Listo'],
-    });
-    await alert.present();
-  }
-
-  async confirmarEliminar(): Promise<void> {
-    const alert = await this.alertCtrl.create({
-      header: 'Eliminar persona',
-      message: 'Se va a eliminar este perfil y dejará de verse en la cuenta. ¿Continuar?',
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Eliminar',
-          role: 'destructive',
-          handler: async () => {
-            await this.personasSvc.eliminar(this.personaId);
-            await this.router.navigateByUrl('/personas');
-          },
-        },
-      ],
-    });
-    await alert.present();
-  }
+  readonly etiquetaRelacion = etiquetaRelacion;
 }

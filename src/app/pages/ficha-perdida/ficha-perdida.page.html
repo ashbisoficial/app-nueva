@@ -29,7 +29,7 @@
         }
 
         @if (muestraCampo('contactoEmergencia') && p.contactoEmergencia) {
-          <p class="contacto-nombre">{{ p.contactoEmergencia }}</p>
+          <p class="contacto-nombre">{{ p.contactoEmergencia }}@if (p.contactoEmergenciaParentesco) { ({{ p.contactoEmergenciaParentesco }}) }</p>
         }
         @if (muestraCampo('telefonoEmergencia') && p.telefonoEmergencia) {
           <button class="boton-llamar" type="button" (click)="llamar(p.telefonoEmergencia!)">

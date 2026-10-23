@@ -8,19 +8,34 @@
 </ion-header>
 
 <ion-content>
-  <form (ngSubmit)="guardar()" class="form-cuerpo">
+  <form (ngSubmit)="guardar()" class="form-cuerpo" novalidate>
+    <p class="texto-ayuda">
+      Los campos con * son obligatorios. Una entrada del historial no se puede editar ni borrar
+      después de guardarla, así que revisa los datos antes de guardar.
+    </p>
     <section class="form-tarjeta">
     <ion-list lines="inset">
-      <ion-item>
-        <ion-select label="Tipo de entrada" labelPlacement="floating" [(ngModel)]="tipo" name="tipo">
+      <ion-item [class.campo-invalido]="v.error('tipo')">
+        <ion-select label="Tipo de entrada *" labelPlacement="floating" [(ngModel)]="tipo" name="tipo" (ngModelChange)="v.campo('tipo')">
           @for (t of tipos; track t.value) {
             <ion-select-option [value]="t.value">{{ t.label }}</ion-select-option>
           }
         </ion-select>
       </ion-item>
-      <ion-item>
-        <ion-input label="Fecha" labelPlacement="floating" type="date" [(ngModel)]="fecha" name="fecha"></ion-input>
+      @if (v.error('tipo'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      <ion-item [class.campo-invalido]="v.error('fecha')">
+        <ion-input
+          label="Fecha *"
+          labelPlacement="floating"
+          type="date"
+          [max]="hoyISO"
+          [(ngModel)]="fecha"
+          name="fecha"
+          (ngModelChange)="v.revalidar('fecha')"
+          (ionBlur)="v.campo('fecha')"
+        ></ion-input>
       </ion-item>
+      @if (v.error('fecha'); as e) { <p class="texto-error-campo">{{ e }}</p> }
       @if (especialidades().length) {
         <ion-item>
           <ion-select label="Especialidad (opcional)" labelPlacement="floating" [(ngModel)]="especialidadId" name="especialidad">
@@ -32,26 +47,64 @@
         </ion-item>
       }
 
-      <ion-item>
-        <ion-input label="Motivo" labelPlacement="floating" [(ngModel)]="motivo" name="motivo"></ion-input>
+      <p class="texto-ayuda historial-ayuda">Completa al menos uno: motivo, diagnóstico, tratamiento, notas, medicamentos o exámenes.</p>
+      <ion-item [class.campo-invalido]="v.error('motivo')">
+        <ion-input
+          label="Motivo"
+          labelPlacement="floating"
+          maxlength="200"
+          [(ngModel)]="motivo"
+          name="motivo"
+          (ngModelChange)="v.revalidar('motivo')"
+          (ionBlur)="v.campo('motivo')"
+        ></ion-input>
       </ion-item>
-      <ion-item>
-        <ion-input label="Diagnóstico" labelPlacement="floating" [(ngModel)]="diagnostico" name="diagnostico"></ion-input>
+      @if (v.error('motivo'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      <ion-item [class.campo-invalido]="v.error('diagnostico')">
+        <ion-input
+          label="Diagnóstico"
+          labelPlacement="floating"
+          maxlength="200"
+          [(ngModel)]="diagnostico"
+          name="diagnostico"
+          (ngModelChange)="v.revalidar('diagnostico')"
+          (ionBlur)="v.campo('diagnostico')"
+        ></ion-input>
       </ion-item>
-      <ion-item>
-        <ion-input label="Tratamiento indicado" labelPlacement="floating" [(ngModel)]="tratamientoIndicado" name="tratamientoIndicado"></ion-input>
+      @if (v.error('diagnostico'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      <ion-item [class.campo-invalido]="v.error('tratamientoIndicado')">
+        <ion-input
+          label="Tratamiento indicado"
+          labelPlacement="floating"
+          maxlength="300"
+          [(ngModel)]="tratamientoIndicado"
+          name="tratamientoIndicado"
+          (ngModelChange)="v.revalidar('tratamientoIndicado')"
+          (ionBlur)="v.campo('tratamientoIndicado')"
+        ></ion-input>
       </ion-item>
-      <ion-item>
-        <ion-textarea label="Notas" labelPlacement="floating" [(ngModel)]="texto" name="texto" autoGrow></ion-textarea>
+      @if (v.error('tratamientoIndicado'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      <ion-item [class.campo-invalido]="v.error('texto')">
+        <ion-textarea
+          label="Notas"
+          labelPlacement="floating"
+          autoGrow
+          [(ngModel)]="texto"
+          name="texto"
+          (ngModelChange)="v.revalidar('texto')"
+          (ionBlur)="v.campo('texto')"
+        ></ion-textarea>
       </ion-item>
+      @if (v.error('texto'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      @if (v.error('contenido'); as e) { <p class="texto-error-campo">{{ e }}</p> }
 
       @if (muestraMedicamentos) {
         <ion-list-header>Medicamentos</ion-list-header>
         @for (m of medicamentos; track $index) {
           <ion-item>
-            <ion-input placeholder="Nombre" [(ngModel)]="m.nombre" [name]="'med-nombre-' + $index"></ion-input>
-            <ion-input placeholder="Dosis" [(ngModel)]="m.dosis" [name]="'med-dosis-' + $index"></ion-input>
-            <ion-input placeholder="Frecuencia" [(ngModel)]="m.frecuencia" [name]="'med-frec-' + $index"></ion-input>
+            <ion-input placeholder="Nombre *" aria-label="Nombre del medicamento" maxlength="80" [(ngModel)]="m.nombre" [name]="'med-nombre-' + $index" (ngModelChange)="v.revalidar('medicamentos')"></ion-input>
+            <ion-input placeholder="Dosis *" aria-label="Dosis" maxlength="60" [(ngModel)]="m.dosis" [name]="'med-dosis-' + $index" (ngModelChange)="v.revalidar('medicamentos')"></ion-input>
+            <ion-input placeholder="Frecuencia *" aria-label="Frecuencia" maxlength="60" [(ngModel)]="m.frecuencia" [name]="'med-frec-' + $index" (ngModelChange)="v.revalidar('medicamentos')"></ion-input>
             <ion-button slot="end" fill="clear" color="danger" (click)="quitarMedicamento($index)">
               <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
             </ion-button>
@@ -63,6 +116,7 @@
             Agregar medicamento
           </ion-button>
         </ion-item>
+        @if (v.error('medicamentos'); as e) { <p class="texto-error-campo">{{ e }}</p> }
       }
 
       @if (muestraExamenes) {
@@ -74,17 +128,19 @@
             </ion-checkbox>
           </ion-item>
         }
+        @if (v.error('examenes'); as e) { <p class="texto-error-campo">{{ e }}</p> }
       }
 
       <ion-list-header>Adjuntar archivo (opcional)</ion-list-header>
       <ion-item lines="none">
-        <input type="file" accept="image/*,application/pdf" (change)="onArchivoSeleccionado($event)" />
+        <input type="file" accept="image/*,application/pdf" aria-label="Archivo adjunto" (change)="onArchivoSeleccionado($event)" />
       </ion-item>
+      @if (v.error('archivo'); as e) { <p class="texto-error-campo">{{ e }}</p> }
     </ion-list>
     </section>
 
     @if (error()) {
-      <p class="texto-error">{{ error() }}</p>
+      <p class="texto-error" role="alert">{{ error() }}</p>
     }
 
     <ion-button expand="block" type="submit" class="form-boton-principal" [disabled]="guardando()">

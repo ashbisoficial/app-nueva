@@ -27,3 +27,25 @@ h1 {
   flex-direction: column;
   gap: 12px;
 }
+
+.registro-consentimiento {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 16px 4px 4px;
+
+  ion-checkbox {
+    --size: 20px;
+  }
+}
+
+.registro-consentimiento__texto {
+  white-space: normal;
+  font-size: 0.85rem;
+  line-height: 1.45;
+
+  a {
+    color: var(--ion-color-primary);
+    font-weight: 700;
+  }
+}

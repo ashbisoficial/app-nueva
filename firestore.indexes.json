@@ -4,64 +4,112 @@
       "collectionGroup": "vacunas",
       "queryScope": "COLLECTION_GROUP",
       "fields": [
-        { "fieldPath": "creadoPor", "order": "ASCENDING" },
-        { "fieldPath": "proximaFecha", "order": "ASCENDING" }
+        {
+          "fieldPath": "creadoPor",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "proximaFecha",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "medicamentosActivos",
       "queryScope": "COLLECTION_GROUP",
       "fields": [
-        { "fieldPath": "creadoPor", "order": "ASCENDING" },
-        { "fieldPath": "fechaFin", "order": "ASCENDING" }
+        {
+          "fieldPath": "creadoPor",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "fechaFin",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "citas",
       "queryScope": "COLLECTION_GROUP",
       "fields": [
-        { "fieldPath": "creadoPor", "order": "ASCENDING" },
-        { "fieldPath": "fechaInicio", "order": "ASCENDING" }
+        {
+          "fieldPath": "creadoPor",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "fechaInicio",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "historialMedico",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "especialidadId", "order": "ASCENDING" },
-        { "fieldPath": "fecha", "order": "DESCENDING" }
+        {
+          "fieldPath": "especialidadId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "fecha",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "documentos",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "especialidadId", "order": "ASCENDING" },
-        { "fieldPath": "subidoEn", "order": "DESCENDING" }
+        {
+          "fieldPath": "especialidadId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "subidoEn",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "citas",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "especialidadId", "order": "ASCENDING" },
-        { "fieldPath": "fechaInicio", "order": "ASCENDING" }
+        {
+          "fieldPath": "especialidadId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "fechaInicio",
+          "order": "ASCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "examenes",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "especialidadId", "order": "ASCENDING" },
-        { "fieldPath": "fechaProgramada", "order": "DESCENDING" }
+        {
+          "fieldPath": "especialidadId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "fechaProgramada",
+          "order": "DESCENDING"
+        }
       ]
     },
     {
       "collectionGroup": "especialidades",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "activa", "order": "ASCENDING" },
-        { "fieldPath": "nombre", "order": "ASCENDING" }
+        {
+          "fieldPath": "activa",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "nombre",
+          "order": "ASCENDING"
+        }
       ]
     }
   ],
@@ -69,17 +117,134 @@
     {
       "collectionGroup": "vacunas",
       "fieldPath": "proximaFecha",
-      "indexes": [{ "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }]
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "vacunas",
+      "fieldPath": "creadoPor",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
     },
     {
       "collectionGroup": "medicamentosActivos",
       "fieldPath": "fechaFin",
-      "indexes": [{ "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }]
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "medicamentosActivos",
+      "fieldPath": "creadoPor",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
     },
     {
       "collectionGroup": "citas",
       "fieldPath": "fechaInicio",
-      "indexes": [{ "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }]
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "citas",
+      "fieldPath": "creadoPor",
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
     }
   ]
 }

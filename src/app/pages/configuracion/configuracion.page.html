@@ -4,6 +4,7 @@
   </div>
 
   <div class="config-cuerpo">
+    <div class="columnas-tarjetas">
     <section class="config-tarjeta">
       <p class="config-tarjeta__titulo">Cuenta</p>
       <div class="config-cuenta">
@@ -13,6 +14,15 @@
           <p class="config-cuenta__email">{{ auth.usuario()?.email }}</p>
         </div>
       </div>
+      @if (idYoMismo() !== undefined) {
+        <a
+          class="config-enlace-legal"
+          [routerLink]="idYoMismo() ? ['/personas', idYoMismo(), 'datos'] : ['/personas/nueva']"
+        >
+          <ion-icon name="person-outline"></ion-icon>
+          {{ idYoMismo() ? 'Mis datos personales' : 'Completar mis datos personales' }}
+        </a>
+      }
     </section>
 
     <section class="config-tarjeta">
@@ -77,23 +87,60 @@
 
     <section class="config-tarjeta">
       <p class="config-tarjeta__titulo">Notificaciones</p>
-      <div class="config-switch-fila">
-        <div class="config-switch-texto">
-          <p class="config-switch-titulo">Recordatorios en este dispositivo</p>
-          <p class="config-switch-ayuda">Avisos de vacunas, citas y tomas de medicamentos, programados en este teléfono.</p>
+      @if (esNativo) {
+        <!-- App instalada (Android/iOS): recordatorios programados en el propio teléfono. -->
+        <div class="config-switch-fila">
+          <div class="config-switch-texto">
+            <p class="config-switch-titulo">Recordatorios en este dispositivo</p>
+            <p class="config-switch-ayuda">Avisos de vacunas, citas y tomas de medicamentos, programados en este teléfono.</p>
+          </div>
+          <ion-toggle
+            [checked]="notificacionesSvc.localesActivas()"
+            (ionChange)="elegirNotificacionesLocales($event.detail.checked)"
+          ></ion-toggle>
         </div>
-        <ion-toggle
-          [checked]="notificacionesSvc.localesActivas()"
-          (ionChange)="elegirNotificacionesLocales($event.detail.checked)"
-        ></ion-toggle>
-      </div>
-      <div class="config-switch-fila">
-        <div class="config-switch-texto">
-          <p class="config-switch-titulo">Notificaciones push</p>
-          <p class="config-switch-ayuda">Próximamente: avisos del servidor aunque la app esté cerrada.</p>
-        </div>
-        <ion-toggle [checked]="false" [disabled]="true"></ion-toggle>
-      </div>
+      }
+      @switch (pushSvc.estado()) {
+        @case ('no-soportado') {
+          @if (!esNativo) {
+            <p class="config-texto-ayuda">
+              Este navegador no permite notificaciones. En iPhone, primero agrega Serangelia a la
+              pantalla de inicio (botón Compartir → "Agregar a inicio") y ábrela desde ese ícono.
+            </p>
+          }
+        }
+        @case ('cargando') {}
+        @default {
+          <div class="config-switch-fila">
+            <div class="config-switch-texto">
+              <p class="config-switch-titulo">Avisos en este dispositivo</p>
+              <p class="config-switch-ayuda">
+                Te avisamos el día anterior a cada cita, próxima vacuna o fin de un tratamiento, aunque la app esté cerrada.
+              </p>
+            </div>
+            <ion-toggle
+              [checked]="pushSvc.estado() === 'activo'"
+              [disabled]="procesandoPush() || pushSvc.estado() === 'bloqueado'"
+              (ionChange)="elegirPush($event.detail.checked)"
+            ></ion-toggle>
+          </div>
+          @if (pushSvc.estado() === 'bloqueado') {
+            <p class="config-aviso">
+              Bloqueaste las notificaciones para este sitio. Para activarlas, toca el candado junto a la
+              dirección del navegador → Permisos → Notificaciones → Permitir, y vuelve a esta pantalla.
+            </p>
+          }
+          @if (pushSvc.estado() === 'activo') {
+            <a class="config-enlace-legal" (click)="probarPush()">
+              <ion-icon name="notifications-outline"></ion-icon>
+              Enviar una notificación de prueba
+            </a>
+          }
+          @if (mensajePush(); as m) {
+            <p class="config-aviso">{{ m }}</p>
+          }
+        }
+      }
     </section>
 
     <section class="config-tarjeta">
@@ -138,11 +185,32 @@
     <section class="config-tarjeta">
       <p class="config-tarjeta__titulo">Calendario</p>
       <p class="config-texto-ayuda">
-        Desde el detalle de cada cita puedes agregarla a Google Calendar, Apple
-        Calendar o cualquier otra app de calendario con un archivo .ics.
-        Una sincronización automática y permanente con Google Calendar está
-        planeada para más adelante.
+        Conecta tu agenda de Serangelia con Google Calendar: tus citas, próximas vacunas y fin de
+        tratamientos (tuyos y de las personas que ves) aparecen ahí y se actualizan solos. Google
+        revisa los cambios cada algunas horas.
       </p>
+      @if (calendarioToken(); as token) {
+        <a class="config-enlace-legal" [href]="calendarioSvc.urlGoogle(token)" target="_blank" rel="noopener">
+          <ion-icon name="calendar-outline"></ion-icon>
+          Abrir en Google Calendar
+        </a>
+        <a class="config-enlace-legal" (click)="copiarEnlaceCalendario(token)">
+          <ion-icon name="link-outline"></ion-icon>
+          Copiar enlace (Apple Calendar, Outlook u otra app)
+        </a>
+        <a class="config-enlace-legal config-enlace-legal--peligro" (click)="desconectarCalendario()">
+          <ion-icon name="close-outline"></ion-icon>
+          Desconectar calendario
+        </a>
+      } @else {
+        <a class="config-enlace-legal" (click)="conectarCalendario()">
+          <ion-icon name="calendar-outline"></ion-icon>
+          Conectar con Google Calendar
+        </a>
+      }
+      @if (mensajeCalendario(); as m) {
+        <p class="config-aviso">{{ m }}</p>
+      }
     </section>
 
     <section class="config-tarjeta">
@@ -156,6 +224,8 @@
         Términos de Uso
       </a>
     </section>
+
+    </div>
 
     <button class="config-cerrar-sesion" (click)="confirmarLogout()">
       <ion-icon name="log-out-outline"></ion-icon>

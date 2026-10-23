@@ -2,30 +2,38 @@
   --background: var(--ion-background-color);
 }
 
+/*
+ * Encabezado: título + barra de navegación del mes. En celular la barra va
+ * debajo del título y "Nueva cita" vive en el panel del día; en pantallas
+ * grandes todo queda en una sola línea, como en un calendario de escritorio.
+ */
 .agenda-encabezado {
   padding: 26px 20px 4px;
 
   h1 {
-    margin: 0;
+    margin: 0 0 12px;
     font-size: 1.5rem;
     font-weight: 700;
   }
 }
 
-.agenda-layout {
+.agenda-barra {
   display: flex;
-  flex-direction: column;
-  padding: 16px 20px 24px;
-  gap: 18px;
+  align-items: center;
+  gap: 10px;
 }
 
 .encabezado-mes {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
 
   h2 {
-    text-transform: capitalize;
+    &::first-letter {
+      text-transform: uppercase;
+    }
     margin: 0;
     font-size: 1.05rem;
     font-weight: 700;
@@ -35,6 +43,7 @@
 .nav-mes {
   width: 36px;
   height: 36px;
+  min-width: 36px;
   border-radius: 50%;
   border: none;
   background: var(--ion-item-background);
@@ -44,30 +53,60 @@
   align-items: center;
   justify-content: center;
   font-size: 18px;
+  cursor: pointer;
 }
 
-.grilla-dias-semana {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  text-align: center;
-  color: var(--ion-color-medium);
-  font-size: 0.78rem;
+.agenda-hoy {
+  border: 1.6px solid var(--ion-border-color);
+  background: var(--ion-item-background);
+  color: var(--ion-text-color);
+  border-radius: 999px;
+  padding: 7px 14px;
   font-weight: 700;
-  margin-bottom: 4px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
 }
 
-.grilla-mes {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
+.agenda-layout {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 20px 24px;
+  gap: 18px;
+}
+
+/* ---- Calendario ---- */
+.calendario {
   background: var(--ion-item-background);
   border-radius: var(--radio-tarjeta);
   box-shadow: var(--sombra-suave);
   padding: 10px;
 }
 
+.grilla-dias-semana {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  text-align: center;
+  color: var(--ion-color-medium);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 0 6px;
+}
+
+.dia-semana__largo {
+  display: none;
+}
+
+.grilla-mes {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
 .celda {
+  position: relative;
   aspect-ratio: 1 / 1;
+  min-width: 0;
   border: none;
   background: transparent;
   border-radius: 12px;
@@ -75,48 +114,93 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 3px;
+  padding: 0;
   cursor: pointer;
   color: var(--ion-text-color);
   font-family: inherit;
+  transition: background 0.12s ease;
 
   &.vacia {
     cursor: default;
   }
 
-  &.hoy .numero {
-    font-weight: 700;
-    color: var(--ion-color-primary);
-  }
-
-  &.seleccionada {
-    background: var(--ion-color-primary);
-
-    .numero {
-      color: white;
-    }
+  &:not(.vacia):hover {
+    background: var(--ion-color-step-50);
   }
 
   .numero {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 0.85rem;
+  }
+
+  /* Hoy: número en un círculo de color; el día elegido, un tono suave (no un bloque sólido). */
+  &.hoy .numero {
+    background: var(--ion-color-primary);
+    color: var(--ion-color-primary-contrast, #fff);
+    font-weight: 700;
+  }
+
+  &.seleccionada {
+    background: color-mix(in srgb, var(--ion-color-primary) 14%, transparent);
+    box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ion-color-primary) 45%, transparent);
   }
 
   .puntos {
     display: flex;
     gap: 2px;
+    height: 6px;
   }
 
-  .punto {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    display: inline-block;
+  .chips {
+    display: none;
   }
 }
 
+.punto {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+
+  &--cita {
+    background: #4f8cff;
+  }
+  &--vacuna {
+    background: #10b981;
+  }
+  &--fin {
+    background: #f59e0b;
+  }
+}
+
+.leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 10px;
+  padding: 0 4px;
+  font-size: 0.78rem;
+  color: var(--ion-color-medium);
+
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+/* ---- Panel del día ---- */
 .panel-dia {
   h3 {
-    text-transform: capitalize;
+    &::first-letter {
+      text-transform: uppercase;
+    }
     font-size: 1rem;
     font-weight: 700;
     margin: 0 0 10px 2px;
@@ -158,6 +242,8 @@
 }
 
 .agenda-evento__texto {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
@@ -174,6 +260,11 @@
   margin-top: 2px;
 }
 
+.agenda-evento__flecha {
+  color: var(--ion-color-medium);
+  font-size: 16px;
+}
+
 .agenda-nueva-cita {
   width: 100%;
   border: 1.6px dashed var(--ion-color-primary);
@@ -182,18 +273,172 @@
   color: var(--ion-color-primary);
   font-weight: 700;
   font-size: 0.92rem;
+  font-family: inherit;
   padding: 13px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  cursor: pointer;
+
+  /* En la barra superior solo se muestra en pantallas grandes (ver media query). */
+  &--barra {
+    display: none;
+  }
 }
 
+/*
+ * Escritorio (≥ 900px): calendario de mes "de verdad" — filas de altura fija
+ * (no celdas cuadradas que crecen con el ancho de la pantalla), con el
+ * título de cada evento dentro del día, líneas finas entre días y el panel
+ * del día a la derecha. Antes las celdas cuadradas llegaban a ~180px de
+ * alto en un monitor ancho y el mes no cabía en pantalla.
+ */
 @media (min-width: 900px) {
+  .agenda-encabezado {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+
+    h1 {
+      margin: 0;
+    }
+  }
+
+  .agenda-barra {
+    gap: 12px;
+  }
+
+  .encabezado-mes {
+    flex: 0 0 auto;
+    gap: 6px;
+
+    h2 {
+      min-width: 170px;
+      text-align: center;
+    }
+  }
+
+  .agenda-nueva-cita--barra {
+    display: flex;
+    width: auto;
+    border: none;
+    background: var(--ion-color-primary);
+    color: var(--ion-color-primary-contrast, #fff);
+    padding: 9px 18px;
+    border-radius: 999px;
+    font-size: 0.88rem;
+    box-shadow: var(--sombra-suave);
+  }
+
+  .agenda-nueva-cita--panel {
+    display: none;
+  }
+
   .agenda-layout {
     display: grid;
-    grid-template-columns: 1fr 340px;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 24px;
     align-items: start;
+  }
+
+  .calendario {
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .grilla-dias-semana {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--ion-border-color);
+    text-align: left;
+
+    .dia-semana {
+      padding: 0 12px;
+    }
+  }
+
+  .dia-semana__corto {
+    display: none;
+  }
+
+  .dia-semana__largo {
+    display: inline;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .grilla-mes {
+    gap: 0;
+  }
+
+  .celda {
+    aspect-ratio: auto;
+    height: 104px;
+    border-radius: 0;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 4px;
+    padding: 6px 8px;
+    border-right: 1px solid var(--ion-border-color);
+    border-bottom: 1px solid var(--ion-border-color);
+    text-align: left;
+
+    &:nth-child(7n) {
+      border-right: none;
+    }
+
+    &.vacia {
+      background: color-mix(in srgb, var(--ion-background-color) 60%, transparent);
+    }
+
+    .numero {
+      width: 26px;
+      height: 26px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    &.seleccionada {
+      box-shadow: inset 0 0 0 2px var(--ion-color-primary);
+    }
+
+    .puntos {
+      display: none;
+    }
+
+    .chips {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+    }
+  }
+
+  .chip {
+    display: block;
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.35;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--ion-text-color);
+    background: color-mix(in srgb, var(--color-evento) 18%, var(--ion-item-background));
+    border-left: 3px solid var(--color-evento);
+  }
+
+  .chip-mas {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--ion-color-medium);
+    padding-left: 4px;
+  }
+
+  .leyenda {
+    margin-top: 12px;
   }
 
   .panel-dia {
@@ -201,5 +446,21 @@
     top: 16px;
     max-height: calc(100vh - 32px);
     overflow-y: auto;
+    background: var(--ion-item-background);
+    border-radius: var(--radio-tarjeta);
+    box-shadow: var(--sombra-suave);
+    padding: 18px;
+
+    .agenda-tarjeta {
+      box-shadow: none;
+      border: 1px solid var(--ion-border-color);
+    }
+  }
+}
+
+/* Pantallas medianas de escritorio: filas un poco más bajas para que el mes completo quepa sin scroll. */
+@media (min-width: 900px) and (max-height: 820px) {
+  .celda {
+    height: 88px;
   }
 }

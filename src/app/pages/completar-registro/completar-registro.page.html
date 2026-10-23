@@ -1,32 +1,70 @@
 <ion-content class="ion-padding registro-content">
   <div class="registro-card">
     <h1>Un último paso</h1>
-    <p class="subtitulo">
-      Para que cada persona tenga una sola cuenta en Serangelia, necesitamos tu RUT.
-    </p>
+    @if (pideRut()) {
+      <p class="subtitulo">
+        Para que cada persona tenga una sola cuenta en Serangelia, necesitamos tu RUT.
+      </p>
+    } @else {
+      <p class="subtitulo">
+        Actualizamos nuestros textos legales. Para seguir usando Serangelia, revísalos y acéptalos.
+      </p>
+    }
 
-    <form (ngSubmit)="confirmar()">
+    <form (ngSubmit)="confirmar()" novalidate>
       <ion-list>
-        <ion-item>
+        @if (pideRut()) {
+        <ion-item [class.campo-invalido]="v.error('rut')">
           <ion-input
-            label="RUT"
+            label="RUT *"
             labelPlacement="floating"
             placeholder="12.345.678-9"
             [ngModel]="rut"
             (ngModelChange)="onRutInput($event)"
             name="rut"
-            required
+            (ionBlur)="v.campo('rut')"
           ></ion-input>
         </ion-item>
+        @if (v.error('rut'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        }
       </ion-list>
+
+      @if (pideConsentimiento()) {
+        <div class="registro-consentimiento">
+          <ion-checkbox
+            labelPlacement="end"
+            justify="start"
+            [checked]="aceptaTerminos"
+            (ionChange)="aceptaTerminos = $event.detail.checked; v.revalidar('terminos')"
+          >
+            <span class="registro-consentimiento__texto">
+              Leí y acepto los <a routerLink="/terminos" target="_blank" (click)="$event.stopPropagation()">Términos de Uso</a>.
+            </span>
+          </ion-checkbox>
+          @if (v.error('terminos'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+          <ion-checkbox
+            labelPlacement="end"
+            justify="start"
+            [checked]="aceptaPrivacidad"
+            (ionChange)="aceptaPrivacidad = $event.detail.checked; v.revalidar('privacidad')"
+          >
+            <span class="registro-consentimiento__texto">
+              Leí la <a routerLink="/privacidad" target="_blank" (click)="$event.stopPropagation()">Política de Privacidad</a>
+              y autorizo de forma expresa el tratamiento de mis datos personales y de salud, y los de
+              las personas a mi cargo que registre, para los fines descritos en ella.
+            </span>
+          </ion-checkbox>
+          @if (v.error('privacidad'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        </div>
+      }
 
       @if (error()) {
         <ion-text color="danger">
-          <p class="ion-padding-start">{{ error() }}</p>
+          <p class="ion-padding-start" role="alert">{{ error() }}</p>
         </ion-text>
       }
 
-      <ion-button expand="block" type="submit" class="form-boton-principal" [disabled]="cargando() || !rut">
+      <ion-button expand="block" type="submit" class="form-boton-principal" [disabled]="cargando()">
         @if (cargando()) {
           <ion-spinner name="dots"></ion-spinner>
         } @else {
