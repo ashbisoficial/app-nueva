@@ -76,6 +76,7 @@ export class CitaFormPage implements OnInit {
   especialidadId = '';
 
   guardando = signal(false);
+  error = signal<string | null>(null);
 
   async ngOnInit(): Promise<void> {
     if (!this.citaId) return;
@@ -95,8 +96,13 @@ export class CitaFormPage implements OnInit {
   }
 
   async guardar(): Promise<void> {
+    this.error.set(null);
     const uid = this.auth.usuario()?.uid;
     if (!uid || !this.titulo || !this.fechaInicio) return;
+    if (this.fechaFin && this.fechaFin < this.fechaInicio) {
+      this.error.set('La fecha de término no puede ser antes que la de inicio.');
+      return;
+    }
 
     this.guardando.set(true);
     try {
@@ -125,6 +131,8 @@ export class CitaFormPage implements OnInit {
       }
 
       await this.router.navigateByUrl('/agenda');
+    } catch {
+      this.error.set('No se pudo guardar la cita. Intenta de nuevo.');
     } finally {
       this.guardando.set(false);
     }
@@ -148,9 +156,13 @@ export class CitaFormPage implements OnInit {
           text: 'Eliminar',
           role: 'destructive',
           handler: async () => {
-            await this.citasSvc.eliminar(this.personaId, this.citaId!);
-            await this.recordatoriosSvc.cancelarCita(this.citaId!);
-            await this.router.navigateByUrl('/agenda');
+            try {
+              await this.citasSvc.eliminar(this.personaId, this.citaId!);
+              await this.recordatoriosSvc.cancelarCita(this.citaId!);
+              await this.router.navigateByUrl('/agenda');
+            } catch {
+              this.error.set('No se pudo eliminar la cita. Intenta de nuevo.');
+            }
           },
         },
       ],

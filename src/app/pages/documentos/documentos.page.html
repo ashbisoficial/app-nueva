@@ -77,6 +77,9 @@
       <ion-item>
         <ion-input label="Notas" labelPlacement="floating" [(ngModel)]="notas" name="notas"></ion-input>
       </ion-item>
+      @if (error()) {
+        <p class="texto-error">{{ error() }}</p>
+      }
       <ion-button expand="block" class="ion-margin-top" [disabled]="!archivo || !nombre || subiendo()" (click)="guardar()">
         {{ subiendo() ? 'Subiendo...' : 'Guardar' }}
       </ion-button>

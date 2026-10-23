@@ -108,10 +108,35 @@ export class HistorialNuevaPage {
     this.archivo = input.files?.[0] ?? null;
   }
 
+  /** Descarta filas de medicamento que quedaron en blanco (solo se tocó "Agregar medicamento" sin llenar nada). */
+  private get medicamentosCompletos(): MedicamentoOrden[] {
+    return this.medicamentos.filter((m) => m.nombre.trim() && m.dosis.trim() && m.frecuencia.trim());
+  }
+
+  /** Mismo mínimo que exige firestore.rules para esta colección (sección 3.3 del spec). */
+  private get entradaVacia(): boolean {
+    return (
+      !this.motivo.trim() &&
+      !this.diagnostico.trim() &&
+      !this.tratamientoIndicado.trim() &&
+      !this.texto.trim() &&
+      !(this.muestraMedicamentos && this.medicamentosCompletos.length) &&
+      !(this.muestraExamenes && this.examenesSeleccionados.length)
+    );
+  }
+
   async guardar(): Promise<void> {
     this.error.set(null);
     const usuario = this.auth.usuario();
     if (!usuario) return;
+    if (this.muestraMedicamentos && this.medicamentos.length && !this.medicamentosCompletos.length) {
+      this.error.set('Completa nombre, dosis y frecuencia de cada medicamento (o quítalo si no corresponde).');
+      return;
+    }
+    if (this.entradaVacia) {
+      this.error.set('Completa al menos un campo (motivo, diagnóstico, tratamiento, notas, medicamentos o exámenes).');
+      return;
+    }
 
     this.guardando.set(true);
     try {
@@ -128,7 +153,7 @@ export class HistorialNuevaPage {
         diagnostico: this.diagnostico || undefined,
         tratamientoIndicado: this.tratamientoIndicado || undefined,
         texto: this.texto || undefined,
-        medicamentos: this.muestraMedicamentos && this.medicamentos.length ? this.medicamentos : undefined,
+        medicamentos: this.muestraMedicamentos && this.medicamentosCompletos.length ? this.medicamentosCompletos : undefined,
         examenesSeleccionados:
           this.muestraExamenes && this.examenesSeleccionados.length ? this.examenesSeleccionados : undefined,
         archivoUrl,

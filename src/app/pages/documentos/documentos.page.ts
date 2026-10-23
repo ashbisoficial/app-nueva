@@ -89,6 +89,7 @@ export class DocumentosPage {
   notas = '';
   archivo: File | null = null;
   subiendo = signal(false);
+  error = signal<string | null>(null);
 
   constructor() {
     // Acceso directo desde el Home (sección 8): llega con ?subir=1 para abrir
@@ -104,6 +105,7 @@ export class DocumentosPage {
     this.especialidadId = '';
     this.notas = '';
     this.archivo = null;
+    this.error.set(null);
     this.mostrarForm.set(true);
   }
 
@@ -117,6 +119,7 @@ export class DocumentosPage {
 
   async guardar(): Promise<void> {
     if (!this.archivo || !this.nombre) return;
+    this.error.set(null);
     this.subiendo.set(true);
     try {
       const archivoUrl = await this.documentosSvc.subirArchivo(this.personaId, this.archivo, this.archivo.name);
@@ -129,6 +132,8 @@ export class DocumentosPage {
         especialidadId: this.especialidadId || undefined,
       });
       this.mostrarForm.set(false);
+    } catch {
+      this.error.set('No se pudo subir el documento. Revisa tu conexión e intenta de nuevo.');
     } finally {
       this.subiendo.set(false);
     }

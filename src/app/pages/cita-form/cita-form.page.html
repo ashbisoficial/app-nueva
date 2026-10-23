@@ -46,7 +46,11 @@
     </ion-list>
     </section>
 
-    <ion-button expand="block" type="submit" class="form-boton-principal" [disabled]="guardando() || !titulo">
+    @if (error()) {
+      <p class="texto-error">{{ error() }}</p>
+    }
+
+    <ion-button expand="block" type="submit" class="form-boton-principal" [disabled]="guardando() || !titulo || !fechaInicio">
       Guardar
     </ion-button>
     <ion-button expand="block" fill="outline" type="button" (click)="exportarIcs()">
