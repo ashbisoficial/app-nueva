@@ -8,7 +8,7 @@ import { filter, switchMap } from 'rxjs';
 import { AuthService } from '../../core/auth.service';
 import { calcularEdad } from '../../core/edad';
 import { PersonasService } from '../../services/personas.service';
-import { colorPersona, inicialPersona } from '../../shared/avatar';
+import { avatarSrc, colorPersona, inicialPersona } from '../../shared/avatar';
 import { nombreCompleto } from '../../shared/persona-nombre';
 
 @Component({
@@ -29,6 +29,7 @@ export class PersonasListaPage {
 
   readonly inicialPersona = inicialPersona;
   readonly colorPersona = colorPersona;
+  readonly avatarSrc = avatarSrc;
   readonly nombreCompleto = nombreCompleto;
   readonly calcularEdad = calcularEdad;
 }

@@ -20,7 +20,7 @@ import { calcularEdad } from '../../core/edad';
 import { formatearRut } from '../../core/rut';
 import type { Persona } from '../../models';
 import { PersonasService } from '../../services/personas.service';
-import { inicialPersona } from '../../shared/avatar';
+import { avatarSrc, inicialPersona } from '../../shared/avatar';
 import { datosFaltantes, etiquetaRelacion, etiquetaSexo } from '../../shared/persona-datos';
 import { nombreCompleto } from '../../shared/persona-nombre';
 
@@ -80,6 +80,7 @@ export class PersonaDatosPage {
 
   readonly nombreCompleto = nombreCompleto;
   readonly inicialPersona = inicialPersona;
+  readonly avatarSrc = avatarSrc;
   readonly etiquetaRelacion = etiquetaRelacion;
 
   private armarSecciones(p: Persona): SeccionDatos[] {

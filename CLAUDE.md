@@ -169,11 +169,23 @@ interface Persona {
                               // nombres/apellidos vienen vacíos (shared/persona-nombre.ts).
   fechaNacimiento: string;    // la edad se calcula al vuelo (core/edad.ts), nunca se guarda
   sexo: string;
-  // Foto de perfil: se sube desde persona-form (Storage, personas/{id}/perfil/foto_...),
-  // se muestra como avatar circular en persona-detalle/personas-lista/home en vez
-  // de las iniciales (shared/avatar.ts) cuando existe. Reutiliza el mismo campo
-  // que ya usaba la foto del QR de pérdida (sección 4.6) — es la misma foto,
-  // un solo lugar para subirla/guardarla.
+
+  // Avatar ilustrado tipo Duolingo (core/avatar-dicebear.ts, librería
+  // DiceBear "avataaars", MIT, 100% client-side) — identidad visual por
+  // defecto de la Persona en toda la app (persona-detalle/personas-lista/
+  // home/datos, vía shared/avatar.ts → avatarSrc()), en vez de subir/
+  // recortar una foto real solo para "verse bien" (pedido explícito,
+  // sección 2.1: baja fricción). Se guarda la configuración elegida (qué
+  // piel, peinado, ojos, cejas, boca, lentes, ropa — ver AvatarOpciones),
+  // nunca el SVG ya armado: liviano en Firestore, se arma al vuelo en el
+  // cliente. Si no se personalizó, se usa AVATAR_POR_DEFECTO.
+  avatarConfig?: AvatarOpciones;
+  // Foto REAL (no el avatar) — exclusiva del QR de pérdida (sección 4.6):
+  // ahí el objetivo es que un desconocido reconozca a la persona en la
+  // vida real, así que una ilustración no sirve. persona-form solo la pide
+  // (obligatoria) cuando `requiereQrPerdida` está activo; el resto de la
+  // app (listados, Home, detalle, carnet de emergencia) siempre usa el
+  // avatar de arriba, nunca esta foto.
   fotoUrl?: string;
 
   nacionalidad?: string;
@@ -556,6 +568,13 @@ QR, bajo ningún escenario.
   `Persona.requiereQrPerdida` (interruptor en "Salud urgente" del
   formulario). El módulo aparece en el detalle solo si está activo, o si ya
   se había configurado antes (tiene `qrPerdidaToken`).
+- **Única pantalla de la app que pide una foto real** (pedido explícito):
+  activar `requiereQrPerdida` en persona-form hace obligatorio subir
+  `Persona.fotoUrl` ahí mismo — a diferencia del avatar ilustrado (sección
+  3.2), acá sí hace falta una foto real porque el objetivo es que un
+  desconocido reconozca a la persona en la calle. El resto de la app
+  (listados, Home, detalle, carnet de emergencia) sigue usando siempre el
+  avatar, nunca esta foto.
 - Vista pública (sin login) en `/ficha-publica/{token}`: muestra solo lo que
   el titular marcó como público en `qrFichaCamposPublicos` (opt-in explícito,
   nunca el historial clínico completo) — típicamente: nombre, grupo
@@ -924,7 +943,10 @@ Protección de Datos Personales) que entra en vigencia en diciembre de 2026.
   en secciones de solo lectura (identificación, contacto, vivienda, contacto
   de emergencia, salud urgente, previsión) + "Editar datos personales"
   (persona-form) + administración del perfil (compartir con PIN, eliminar),
-  esto último solo visible para el titular. Para "yo mismo/a" también se
+  esto último solo visible para el titular. "Editar avatar"
+  (`shared/editor-avatar/`, modal tipo Duolingo: pestañas piel/cara/cabello/
+  lentes/ropa, cada opción se elige "a ojo" viendo cómo queda, sin texto) se
+  abre desde el círculo de avatar en persona-form — ver sección 3.2. Para "yo mismo/a" también se
   llega desde Ajustes → Cuenta → "Mis datos personales".
 - Historial clínico: timeline de entradas, botón "Nueva entrada" con
   selector de tipo (consulta/receta/vacunación/examen/cirugía/indicaciones de

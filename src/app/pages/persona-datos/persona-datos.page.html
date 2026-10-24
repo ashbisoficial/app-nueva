@@ -12,8 +12,8 @@
     @if (persona(); as p) {
       <section class="datos-encabezado">
         <span class="datos-avatar">
-          @if (p.fotoUrl) {
-            <img [src]="p.fotoUrl" alt="" />
+          @if (avatarSrc(p); as src) {
+            <img [src]="src" alt="" />
           } @else {
             {{ inicialPersona(nombreCompleto(p)) }}
           }

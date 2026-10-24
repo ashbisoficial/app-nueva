@@ -18,7 +18,7 @@ import { CompartirPinComponent } from '../../shared/compartir-pin/compartir-pin.
 import { switchMap } from 'rxjs';
 import { calcularEdad } from '../../core/edad';
 import { PersonasService } from '../../services/personas.service';
-import { inicialPersona } from '../../shared/avatar';
+import { avatarSrc, inicialPersona } from '../../shared/avatar';
 import { datosFaltantes, etiquetaRelacion } from '../../shared/persona-datos';
 import { nombreCompleto } from '../../shared/persona-nombre';
 
@@ -96,5 +96,6 @@ export class PersonaDetallePage {
   readonly nombreCompleto = nombreCompleto;
   readonly calcularEdad = calcularEdad;
   readonly inicialPersona = inicialPersona;
+  readonly avatarSrc = avatarSrc;
   readonly etiquetaRelacion = etiquetaRelacion;
 }

@@ -1,0 +1,133 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="cerrar()">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Editar avatar</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="confirmar()">OK</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="editor-avatar-content">
+  <div class="editor-avatar-vista">
+    <img [src]="vistaPrevia" alt="" />
+  </div>
+
+  <div class="editor-avatar-tabs">
+    @for (p of pestanas; track p.valor) {
+      <button type="button" class="editor-avatar-tab" [class.editor-avatar-tab--activa]="pestana === p.valor" (click)="pestana = p.valor">
+        <ion-icon [name]="p.icono"></ion-icon>
+      </button>
+    }
+  </div>
+
+  <div class="editor-avatar-panel">
+    @switch (pestana) {
+      @case ('piel') {
+        <p class="editor-avatar-titulo">Tono de piel</p>
+        <div class="editor-avatar-swatches">
+          @for (c of catalogoPiel; track c) {
+            <button
+              type="button"
+              class="editor-avatar-swatch"
+              [class.editor-avatar-swatch--activa]="opciones.piel === c"
+              [style.background]="'#' + c"
+              [attr.aria-label]="'Tono de piel ' + c"
+              (click)="elegir('piel', c)"
+            ></button>
+          }
+        </div>
+      }
+
+      @case ('cara') {
+        <p class="editor-avatar-titulo">Ojos</p>
+        <div class="editor-avatar-grid">
+          @for (o of previasOjos; track o.valor) {
+            <button type="button" class="editor-avatar-opcion" [class.editor-avatar-opcion--activa]="opciones.ojos === o.valor" (click)="elegir('ojos', o.valor)">
+              <img [src]="o.src" alt="" />
+            </button>
+          }
+        </div>
+        <p class="editor-avatar-titulo">Cejas</p>
+        <div class="editor-avatar-grid">
+          @for (o of previasCejas; track o.valor) {
+            <button type="button" class="editor-avatar-opcion" [class.editor-avatar-opcion--activa]="opciones.cejas === o.valor" (click)="elegir('cejas', o.valor)">
+              <img [src]="o.src" alt="" />
+            </button>
+          }
+        </div>
+        <p class="editor-avatar-titulo">Expresión</p>
+        <div class="editor-avatar-grid">
+          @for (o of previasBoca; track o.valor) {
+            <button type="button" class="editor-avatar-opcion" [class.editor-avatar-opcion--activa]="opciones.boca === o.valor" (click)="elegir('boca', o.valor)">
+              <img [src]="o.src" alt="" />
+            </button>
+          }
+        </div>
+      }
+
+      @case ('cabello') {
+        <p class="editor-avatar-titulo">Color de cabello</p>
+        <div class="editor-avatar-swatches">
+          @for (c of catalogoCabelloColor; track c) {
+            <button
+              type="button"
+              class="editor-avatar-swatch"
+              [class.editor-avatar-swatch--activa]="opciones.cabelloColor === c"
+              [style.background]="'#' + c"
+              [attr.aria-label]="'Color de cabello ' + c"
+              (click)="elegir('cabelloColor', c)"
+            ></button>
+          }
+        </div>
+        <p class="editor-avatar-titulo">Peinado</p>
+        <div class="editor-avatar-grid">
+          @for (o of previasCabello; track o.valor) {
+            <button type="button" class="editor-avatar-opcion" [class.editor-avatar-opcion--activa]="opciones.cabelloEstilo === o.valor" (click)="elegir('cabelloEstilo', o.valor)">
+              <img [src]="o.src" alt="" />
+            </button>
+          }
+        </div>
+      }
+
+      @case ('lentes') {
+        <p class="editor-avatar-titulo">Lentes</p>
+        <div class="editor-avatar-grid">
+          @for (o of previasLentes; track o.valor) {
+            <button type="button" class="editor-avatar-opcion" [class.editor-avatar-opcion--activa]="opciones.lentes === o.valor" (click)="elegir('lentes', o.valor)">
+              <img [src]="o.src" alt="" />
+            </button>
+          }
+        </div>
+      }
+
+      @case ('ropa') {
+        <p class="editor-avatar-titulo">Color de ropa</p>
+        <div class="editor-avatar-swatches">
+          @for (c of catalogoRopaColor; track c) {
+            <button
+              type="button"
+              class="editor-avatar-swatch"
+              [class.editor-avatar-swatch--activa]="opciones.ropaColor === c"
+              [style.background]="'#' + c"
+              [attr.aria-label]="'Color de ropa ' + c"
+              (click)="elegir('ropaColor', c)"
+            ></button>
+          }
+        </div>
+        <p class="editor-avatar-titulo">Estilo de ropa</p>
+        <div class="editor-avatar-grid">
+          @for (o of previasRopa; track o.valor) {
+            <button type="button" class="editor-avatar-opcion" [class.editor-avatar-opcion--activa]="opciones.ropa === o.valor" (click)="elegir('ropa', o.valor)">
+              <img [src]="o.src" alt="" />
+            </button>
+          }
+        </div>
+      }
+    }
+  </div>
+</ion-content>

@@ -10,7 +10,7 @@ import { SelectorPersonaService } from '../../core/selector-persona.service';
 import { HomeService } from '../../services/home.service';
 import { PersonasService } from '../../services/personas.service';
 import type { Persona } from '../../models';
-import { colorPersona, inicialPersona } from '../../shared/avatar';
+import { avatarSrc, colorPersona, inicialPersona } from '../../shared/avatar';
 import { datosFaltantes } from '../../shared/persona-datos';
 import { nombreCompleto } from '../../shared/persona-nombre';
 
@@ -83,5 +83,6 @@ export class HomePage {
 
   readonly inicialPersona = inicialPersona;
   readonly colorPersona = colorPersona;
+  readonly avatarSrc = avatarSrc;
   readonly nombreCompleto = nombreCompleto;
 }

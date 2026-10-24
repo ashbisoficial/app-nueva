@@ -91,21 +91,13 @@
       <p class="form-tarjeta__titulo">Identificación</p>
 
       <div class="persona-foto-selector">
-        <label class="persona-foto-circulo">
-          @if (fotoPreviewUrl() || (!quitarFotoExistente && fotoExistenteUrl())) {
-            <img [src]="fotoPreviewUrl() || fotoExistenteUrl()" alt="" />
-          } @else {
-            <ion-icon name="camera-outline"></ion-icon>
-          }
-          <input type="file" accept="image/*" aria-label="Foto de la persona" (change)="onFotoSeleccionada($event)" />
-        </label>
-        @if (fotoPreviewUrl() || (!quitarFotoExistente && fotoExistenteUrl())) {
-          <button type="button" class="persona-foto-quitar" (click)="quitarFoto()">Quitar foto</button>
-        } @else {
-          <span class="persona-foto-ayuda">Foto (opcional)</span>
-        }
+        <button type="button" class="persona-foto-circulo persona-foto-circulo--avatar" (click)="abrirEditorAvatar()">
+          <img [src]="avatarPreview" alt="" />
+        </button>
+        <span class="persona-foto-ayuda">
+          <button type="button" class="persona-avatar-editar" (click)="abrirEditorAvatar()">Editar avatar</button>
+        </span>
       </div>
-      @if (v.error('foto'); as e) { <p class="texto-error-campo persona-foto-error">{{ e }}</p> }
 
       <ion-list lines="inset">
         <ion-item [class.campo-invalido]="v.error('nombres')">
@@ -470,13 +462,39 @@
           <ion-toggle labelPlacement="start" [(ngModel)]="donanteOrganos" name="donanteOrganos">Donante de órganos</ion-toggle>
         </ion-item>
         <ion-item>
-          <ion-toggle labelPlacement="start" [(ngModel)]="requiereQrPerdida" name="requiereQrPerdida">
+          <ion-toggle labelPlacement="start" [(ngModel)]="requiereQrPerdida" name="requiereQrPerdida" (ngModelChange)="v.campo('foto')">
             <span class="persona-toggle-texto">
               Necesita QR de pérdida
               <span>Alzheimer, demencia u otra condición que pueda desorientarla o hacer que se pierda.</span>
             </span>
           </ion-toggle>
         </ion-item>
+        @if (requiereQrPerdida) {
+          <ion-item lines="none" class="persona-archivo-item">
+            <p class="persona-archivo-label">Foto real de la persona * (para el QR de pérdida)</p>
+            <p class="texto-ayuda">
+              A diferencia del avatar de arriba, esta tiene que ser una foto real: es lo que necesita ver
+              alguien que encuentra a la persona en la calle para reconocerla. Nunca se muestra en el resto
+              de la app.
+            </p>
+            <div class="persona-foto-selector">
+              <label class="persona-foto-circulo">
+                @if (fotoPreviewUrl() || (!quitarFotoExistente && fotoExistenteUrl())) {
+                  <img [src]="fotoPreviewUrl() || fotoExistenteUrl()" alt="" />
+                } @else {
+                  <ion-icon name="camera-outline"></ion-icon>
+                }
+                <input type="file" accept="image/*" aria-label="Foto real para el QR de pérdida" (change)="onFotoSeleccionada($event)" />
+              </label>
+              @if (fotoPreviewUrl() || (!quitarFotoExistente && fotoExistenteUrl())) {
+                <button type="button" class="persona-foto-quitar" (click)="quitarFoto()">Quitar foto</button>
+              } @else {
+                <span class="persona-foto-ayuda">Sin foto todavía</span>
+              }
+            </div>
+            @if (v.error('foto'); as e) { <p class="texto-error-campo persona-foto-error">{{ e }}</p> }
+          </ion-item>
+        }
         <ion-item lines="none" [class.campo-invalido]="v.error('notasEmergencia')">
           <ion-textarea
             label="Otras notas relevantes en una urgencia"

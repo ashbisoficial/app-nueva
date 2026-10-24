@@ -17,6 +17,22 @@ export interface Persona {
   fechaNacimiento: string;
   sexo: string;
   nacionalidad?: string;
+
+  /**
+   * Avatar ilustrado (tipo Duolingo, core/avatar-dicebear.ts) — identidad
+   * visual por defecto de la Persona en toda la app (listados, Home, detalle).
+   * Guarda la configuración elegida, no el SVG ya armado: liviano en
+   * Firestore y se arma al vuelo en el cliente, sin servidor ni costo.
+   * Si todavía no se personalizó, se usa AVATAR_POR_DEFECTO.
+   */
+  avatarConfig?: AvatarOpciones;
+  /**
+   * Foto REAL (no el avatar) — exclusiva del QR de pérdida (sección 4.6):
+   * ahí el objetivo es que un desconocido reconozca a la persona en la vida
+   * real, así que una ilustración no sirve. Solo se pide cuando
+   * `requiereQrPerdida` está activo; el resto de la app (listados, Home,
+   * carnet de emergencia) siempre usa el avatar, nunca esta foto.
+   */
   fotoUrl?: string;
 
   // Contacto propio de la Persona (no el de emergencia). Obligatorio salvo
@@ -132,6 +148,20 @@ export interface PinAcceso {
   usos: number;
   expiraEn: Date;
   creadoEn?: unknown;
+}
+
+/** Configuración del avatar ilustrado (core/avatar-dicebear.ts) — cada campo es un valor de DiceBear (estilo "avataaars"), nunca texto libre. */
+export interface AvatarOpciones {
+  piel: string;
+  cabelloEstilo: string;
+  cabelloColor: string;
+  cejas: string;
+  ojos: string;
+  boca: string;
+  /** '' = sin lentes. */
+  lentes: string;
+  ropa: string;
+  ropaColor: string;
 }
 
 export interface ContactoEmergencia {

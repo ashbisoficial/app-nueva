@@ -24,8 +24,8 @@
           @for (p of personas; track p.id; let i = $index) {
             <a class="persona-fila" [routerLink]="['/personas', p.id]">
               <span class="persona-fila__avatar" [style.background]="colorPersona(i)">
-                @if (p.fotoUrl) {
-                  <img [src]="p.fotoUrl" alt="" />
+                @if (avatarSrc(p); as src) {
+                  <img [src]="src" alt="" />
                 } @else {
                   {{ inicialPersona(nombreCompleto(p)) }}
                 }

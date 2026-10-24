@@ -19,8 +19,10 @@ import {
   IonTitle,
   IonToggle,
   IonToolbar,
+  ModalController,
 } from '@ionic/angular';
 import { deleteField } from 'firebase/firestore';
+import { AVATAR_POR_DEFECTO, avatarDataUri } from '../../core/avatar-dicebear';
 import { AuthService } from '../../core/auth.service';
 import { cargarLibreriaPlaces } from '../../core/google-maps-loader';
 import { formatearRut, validarRut } from '../../core/rut';
@@ -34,8 +36,9 @@ import {
   primerError,
   reglas,
 } from '../../core/validadores';
-import type { ContactoEmergencia, Persona, RelacionPersona } from '../../models';
+import type { AvatarOpciones, ContactoEmergencia, Persona, RelacionPersona } from '../../models';
 import { PersonasService } from '../../services/personas.service';
+import { EditorAvatarComponent } from '../../shared/editor-avatar/editor-avatar.component';
 import { PARENTESCOS, REGIONES_CHILE, etiquetaRelacion } from '../../shared/persona-datos';
 
 @Component({
@@ -127,6 +130,17 @@ export class PersonaFormPage implements OnInit, AfterViewInit {
   rutDependiente = '';
   documentoRespaldo: File | null = null;
 
+  /** Avatar ilustrado (core/avatar-dicebear.ts): identidad visual por defecto, nunca una foto real. */
+  avatarConfig: AvatarOpciones = { ...AVATAR_POR_DEFECTO };
+  get avatarPreview(): string {
+    return avatarDataUri(this.avatarConfig);
+  }
+
+  /**
+   * Foto REAL — exclusiva del QR de pérdida (sección 4.6), solo se pide
+   * cuando `requiereQrPerdida` está activo. El resto de la app siempre usa
+   * el avatar de arriba, nunca esta foto.
+   */
   fotoArchivo: File | null = null;
   fotoPreviewUrl = signal<string | null>(null);
   fotoExistenteUrl = signal<string | null>(null);
@@ -144,7 +158,11 @@ export class PersonaFormPage implements OnInit, AfterViewInit {
       if (!this.documentoRespaldo) return `Falta subir: ${this.etiquetaDocumento()}.`;
       return errorArchivo(this.documentoRespaldo);
     },
-    foto: () => (this.fotoArchivo ? errorArchivo(this.fotoArchivo, { permitePdf: false }) : null),
+    foto: () => {
+      if (this.fotoArchivo) return errorArchivo(this.fotoArchivo, { permitePdf: false });
+      const quedaFotoActual = !this.quitarFotoExistente && !!this.fotoExistenteUrl();
+      return this.requiereQrPerdida && !quedaFotoActual ? 'El QR de pérdida necesita una foto real de la persona.' : null;
+    },
     nombres: () => primerError(reglas.requerido(this.nombres), reglas.nombre(this.nombres)),
     apellidos: () => primerError(reglas.requerido(this.apellidos), reglas.nombre(this.apellidos)),
     fechaNacimiento: () => primerError(reglas.requerido(this.fechaNacimiento), reglas.noFutura(this.fechaNacimiento)),
@@ -181,7 +199,8 @@ export class PersonaFormPage implements OnInit, AfterViewInit {
     private router: Router,
     private auth: AuthService,
     private personasSvc: PersonasService,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+    private modalCtrl: ModalController
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -224,6 +243,7 @@ export class PersonaFormPage implements OnInit, AfterViewInit {
       this.medicoTratante = persona.medicoTratante ?? '';
       this.telefonoMedicoTratante = persona.telefonoMedicoTratante ?? '';
       this.fotoExistenteUrl.set(persona.fotoUrl ?? null);
+      if (persona.avatarConfig) this.avatarConfig = { ...AVATAR_POR_DEFECTO, ...persona.avatarConfig };
       return;
     }
 
@@ -358,6 +378,16 @@ export class PersonaFormPage implements OnInit, AfterViewInit {
 
 
 
+  async abrirEditorAvatar(): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: EditorAvatarComponent,
+      componentProps: { valorInicial: this.avatarConfig },
+    });
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss<AvatarOpciones>();
+    if (role === 'guardar' && data) this.avatarConfig = data;
+  }
+
   onFotoSeleccionada(event: Event): void {
     const input = event.target as HTMLInputElement;
     const archivo = input.files?.[0] ?? null;
@@ -470,6 +500,7 @@ export class PersonaFormPage implements OnInit, AfterViewInit {
         dispositivosMedicos: this.aLista(this.dispositivosMedicosTexto),
         donanteOrganos: this.donanteOrganos,
         requiereQrPerdida: this.requiereQrPerdida,
+        avatarConfig: this.avatarConfig,
         notasEmergencia: this.notasEmergencia || undefined,
         prevision: this.prevision || undefined,
         medicoTratante: this.medicoTratante || undefined,

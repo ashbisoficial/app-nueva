@@ -1,0 +1,100 @@
+.editor-avatar-content {
+  --background: var(--ion-background-color);
+}
+
+.editor-avatar-vista {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 0;
+  background: color-mix(in srgb, var(--ion-color-primary) 14%, transparent);
+
+  img {
+    width: 180px;
+    height: 180px;
+  }
+}
+
+.editor-avatar-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--ion-border-color);
+  background: var(--ion-item-background);
+}
+
+.editor-avatar-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 14px 0;
+  font-size: 22px;
+  color: var(--ion-color-medium);
+  border-bottom: 2.5px solid transparent;
+
+  &--activa {
+    color: var(--ion-color-primary);
+    border-bottom-color: var(--ion-color-primary);
+  }
+}
+
+.editor-avatar-panel {
+  padding: 18px 16px 32px;
+}
+
+.editor-avatar-titulo {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin: 18px 0 10px;
+
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+.editor-avatar-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.editor-avatar-swatch {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2.5px solid transparent;
+  box-shadow: var(--sombra-suave);
+  padding: 0;
+
+  &--activa {
+    border-color: var(--ion-color-primary);
+  }
+}
+
+.editor-avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 10px;
+}
+
+.editor-avatar-opcion {
+  border: 2.5px solid transparent;
+  border-radius: var(--radio-campo, 10px);
+  background: var(--ion-item-background);
+  box-shadow: var(--sombra-suave);
+  padding: 4px;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(2.1) translateY(8%);
+  }
+
+  &--activa {
+    border-color: var(--ion-color-primary);
+  }
+}
