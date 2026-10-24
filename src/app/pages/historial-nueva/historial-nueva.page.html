@@ -100,6 +100,35 @@
 
       @if (muestraMedicamentos) {
         <ion-list-header>Medicamentos</ion-list-header>
+        <ion-item lines="none" class="receta-ocr-item">
+          <label class="receta-ocr-boton" [class.receta-ocr-boton--cargando]="analizandoReceta()">
+            @if (analizandoReceta()) {
+              <ion-spinner name="dots"></ion-spinner>
+              Leyendo la receta...
+            } @else {
+              <ion-icon name="camera-outline"></ion-icon>
+              Leer receta con una foto (beta)
+            }
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              aria-label="Foto de la receta"
+              [disabled]="analizandoReceta()"
+              (change)="analizarFotoReceta($event)"
+            />
+          </label>
+          <p class="texto-ayuda">
+            Gratis, se procesa en tu teléfono. Funciona bien con recetas impresas; con letra manuscrita
+            puede fallar — siempre revisa lo que complete antes de guardar.
+          </p>
+        </ion-item>
+        @if (errorReceta(); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        @if (textoRecetaDetectado(); as texto) {
+          <ion-item lines="none">
+            <ion-textarea label="Texto que se leyó de la foto" labelPlacement="stacked" readonly="true" [value]="texto" rows="3"></ion-textarea>
+          </ion-item>
+        }
         @for (m of medicamentos; track $index) {
           <ion-item>
             <ion-input placeholder="Nombre *" aria-label="Nombre del medicamento" maxlength="80" [(ngModel)]="m.nombre" [name]="'med-nombre-' + $index" (ngModelChange)="v.revalidar('medicamentos')"></ion-input>

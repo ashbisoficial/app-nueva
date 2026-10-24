@@ -432,6 +432,39 @@ ion-item.campo-invalido {
  * negro aunque la app estuviera en modo claro. Acá se fuerza a seguir el
  * mismo `data-modo` que ya usa toda la app.
  */
+/* Botón "Leer receta con una foto" (historial-nueva, core/receta-ocr.ts). */
+.receta-ocr-item {
+  flex-direction: column;
+  align-items: flex-start;
+  padding-top: 10px;
+}
+
+.receta-ocr-boton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1.6px dashed var(--ion-color-primary);
+  border-radius: var(--radio-campo, 10px);
+  color: var(--ion-color-primary);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+
+  &--cargando {
+    opacity: 0.75;
+    cursor: wait;
+  }
+
+  input[type='file'] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+}
+
 /* Miniaturas de las páginas elegidas en "Subir documento" al escanear varias fotos (sección 4.1 del spec). */
 .documento-fotos-lista {
   display: flex;

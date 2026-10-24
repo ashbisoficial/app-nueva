@@ -17,11 +17,13 @@ import {
   IonListHeader,
   IonSelect,
   IonSelectOption,
+  IonSpinner,
   IonTextarea,
   IonTitle,
   IonToolbar,
 } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
+import { leerTextoReceta, parsearMedicamentos } from '../../core/receta-ocr';
 import { subirArchivo } from '../../core/storage';
 import { ValidacionFormulario, errorArchivo, primerError, reglas } from '../../core/validadores';
 import { EXAMENES_COMUNES, TIPOS_ENTRADA, type MedicamentoOrden, type TipoEntrada } from '../../models';
@@ -48,6 +50,7 @@ import { HistorialService } from '../../services/historial.service';
     IonInput,
     IonSelect,
     IonSelectOption,
+    IonSpinner,
     IonTextarea,
     IonCheckbox,
   ],
@@ -128,6 +131,42 @@ export class HistorialNuevaPage {
   quitarMedicamento(i: number): void {
     this.medicamentos.splice(i, 1);
     this.v.revalidar('medicamentos');
+  }
+
+  /**
+   * Leer receta con OCR (gratis, Tesseract.js, 100% en el navegador — ver
+   * core/receta-ocr.ts): nunca reemplaza filas existentes ni guarda solo,
+   * solo agrega lo que detectó para que la persona revise y corrija. Como
+   * la letra manuscrita de médico suele leerse mal, siempre deja ver el
+   * texto crudo reconocido además de las filas que haya podido armar.
+   */
+  analizandoReceta = signal(false);
+  textoRecetaDetectado = signal<string | null>(null);
+  errorReceta = signal<string | null>(null);
+
+  async analizarFotoReceta(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const foto = input.files?.[0] ?? null;
+    input.value = '';
+    if (!foto) return;
+
+    this.errorReceta.set(null);
+    this.textoRecetaDetectado.set(null);
+    this.analizandoReceta.set(true);
+    try {
+      const texto = await leerTextoReceta(foto);
+      this.textoRecetaDetectado.set(texto.trim() || null);
+      const detectados = parsearMedicamentos(texto);
+      if (detectados.length) {
+        this.medicamentos = [...this.medicamentos, ...detectados];
+        this.v.revalidar('medicamentos');
+        this.v.revalidar('contenido');
+      }
+    } catch {
+      this.errorReceta.set('No se pudo leer la foto. Completa los medicamentos a mano.');
+    } finally {
+      this.analizandoReceta.set(false);
+    }
   }
 
   toggleExamen(nombre: string, marcado: boolean): void {
