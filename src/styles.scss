@@ -418,3 +418,25 @@ ion-item.campo-invalido {
     top: 16px;
   }
 }
+
+/*
+ * Buscador de dirección de Google (persona-form, core/google-maps-loader.ts):
+ * el <gmp-place-autocomplete> lo crea montarBuscadorDireccion() con
+ * appendChild directo al DOM, nunca pasa por el compilador de Angular, así
+ * que su estilo tiene que vivir acá (hoja global) y no en el .scss del
+ * componente, que queda encapsulado por atributo y nunca lo alcanzaría.
+ *
+ * `color-scheme` del widget viene en "light dark" por defecto — sigue el
+ * modo del SISTEMA OPERATIVO, no el modo claro/oscuro que la persona eligió
+ * adentro de la app (sección 2.2 del spec) — por eso podía verse con fondo
+ * negro aunque la app estuviera en modo claro. Acá se fuerza a seguir el
+ * mismo `data-modo` que ya usa toda la app.
+ */
+.persona-buscador-direccion gmp-place-autocomplete {
+  width: 100%;
+  color-scheme: light;
+}
+
+:root[data-modo='oscuro'] .persona-buscador-direccion gmp-place-autocomplete {
+  color-scheme: dark;
+}

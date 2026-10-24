@@ -148,15 +148,12 @@
     display: block;
   }
 
-  gmp-place-autocomplete {
-    width: 100%;
-    --gmpx-color-surface: var(--ion-item-background);
-    --gmpx-color-on-surface: var(--ion-text-color);
-    --gmpx-color-on-surface-variant: var(--ion-color-medium);
-    --gmpx-color-primary: var(--ion-color-primary);
-    --gmpx-font-family-base: inherit;
-    --gmpx-border-radius: var(--radio-campo, 10px);
-  }
+  // El estilo del <gmp-place-autocomplete> en sí (incluido `color-scheme`,
+  // ver src/styles.scss) vive en la hoja global: el elemento lo crea
+  // montarBuscadorDireccion() con appendChild directo al DOM, nunca pasa
+  // por el compilador de plantillas de Angular, así que una regla anidada
+  // acá (encapsulada por componente, con el atributo _ngcontent-*) nunca
+  // llegaría a matchearlo.
 }
 
 .persona-toggle-texto {
