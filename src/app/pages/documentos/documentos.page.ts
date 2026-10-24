@@ -24,6 +24,7 @@ import {
   IonToolbar,
 } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
+import { fotosAPdf } from '../../core/foto-a-pdf';
 import { ValidacionFormulario, errorArchivo, primerError, reglas } from '../../core/validadores';
 import { CATEGORIAS_DOCUMENTO, type CategoriaDocumento } from '../../models';
 import { DocumentosService } from '../../services/documentos.service';
@@ -89,11 +90,16 @@ export class DocumentosPage {
   especialidadId = '';
   notas = '';
   archivo: File | null = null;
+  /** Fotos de un "escaneo" de varias páginas (sección 4.1): se combinan en un único PDF recién al guardar. */
+  fotos: File[] = [];
   subiendo = signal(false);
   error = signal<string | null>(null);
 
   readonly v = new ValidacionFormulario({
-    archivo: () => (this.archivo ? errorArchivo(this.archivo) : 'Elige la foto o el PDF del documento.'),
+    archivo: () => {
+      if (this.fotos.length) return this.fotos.map((f) => errorArchivo(f, { permitePdf: false })).find((e) => e) ?? null;
+      return this.archivo ? errorArchivo(this.archivo) : 'Elige la foto o el PDF del documento.';
+    },
     nombre: () => primerError(reglas.requerido(this.nombre), reglas.largoMaximo(this.nombre, 100)),
     categoria: () => reglas.elegir(this.categoria),
     notas: () => reglas.largoMaximo(this.notas, 500),
@@ -115,27 +121,63 @@ export class DocumentosPage {
     this.especialidadId = '';
     this.notas = '';
     this.archivo = null;
+    for (const url of this.urlsObjeto.values()) URL.revokeObjectURL(url);
+    this.urlsObjeto.clear();
+    this.fotos = [];
     this.error.set(null);
     this.mostrarForm.set(true);
   }
 
   onArchivoSeleccionado(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.archivo = input.files?.[0] ?? null;
-    if (this.archivo && !this.nombre) {
-      // Nombre sugerido: el del archivo sin la extensión.
-      this.nombre = this.archivo.name.replace(/\.[^.]+$/, '');
+    const elegido = input.files?.[0] ?? null;
+    // Permite elegir el mismo archivo de nuevo (ej. sacar otra foto con la
+    // cámara y volver a tocar "Agregar otra página") sin que el navegador
+    // ignore el evento por no haber "cambiado" el valor del input.
+    input.value = '';
+    if (!elegido) return;
+
+    if (elegido.type === 'application/pdf') {
+      this.archivo = elegido;
+      this.fotos = [];
+      if (!this.nombre) this.nombre = elegido.name.replace(/\.[^.]+$/, '');
+    } else {
+      // Una foto nunca reemplaza a la anterior: se agrega como otra página
+      // del mismo "escaneo" (ver fotosAPdf en guardar()).
+      this.archivo = null;
+      this.fotos = [...this.fotos, elegido];
+      if (!this.nombre) this.nombre = 'Documento escaneado';
     }
     this.v.campo('archivo');
     this.v.revalidar('nombre');
   }
 
+  quitarFoto(indice: number): void {
+    const [quitada] = this.fotos.splice(indice, 1);
+    this.fotos = [...this.fotos];
+    if (quitada) this.urlsObjeto.get(quitada) && URL.revokeObjectURL(this.urlsObjeto.get(quitada)!);
+    this.urlsObjeto.delete(quitada);
+    this.v.campo('archivo');
+  }
+
+  /** Miniatura de cada página elegida — un object URL por archivo, creado una sola vez y liberado al quitarla. */
+  private readonly urlsObjeto = new Map<File, string>();
+  urlObjeto(archivo: File): string {
+    let url = this.urlsObjeto.get(archivo);
+    if (!url) {
+      url = URL.createObjectURL(archivo);
+      this.urlsObjeto.set(archivo, url);
+    }
+    return url;
+  }
+
   async guardar(): Promise<void> {
     this.error.set(null);
-    if (!this.v.todo() || !this.archivo) return;
+    if (!this.v.todo() || (!this.archivo && !this.fotos.length)) return;
     this.subiendo.set(true);
     try {
-      const archivoUrl = await this.documentosSvc.subirArchivo(this.personaId, this.archivo, this.archivo.name);
+      const archivoFinal = this.fotos.length ? await fotosAPdf(this.fotos, this.nombre.trim() || 'documento') : this.archivo!;
+      const archivoUrl = await this.documentosSvc.subirArchivo(this.personaId, archivoFinal, archivoFinal.name);
       await this.documentosSvc.crear(this.personaId, {
         nombre: this.nombre.trim(),
         categoria: this.categoria,

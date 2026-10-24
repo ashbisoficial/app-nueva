@@ -53,9 +53,27 @@
     <ion-content class="ion-padding">
       <p class="texto-ayuda">Los campos con * son obligatorios.</p>
       <ion-item lines="none" class="documento-archivo">
-        <p class="texto-ayuda">Archivo * (foto o PDF)</p>
+        <p class="texto-ayuda">
+          @if (fotos.length) {
+            {{ fotos.length }} {{ fotos.length === 1 ? 'página agregada' : 'páginas agregadas' }} — se van a combinar en un solo PDF.
+          } @else {
+            Archivo * (foto o PDF) — sacá varias fotos para escanear un documento de varias hojas.
+          }
+        </p>
         <input type="file" accept="image/*,application/pdf" capture="environment" aria-label="Archivo del documento" (change)="onArchivoSeleccionado($event)" />
       </ion-item>
+      @if (fotos.length) {
+        <div class="documento-fotos-lista">
+          @for (f of fotos; track $index) {
+            <div class="documento-foto-chip">
+              <img [src]="urlObjeto(f)" alt="" />
+              <button type="button" class="documento-foto-quitar" (click)="quitarFoto($index)" aria-label="Quitar esta página">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+          }
+        </div>
+      }
       @if (v.error('archivo'); as e) { <p class="texto-error-campo">{{ e }}</p> }
       <ion-item [class.campo-invalido]="v.error('nombre')">
         <ion-input
