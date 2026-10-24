@@ -244,7 +244,15 @@
           ></ion-input>
         </ion-item>
         @if (v.error('direccionDetalle'); as e) { <p class="texto-error-campo">{{ e }}</p> }
-        <ion-item [class.campo-invalido]="v.error('comuna')">
+        <ion-item [class.campo-invalido]="v.error('region')">
+          <ion-select label="Región *" labelPlacement="floating" [(ngModel)]="region" name="region" (ngModelChange)="v.campo('region')">
+            @for (r of regiones; track r) {
+              <ion-select-option [value]="r">{{ r }}</ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
+        @if (v.error('region'); as e) { <p class="texto-error-campo">{{ e }}</p> }
+        <ion-item lines="none" [class.campo-invalido]="v.error('comuna')">
           <ion-input
             label="Comuna *"
             labelPlacement="floating"
@@ -256,14 +264,6 @@
           ></ion-input>
         </ion-item>
         @if (v.error('comuna'); as e) { <p class="texto-error-campo">{{ e }}</p> }
-        <ion-item lines="none" [class.campo-invalido]="v.error('region')">
-          <ion-select label="Región *" labelPlacement="floating" [(ngModel)]="region" name="region" (ngModelChange)="v.campo('region')">
-            @for (r of regiones; track r) {
-              <ion-select-option [value]="r">{{ r }}</ion-select-option>
-            }
-          </ion-select>
-        </ion-item>
-        @if (v.error('region'); as e) { <p class="texto-error-campo">{{ e }}</p> }
       </ion-list>
     </section>
 

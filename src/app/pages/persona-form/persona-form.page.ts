@@ -292,14 +292,16 @@ export class PersonaFormPage implements OnInit, AfterViewInit {
       this.direccion = [calle, numero].filter(Boolean).join(' ');
       this.v.revalidar('direccion');
     }
-    if (comuna) {
-      this.comuna = comuna;
-      this.v.revalidar('comuna');
-    }
+    // Región primero: Comuna es texto libre y no depende de que la región ya
+    // esté puesta, pero así coincide con el orden visual de los campos.
     const regionEncontrada = this.emparejarRegion(regionGoogle);
     if (regionEncontrada) {
       this.region = regionEncontrada;
       this.v.campo('region');
+    }
+    if (comuna) {
+      this.comuna = comuna;
+      this.v.revalidar('comuna');
     }
   }
 
