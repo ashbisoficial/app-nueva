@@ -2,6 +2,7 @@ import { initializeApp } from 'firebase-admin/app';
 import { FieldValue, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import { getMessaging } from 'firebase-admin/messaging';
 import { HttpsError, onCall, onRequest } from 'firebase-functions/v2/https';
+import { defineSecret } from 'firebase-functions/params';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 
 initializeApp();
@@ -368,4 +369,141 @@ export const calendarioIcs = onRequest({ cors: false }, async (req, res) => {
   res.set('Content-Type', 'text/calendar; charset=utf-8');
   res.set('Cache-Control', 'private, max-age=900');
   res.status(200).send(ics);
+});
+
+// ---------------------------------------------------------------------------
+// Verificación de identidad del titular (sección 6.1 del spec): cédula +
+// selfie comparadas contra el Registro Civil vía Didit (proveedor externo
+// pagado, ~US$0.35/verificación con el workflow armado: ID + prueba de vida +
+// coincidencia facial). Pasa UNA sola vez, al completar el registro — nunca
+// se repite en cada apertura de la app (no confundir con el PIN de reingreso
+// rápido, que es local y sin relación con esto).
+// ---------------------------------------------------------------------------
+
+const diditApiKey = defineSecret('DIDIT_API_KEY');
+// Distinto de la key de arriba: este es el "secret_shared_key" que Didit
+// entrega al registrar un destino de webhook (consola → Webhooks, o
+// POST /v3/webhook/destinations/) — se usa SOLO para validar la firma de
+// cada entrega, nunca para llamar a su API. Se carga igual que la otra, con
+// `firebase functions:secrets:set DIDIT_WEBHOOK_SECRET`, una vez que exista
+// (todavía no se configuró el webhook del lado de Didit).
+const diditWebhookSecret = defineSecret('DIDIT_WEBHOOK_SECRET');
+
+// No es secreto (es solo un identificador del flujo armado en la consola de
+// Didit), pero igual se centraliza acá en vez de mandarlo desde el cliente,
+// para que nadie pueda hacer que el servidor corra un workflow distinto al
+// que decidimos. TODO: reemplazar por el workflow_id real antes de desplegar.
+const DIDIT_WORKFLOW_ID = 'TODO_PEGAR_WORKFLOW_ID_ACA';
+
+/**
+ * Crea una sesión de verificación en Didit y devuelve la URL hospedada por
+ * ellos (ahí es donde el usuario escanea la cédula y se toma la selfie —
+ * nunca pasa por nuestros servidores ni por el cliente directamente). El
+ * resultado final llega después por `webhookVerificacionIdentidad`, nunca en
+ * la respuesta de esta llamada (Didit la procesa de forma asíncrona).
+ */
+export const crearSesionVerificacion = onCall({ secrets: [diditApiKey] }, async (request) => {
+  if (!request.auth) throw new HttpsError('unauthenticated', 'Hay que iniciar sesión.');
+  const uid = request.auth.uid;
+
+  const usuarioRef = db.collection('usuarios').doc(uid);
+  const usuarioSnap = await usuarioRef.get();
+  const estadoActual = usuarioSnap.data()?.['verificacionIdentidad']?.['estado'];
+  if (estadoActual === 'aprobada') {
+    throw new HttpsError('failed-precondition', 'Esta cuenta ya está verificada.');
+  }
+
+  let respuesta: Response;
+  try {
+    respuesta = await fetch('https://verification.didit.me/v3/session/', {
+      method: 'POST',
+      headers: { 'x-api-key': diditApiKey.value(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ workflow_id: DIDIT_WORKFLOW_ID, vendor_data: uid }),
+    });
+  } catch (error) {
+    console.error('No se pudo contactar a Didit', error);
+    throw new HttpsError('unavailable', 'No se pudo iniciar la verificación. Intenta de nuevo.');
+  }
+
+  if (!respuesta.ok) {
+    console.error('Didit respondió con error al crear la sesión', respuesta.status, await respuesta.text());
+    throw new HttpsError('internal', 'No se pudo iniciar la verificación. Intenta de nuevo.');
+  }
+
+  const datos = (await respuesta.json()) as { session_id: string; url: string };
+  await usuarioRef.set(
+    {
+      verificacionIdentidad: {
+        estado: 'pendiente',
+        sessionId: datos.session_id,
+        creadoEn: FieldValue.serverTimestamp(),
+      },
+    },
+    { merge: true }
+  );
+
+  return { url: datos.url };
+});
+
+/**
+ * Recibe el resultado final de una verificación (Didit lo manda acá, no en
+ * la respuesta de crearSesionVerificacion). Nunca confiar en el cuerpo del
+ * webhook sin validar la firma primero — cualquiera podría mandar un POST acá
+ * simulando una verificación aprobada si no se chequeara esto.
+ *
+ * ⚠️ Pendiente de confirmar contra la documentación real de Didit
+ * (docs.didit.me/integration/webhooks) antes de desplegar: se encontraron
+ * DOS descripciones distintas del algoritmo de firma en páginas oficiales de
+ * Didit (una página describe reordenar las claves del JSON y HMAC-SHA256
+ * sobre eso; otra describe un truncado de decimales antes del HMAC). Esta
+ * implementación usa la primera versión (la de la página específica de
+ * webhooks de identidad, no la de verificación de empresas) — probar con una
+ * entrega real antes de confiar en producción, y ajustar si no matchea.
+ */
+export const webhookVerificacionIdentidad = onRequest({ secrets: [diditWebhookSecret] }, async (req, res) => {
+  const firmaRecibida = req.get('X-Signature-V2');
+  if (!firmaRecibida) {
+    res.status(401).send('Falta la firma.');
+    return;
+  }
+
+  const crypto = await import('node:crypto');
+  const cuerpoCanonico = JSON.stringify(req.body, Object.keys(req.body as object).sort());
+  const firmaEsperada = crypto.createHmac('sha256', diditWebhookSecret.value()).update(cuerpoCanonico).digest('hex');
+
+  const coinciden =
+    firmaRecibida.length === firmaEsperada.length &&
+    crypto.timingSafeEqual(Buffer.from(firmaRecibida), Buffer.from(firmaEsperada));
+  if (!coinciden) {
+    console.error('Firma de webhook de Didit inválida — se ignora el payload.');
+    res.status(401).send('Firma inválida.');
+    return;
+  }
+
+  const { session_id: sessionId, status, vendor_data: uid } = req.body as {
+    session_id: string;
+    status: string;
+    vendor_data: string;
+  };
+  if (!uid) {
+    res.status(400).send('Falta vendor_data.');
+    return;
+  }
+
+  const estado = status === 'Approved' ? 'aprobada' : status === 'Declined' ? 'rechazada' : 'en_revision';
+  await db
+    .collection('usuarios')
+    .doc(uid)
+    .set(
+      {
+        verificacionIdentidad: {
+          estado,
+          sessionId,
+          actualizadoEn: FieldValue.serverTimestamp(),
+        },
+      },
+      { merge: true }
+    );
+
+  res.status(200).send('OK');
 });
