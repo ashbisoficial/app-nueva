@@ -446,19 +446,41 @@ export const crearSesionVerificacion = onCall({ secrets: [diditApiKey] }, async 
 });
 
 /**
+ * JSON canónico para verificar `X-Signature-V2` (webhooks v3.0 de Didit):
+ * las mismas claves ordenadas alfabéticamente en TODOS los niveles, no solo
+ * el superior, y sin espacios — equivalente a lo que describe la doc de Didit
+ * (JSON compacto con claves ordenadas, sin escapar unicode). `JSON.stringify`
+ * con un array de claves como replacer (lo que usaba esta función antes) solo
+ * filtra/ordena el primer nivel: un payload con un objeto anidado (ej. el
+ * detalle de la decisión) firmaba distinto a lo que arma Didit y la
+ * validación fallaba siempre. Las claves de los objetos se ordenan; el orden
+ * de los arrays se respeta tal cual.
+ */
+function canonicalizarJson(valor: unknown): unknown {
+  if (Array.isArray(valor)) return valor.map(canonicalizarJson);
+  if (valor !== null && typeof valor === 'object') {
+    const ordenado: Record<string, unknown> = {};
+    for (const clave of Object.keys(valor as object).sort()) {
+      ordenado[clave] = canonicalizarJson((valor as Record<string, unknown>)[clave]);
+    }
+    return ordenado;
+  }
+  return valor;
+}
+
+/**
  * Recibe el resultado final de una verificación (Didit lo manda acá, no en
  * la respuesta de crearSesionVerificacion). Nunca confiar en el cuerpo del
  * webhook sin validar la firma primero — cualquiera podría mandar un POST acá
- * simulando una verificación aprobada si no se chequeara esto.
+ * simulando una verificación aprobada si no se chequeara esto. También
+ * rechaza una entrega con `X-Timestamp` viejo o ausente (ventana de 5
+ * minutos, igual que documenta Didit para v2/v3) para que una firma
+ * interceptada no se pueda reenviar después.
  *
- * ⚠️ Pendiente de confirmar contra la documentación real de Didit
- * (docs.didit.me/integration/webhooks) antes de desplegar: se encontraron
- * DOS descripciones distintas del algoritmo de firma en páginas oficiales de
- * Didit (una página describe reordenar las claves del JSON y HMAC-SHA256
- * sobre eso; otra describe un truncado de decimales antes del HMAC). Esta
- * implementación usa la primera versión (la de la página específica de
- * webhooks de identidad, no la de verificación de empresas) — probar con una
- * entrega real antes de confiar en producción, y ajustar si no matchea.
+ * Pendiente de confirmar con una entrega real (botón "enviar webhook de
+ * prueba" en la consola de Didit + logs de esta función): el algoritmo de
+ * canonicalización de arriba sigue lo que describe la documentación de
+ * Didit, pero no reemplaza una prueba en vivo.
  */
 export const webhookVerificacionIdentidad = onRequest({ secrets: [diditWebhookSecret] }, async (req, res) => {
   const firmaRecibida = req.get('X-Signature-V2');
@@ -467,8 +489,14 @@ export const webhookVerificacionIdentidad = onRequest({ secrets: [diditWebhookSe
     return;
   }
 
+  const marcaTiempo = Number(req.get('X-Timestamp'));
+  if (!marcaTiempo || Math.abs(Date.now() / 1000 - marcaTiempo) > 300) {
+    res.status(401).send('Marca de tiempo inválida o vencida.');
+    return;
+  }
+
   const crypto = await import('node:crypto');
-  const cuerpoCanonico = JSON.stringify(req.body, Object.keys(req.body as object).sort());
+  const cuerpoCanonico = JSON.stringify(canonicalizarJson(req.body));
   const firmaEsperada = crypto.createHmac('sha256', diditWebhookSecret.value()).update(cuerpoCanonico).digest('hex');
 
   const coinciden =
