@@ -392,7 +392,7 @@ const diditWebhookSecret = defineSecret('DIDIT_WEBHOOK_SECRET');
 // No es secreto (es solo un identificador del flujo armado en la consola de
 // Didit), pero igual se centraliza acá en vez de mandarlo desde el cliente,
 // para que nadie pueda hacer que el servidor corra un workflow distinto al
-// que decidimos. TODO: reemplazar por el workflow_id real antes de desplegar.
+// que decidimos.
 const DIDIT_WORKFLOW_ID = '977367d8-79d0-4256-ae79-05a9f1c463c8';
 
 /**
