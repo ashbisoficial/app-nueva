@@ -1,8 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { AlertController, IonButton, IonContent, IonIcon, IonModal, IonToggle } from '@ionic/angular';
 import { AuthService } from '../../core/auth.service';
+import type { Usuario } from '../../models';
 import { BiometriaService } from '../../core/biometria.service';
 import { BloqueoService } from '../../core/bloqueo.service';
 import { NotificacionesService } from '../../core/notificaciones.service';
@@ -56,6 +58,11 @@ export class ConfiguracionPage {
   /** Persona "yo mismo/a" de la cuenta: undefined mientras carga, null si todavía no existe. */
   readonly idYoMismo = signal<string | null | undefined>(undefined);
 
+  /** Verificación real del titular (sección 6.1) — en vivo: si el webhook de Didit la actualiza mientras esta pantalla está abierta, se refleja sola. */
+  readonly usuarioDoc = signal<Usuario | undefined>(undefined);
+  readonly verificando = signal(false);
+  readonly errorVerificacion = signal<string | null>(null);
+
   constructor() {
     void this.pushSvc.inicializar();
     const uid = this.auth.uidActual;
@@ -68,6 +75,22 @@ export class ConfiguracionPage {
         .idYoMismo(uid)
         .then((id) => this.idYoMismo.set(id))
         .catch(() => this.idYoMismo.set(null));
+      this.auth
+        .usuarioDoc$(uid)
+        .pipe(takeUntilDestroyed())
+        .subscribe((u) => this.usuarioDoc.set(u));
+    }
+  }
+
+  async verificarIdentidad(): Promise<void> {
+    this.errorVerificacion.set(null);
+    this.verificando.set(true);
+    try {
+      const url = await this.auth.crearSesionVerificacionIdentidad();
+      window.location.href = url;
+    } catch {
+      this.errorVerificacion.set('No se pudo iniciar la verificación. Intenta de nuevo.');
+      this.verificando.set(false);
     }
   }
 

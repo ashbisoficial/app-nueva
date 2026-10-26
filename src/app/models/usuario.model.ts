@@ -35,4 +35,16 @@ export interface Usuario {
     terminosAceptadosEn: unknown;
     privacidadAceptadaEn: unknown;
   };
+  /**
+   * Verificación real del titular (sección 6.1: cédula + selfie comparadas
+   * contra el Registro Civil vía Didit). La escribe únicamente
+   * crearSesionVerificacion/webhookVerificacionIdentidad (Cloud Functions,
+   * Admin SDK) — el cliente solo la lee, nunca la escribe directo.
+   */
+  verificacionIdentidad?: {
+    estado: 'pendiente' | 'aprobada' | 'rechazada' | 'en_revision';
+    sessionId: string;
+    creadoEn?: unknown;
+    actualizadoEn?: unknown;
+  };
 }

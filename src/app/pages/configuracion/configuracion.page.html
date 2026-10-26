@@ -23,6 +23,36 @@
           {{ idYoMismo() ? 'Mis datos personales' : 'Completar mis datos personales' }}
         </a>
       }
+
+      @if (usuarioDoc(); as u) {
+        @switch (u.verificacionIdentidad?.estado) {
+          @case ('aprobada') {
+            <p class="config-verificacion config-verificacion--aprobada">
+              <ion-icon name="shield-checkmark-outline"></ion-icon>
+              Identidad verificada
+            </p>
+          }
+          @case ('pendiente') {
+            <p class="config-verificacion">
+              <ion-icon name="shield-checkmark-outline"></ion-icon>
+              Verificación en proceso — puede demorar unos minutos.
+            </p>
+          }
+          @case ('en_revision') {
+            <p class="config-verificacion">
+              <ion-icon name="shield-checkmark-outline"></ion-icon>
+              Tu verificación está en revisión manual.
+            </p>
+          }
+          @default {
+            <a class="config-enlace-legal" [class.config-enlace-legal--deshabilitado]="verificando()" (click)="!verificando() && verificarIdentidad()">
+              <ion-icon name="shield-checkmark-outline"></ion-icon>
+              {{ verificando() ? 'Abriendo verificación...' : (u.verificacionIdentidad?.estado === 'rechazada' ? 'Volver a verificar mi identidad' : 'Verificar mi identidad') }}
+            </a>
+          }
+        }
+        @if (errorVerificacion(); as e) { <p class="texto-error-campo">{{ e }}</p> }
+      }
     </section>
 
     <section class="config-tarjeta">

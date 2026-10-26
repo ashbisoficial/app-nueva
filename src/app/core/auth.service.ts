@@ -10,7 +10,10 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import { doc, getDoc, serverTimestamp, setDoc, writeBatch } from 'firebase/firestore';
-import { auth, db } from './firebase';
+import { httpsCallable } from 'firebase/functions';
+import { Observable } from 'rxjs';
+import { auth, db, functions } from './firebase';
+import { docData$ } from './firestore-collection';
 import { normalizarRut, validarRut } from './rut';
 import type { Usuario } from '../models';
 import { ULTIMA_ACTUALIZACION } from '../pages/legal/contenido-legal';
@@ -94,6 +97,23 @@ export class AuthService {
   async obtenerUsuario(uid: string): Promise<Usuario | undefined> {
     const snap = await getDoc(doc(db, 'usuarios', uid));
     return snap.exists() ? (snap.data() as Usuario) : undefined;
+  }
+
+  /** En vivo (a diferencia de obtenerUsuario): para reflejar sin recargar cuando el webhook de Didit actualiza verificacionIdentidad. */
+  usuarioDoc$(uid: string): Observable<Usuario | undefined> {
+    return docData$<Usuario>(`usuarios/${uid}`);
+  }
+
+  /**
+   * Verificación real del titular (sección 6.1): pide a la Cloud Function
+   * que cree la sesión en Didit y devuelve la URL hospedada por ellos —
+   * ahí es donde el usuario escanea la cédula y se toma la selfie, nunca
+   * dentro de esta app. El resultado llega después por webhook, nunca acá.
+   */
+  async crearSesionVerificacionIdentidad(): Promise<string> {
+    const llamada = httpsCallable<void, { url: string }>(functions, 'crearSesionVerificacion');
+    const { data } = await llamada();
+    return data.url;
   }
 
   /**

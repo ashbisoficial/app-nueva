@@ -41,9 +41,17 @@ service cloud.firestore {
       // personaYoMismoId (sección 6.2): una vez fijado, no se puede reescribir a
       // otro id — es el candado que usa `personas/{personaId}` para bloquear
       // una segunda Persona "yo mismo/a" de la misma cuenta (ver esa regla).
+      //
+      // verificacionIdentidad (sección 6.1): el cliente nunca puede tocarla —
+      // si se permitiera, cualquiera podría escribirse "aprobada" directo sin
+      // pasar por Didit. Solo la escriben crearSesionVerificacion/
+      // webhookVerificacionIdentidad (Cloud Functions, Admin SDK, que no
+      // pasa por estas reglas) — acá solo se bloquea que el cliente la
+      // cree, cambie o borre.
       allow update: if estaAutenticado() && request.auth.uid == uid &&
         (!('personaYoMismoId' in resource.data) ||
-         request.resource.data.personaYoMismoId == resource.data.personaYoMismoId);
+         request.resource.data.personaYoMismoId == resource.data.personaYoMismoId) &&
+        request.resource.data.get('verificacionIdentidad', null) == resource.data.get('verificacionIdentidad', null);
     }
 
     // Índice de unicidad de RUT (secciones 6.1 y 6.2): el id del doc ES el
