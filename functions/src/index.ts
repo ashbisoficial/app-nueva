@@ -395,6 +395,14 @@ const diditWebhookSecret = defineSecret('DIDIT_WEBHOOK_SECRET');
 // que decidimos.
 const DIDIT_WORKFLOW_ID = '977367d8-79d0-4256-ae79-05a9f1c463c8';
 
+// Cada sesión de verificación cuesta de verdad (~US$0.35-0.55), incluso si
+// termina rechazada o abandonada a mitad de camino — a diferencia del resto
+// de la app, esto NO es una cuota gratuita que se recupera sola. Límite de
+// intentos totales + espera mínima entre uno y el siguiente, para que un
+// usuario (o un doble clic) no dispare sesiones pagas sin control.
+const LIMITE_INTENTOS_VERIFICACION = 5;
+const ESPERA_ENTRE_INTENTOS_MS = 10 * 60 * 1000;
+
 /**
  * Crea una sesión de verificación en Didit y devuelve la URL hospedada por
  * ellos (ahí es donde el usuario escanea la cédula y se toma la selfie —
@@ -408,9 +416,28 @@ export const crearSesionVerificacion = onCall({ secrets: [diditApiKey] }, async 
 
   const usuarioRef = db.collection('usuarios').doc(uid);
   const usuarioSnap = await usuarioRef.get();
-  const estadoActual = usuarioSnap.data()?.['verificacionIdentidad']?.['estado'];
-  if (estadoActual === 'aprobada') {
+  const verificacion = usuarioSnap.data()?.['verificacionIdentidad'] as
+    | { estado?: string; intentos?: number; ultimoIntentoEn?: Timestamp }
+    | undefined;
+
+  if (verificacion?.estado === 'aprobada') {
     throw new HttpsError('failed-precondition', 'Esta cuenta ya está verificada.');
+  }
+
+  const intentosPrevios = verificacion?.intentos ?? 0;
+  if (intentosPrevios >= LIMITE_INTENTOS_VERIFICACION) {
+    throw new HttpsError(
+      'resource-exhausted',
+      `Alcanzaste el máximo de ${LIMITE_INTENTOS_VERIFICACION} intentos de verificación. Escríbenos a serangelia.oficial@gmail.com para que te ayudemos.`
+    );
+  }
+
+  const ultimoIntentoMs = verificacion?.ultimoIntentoEn?.toMillis() ?? 0;
+  if (Date.now() - ultimoIntentoMs < ESPERA_ENTRE_INTENTOS_MS) {
+    throw new HttpsError(
+      'resource-exhausted',
+      'Ya iniciaste una verificación hace poco. Espera unos minutos antes de intentarlo de nuevo.'
+    );
   }
 
   let respuesta: Response;
@@ -431,13 +458,16 @@ export const crearSesionVerificacion = onCall({ secrets: [diditApiKey] }, async 
   }
 
   const datos = (await respuesta.json()) as { session_id: string; url: string };
+  // Field paths con punto (no un objeto `verificacionIdentidad` completo):
+  // así el merge toca solo estos campos y no pisa `intentos` de intentos
+  // anteriores con un objeto nuevo.
   await usuarioRef.set(
     {
-      verificacionIdentidad: {
-        estado: 'pendiente',
-        sessionId: datos.session_id,
-        creadoEn: FieldValue.serverTimestamp(),
-      },
+      'verificacionIdentidad.estado': 'pendiente',
+      'verificacionIdentidad.sessionId': datos.session_id,
+      'verificacionIdentidad.creadoEn': FieldValue.serverTimestamp(),
+      'verificacionIdentidad.ultimoIntentoEn': FieldValue.serverTimestamp(),
+      'verificacionIdentidad.intentos': FieldValue.increment(1),
     },
     { merge: true }
   );

@@ -715,6 +715,19 @@ ese RUT.
 participar activamente (sacarse una foto, mostrar su cédula) — por eso no
 aplica a los dependientes de la sección 6.2, que se resuelven distinto.
 
+**Implementado: tope de intentos, porque cada sesión cuesta real.** A
+diferencia de las cuotas de Firebase (que se resetean solas), cada sesión de
+verificación en Didit tiene un costo (~US$0.35–0.55) aunque termine
+rechazada o abandonada — no hay forma de que sea "gratis" aunque el usuario
+nunca la use. `crearSesionVerificacion` bloquea una sesión nueva si la cuenta
+ya alcanzó **5 intentos** totales (`usuarios/{uid}.verificacionIdentidad.intentos`,
+con mensaje para escribir a `serangelia.oficial@gmail.com`) o si el último
+intento fue hace menos de **10 minutos** (`ultimoIntentoEn`, evita que un
+doble clic dispare dos sesiones pagas). El cliente (`configuracion.page.ts`)
+muestra el mensaje que manda la Cloud Function tal cual en vez del genérico
+de siempre, porque acá sí hace falta que el usuario entienda por qué no
+puede reintentar.
+
 Una vez integrado el proveedor, hay que reflejar en los Términos y
 Condiciones y la Política de Privacidad que se procesa una selfie + foto de
 cédula con un tercero, con qué base legal, por cuánto tiempo se guarda el

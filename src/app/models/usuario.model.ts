@@ -46,5 +46,10 @@ export interface Usuario {
     sessionId: string;
     creadoEn?: unknown;
     actualizadoEn?: unknown;
+    // Control de costo (cada sesión en Didit cuesta real): cuántas veces se
+    // creó una sesión y cuándo fue la última, para el límite de intentos y
+    // la espera mínima entre uno y el siguiente (ver crearSesionVerificacion).
+    intentos?: number;
+    ultimoIntentoEn?: unknown;
   };
 }

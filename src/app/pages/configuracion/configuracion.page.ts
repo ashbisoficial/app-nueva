@@ -88,8 +88,17 @@ export class ConfiguracionPage {
     try {
       const url = await this.auth.crearSesionVerificacionIdentidad();
       window.location.href = url;
-    } catch {
-      this.errorVerificacion.set('No se pudo iniciar la verificación. Intenta de nuevo.');
+    } catch (error) {
+      // Un error "functions/..." viene de crearSesionVerificacion y ya trae un
+      // mensaje en español pensado para mostrarse tal cual (ej. el límite de
+      // intentos o la espera entre uno y el siguiente) — distinto a un fallo
+      // de red genérico, donde sí conviene el mensaje fijo de siempre.
+      const deLaFuncion = error as { code?: string; message?: string };
+      this.errorVerificacion.set(
+        deLaFuncion?.code?.startsWith('functions/') && deLaFuncion.message
+          ? deLaFuncion.message
+          : 'No se pudo iniciar la verificación. Intenta de nuevo.'
+      );
       this.verificando.set(false);
     }
   }
